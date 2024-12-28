@@ -1,0 +1,20 @@
+object PageNumFrame: TPageNumFrame
+  Align = Vertical
+  Cursor = crHandPoint
+  Size.Width = 320.000000000000000000
+  Size.Height = 30.000000000000000000
+  Size.PlatformDefault = False
+  OnMouseEnter = FrameMouseEnter
+  OnMouseLeave = FrameMouseLeave
+  object PageNumText: TText
+    Align = Center
+    HitTest = False
+    Size.Width = 42.000000000000000000
+    Size.Height = 30.000000000000000000
+    Size.PlatformDefault = False
+    TextSettings.Font.Family = 'Inter'
+    TextSettings.Font.Size = 14.000000000000000000
+    TextSettings.FontColor = xFF5A6773
+    TextSettings.WordWrap = False
+  end
+end

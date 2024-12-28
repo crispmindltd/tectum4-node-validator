@@ -1,0 +1,31 @@
+object TickerFrame: TTickerFrame
+  Align = Left
+  Margins.Left = 10.000000000000000000
+  Position.X = 10.000000000000000000
+  Size.Width = 265.000000000000000000
+  Size.Height = 40.000000000000000000
+  Size.PlatformDefault = False
+  object RoundRect: TRoundRect
+    Align = Contents
+    Cursor = crHandPoint
+    Fill.Color = xFFF3F3F3
+    Size.Width = 265.000000000000000000
+    Size.Height = 40.000000000000000000
+    Size.PlatformDefault = False
+    Stroke.Color = x2F000000
+    OnMouseEnter = RoundRectMouseEnter
+    OnMouseLeave = RoundRectMouseLeave
+  end
+  object TickerText: TText
+    Align = Center
+    HitTest = False
+    Size.Width = 96.780311584472660000
+    Size.Height = 16.943181991577150000
+    Size.PlatformDefault = False
+    Text = 'Custom token'
+    TextSettings.Font.Family = 'Inter'
+    TextSettings.Font.Size = 14.000000000000000000
+    TextSettings.FontColor = xFD000000
+    TextSettings.WordWrap = False
+  end
+end

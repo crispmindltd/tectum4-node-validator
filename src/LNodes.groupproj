@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{54255E64-1135-48C6-9886-80230B5050F7}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="LNode.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="lnodeconsole.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="LNode">
+        <MSBuild Projects="LNode.dproj"/>
+    </Target>
+    <Target Name="LNode:Clean">
+        <MSBuild Projects="LNode.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="LNode:Make">
+        <MSBuild Projects="LNode.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="lnodeconsole">
+        <MSBuild Projects="lnodeconsole.dproj"/>
+    </Target>
+    <Target Name="lnodeconsole:Clean">
+        <MSBuild Projects="lnodeconsole.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="lnodeconsole:Make">
+        <MSBuild Projects="lnodeconsole.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="LNode;lnodeconsole"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="LNode:Clean;lnodeconsole:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="LNode:Make;lnodeconsole:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>
