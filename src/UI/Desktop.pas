@@ -40,7 +40,7 @@ type
     procedure DoTerminate;
     procedure Run;
     procedure ShowVersionDidNotMatch;
-    procedure NotifyNewTETBlocks(const ANeedRefreshBalance: Boolean);
+    procedure NotifyNewTETBlocks;
   end;
 
 implementation
@@ -135,13 +135,13 @@ procedure TUICore.DoTerminate;
 begin
 end;
 
-procedure TUICore.NotifyNewTETBlocks(const ANeedRefreshBalance: Boolean);
+procedure TUICore.NotifyNewTETBlocks;
 begin
   if Assigned(MainForm) then
     TThread.Synchronize(nil,
     procedure
     begin
-      MainForm.NewTETChainBlocksEvent(ANeedRefreshBalance);
+      MainForm.NewTETChainBlocksEvent;
     end);
 end;
 

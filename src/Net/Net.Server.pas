@@ -61,9 +61,15 @@ begin
   FAcceptedSocket := FListeningSocket.EndAccept(ASyncResult);
   if Assigned(FAcceptedSocket) then
   begin
+    FListeningSocket.BeginAccept(AcceptCallback, INFINITE);
     NewClient := TServerConnection.Create(FAcceptedSocket, FCommandHandler,
       OnClientDisconnected, OnConnectionChecked);
-    FListeningSocket.BeginAccept(AcceptCallback, INFINITE);
+    FLock.Enter;
+    try
+      FClients.Add(NewClient);
+    finally
+      FLock.Leave;
+    end;
   end else
   begin
     FStatus := ssShuttingDown;
@@ -132,19 +138,19 @@ end;
 procedure TNodeServer.OnConnectionChecked(Sender: TObject);
 var
   i: Integer;
-  NewConnect: TServerConnection;
+  Connect: TServerConnection;
 begin
+  Connect := Sender as TServerConnection;
   FLock.Enter;
   try
-    NewConnect := Sender as TServerConnection;
     for i := 0 to FClients.Count - 1 do
-      if FClients.Items[i].PubKey = NewConnect.PubKey then
+      if (FClients.Items[i].PubKey = Connect.PubKey) and
+         not FClients.Items[i].Equals(Sender) then
       begin
-        NewConnect.Status := KeyAlreadyUsesErrorCode;
-        NewConnect.Free;
+        FClients.Items[i].Status := KeyAlreadyUsesErrorCode;
+        OnClientDisconnected(Sender);
         exit;
       end;
-    FClients.Add(NewConnect);
   finally
     FLock.Leave;
   end;

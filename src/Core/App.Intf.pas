@@ -16,6 +16,7 @@ type
     procedure DoMessage(const AMessage: string);
     procedure DoTerminate;
     procedure ShowVersionDidNotMatch;
+    procedure NotifyNewTETBlocks;
   end;
 
   IAppCore = interface
@@ -35,6 +36,7 @@ type
       APrKey, APubKey: string): string;
     function DoTokenStake(AAddr: string; AAmount: UInt64; APrKey, APubKey: string): string;
     function GetTokenBalance(AAddress: string; out AFloatSize: Byte): UInt64;
+    function GetTETUserLastTransactions(AAddress: string): TArray<THistoryTransactionInfo>;
     function TrySaveKeysToFile(APrivateKey: string): Boolean;
 
     function DoValidation(const ATransBytes: TBytes; out ASign: string): Boolean; overload;

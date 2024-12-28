@@ -30,6 +30,7 @@ type
     procedure Run;
     procedure ShowVersionDidNotMatch;
     procedure ShowMainForm;
+    procedure NotifyNewTETBlocks;
   end;
 
 implementation
@@ -92,6 +93,11 @@ end;
 procedure TConsoleCore.DoTerminate;
 begin
   ExitFlag := True;
+end;
+
+procedure TConsoleCore.NotifyNewTETBlocks;
+begin
+
 end;
 
 procedure TConsoleCore.Run;

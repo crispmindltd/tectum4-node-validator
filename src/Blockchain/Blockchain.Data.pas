@@ -50,6 +50,14 @@ type
     procedure Leave(const AFilename: string);
   end;
 
+  THistoryTransactionInfo = record
+    DateTime: TDateTime;
+    BlockNum: Int64;
+    //???
+    //???
+    //???...
+  end;
+
 const
   _1_TET = UInt64(10000000);
   MinFee = _1_TET div 1000; // 0.001 TET
