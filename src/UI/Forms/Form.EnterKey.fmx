@@ -1,0 +1,189 @@
+object EnterPrivateKeyForm: TEnterPrivateKeyForm
+  Left = 0
+  Top = 0
+  Border.Styling = False
+  BorderIcons = []
+  BorderStyle = None
+  Caption = 'LNode'
+  ClientHeight = 485
+  ClientWidth = 670
+  Padding.Left = 20.000000000000000000
+  Padding.Top = 20.000000000000000000
+  Padding.Right = 20.000000000000000000
+  Padding.Bottom = 20.000000000000000000
+  Position = MainFormCenter
+  StyleBook = StylesForm.LNodeStyleBook
+  Transparency = True
+  Constraints.MaxHeight = 485.000000000000000000
+  Constraints.MaxWidth = 670.000000000000000000
+  Constraints.MinHeight = 485.000000000000000000
+  Constraints.MinWidth = 670.000000000000000000
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnClose = FormClose
+  OnShow = FormShow
+  DesignerMasterStyle = 0
+  object MainRectangle: TRectangle
+    Align = Client
+    Fill.Color = xFFE7E7E7
+    Padding.Left = 40.000000000000000000
+    Padding.Top = 50.000000000000000000
+    Padding.Right = 40.000000000000000000
+    Padding.Bottom = 50.000000000000000000
+    Size.Width = 630.000000000000000000
+    Size.Height = 445.000000000000000000
+    Size.PlatformDefault = False
+    Stroke.Kind = None
+    object CancelButton: TButton
+      Cancel = True
+      StyledSettings = []
+      ModalResult = 2
+      Position.X = 40.000000000000000000
+      Position.Y = 379.000000000000000000
+      Size.Width = 170.000000000000000000
+      Size.Height = 35.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = 'Buttonstyle'
+      TabOrder = 4
+      Text = 'Cancel'
+      TextSettings.Font.Family = 'Inter'
+      TextSettings.Font.Size = 14.000000000000000000
+      TextSettings.FontColor = claWhite
+      TextSettings.Trimming = None
+      OnClick = CancelButtonClick
+    end
+    object ErrorLabel: TLabel
+      AutoSize = True
+      StyledSettings = [Style]
+      Margins.Top = 17.000000000000000000
+      Position.X = 40.000000000000000000
+      Position.Y = 345.000000000000000000
+      Size.Width = 550.000000000000000000
+      Size.Height = 19.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.Font.Family = 'Inter'
+      TextSettings.Font.Size = 15.000000000000000000
+      TextSettings.FontColor = xFFFF7070
+      Text = 'The private key entered is invalid. Please try again.'
+      Visible = False
+      TabOrder = 1
+    end
+    object LinkLabel: TLabel
+      Align = Top
+      AutoSize = True
+      Cursor = crHandPoint
+      StyledSettings = []
+      HitTest = True
+      Padding.Top = 5.000000000000000000
+      Position.X = 40.000000000000000000
+      Position.Y = 141.000000000000000000
+      Size.Width = 550.000000000000000000
+      Size.Height = 19.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.Font.Family = 'Inter'
+      TextSettings.Font.Size = 15.000000000000000000
+      TextSettings.FontColor = xFF487BFF
+      Text = 'https://wallet.softnote.com/login'
+      TabOrder = 6
+      OnMouseDown = LinkLabelMouseDown
+      OnMouseEnter = LinkLabelMouseEnter
+      OnMouseLeave = LinkLabelMouseLeave
+    end
+    object PrivateKeyLabel: TLabel
+      Align = Top
+      AutoSize = True
+      StyledSettings = []
+      Position.X = 40.000000000000000000
+      Position.Y = 50.000000000000000000
+      Size.Width = 550.000000000000000000
+      Size.Height = 37.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.Font.Family = 'Inter'
+      TextSettings.Font.Size = 30.000000000000000000
+      TextSettings.Font.StyleExt = {00070000000000000004000000}
+      TextSettings.FontColor = xFF323130
+      TextSettings.WordWrap = False
+      Text = 'Private Key'
+      TabOrder = 0
+    end
+    object PrKeyRectangle: TRectangle
+      Align = Top
+      Fill.Color = x55FFFFFF
+      Padding.Left = 10.000000000000000000
+      Padding.Top = 7.000000000000000000
+      Padding.Right = 10.000000000000000000
+      Padding.Bottom = 7.000000000000000000
+      Margins.Top = 17.000000000000000000
+      Position.X = 40.000000000000000000
+      Position.Y = 177.000000000000000000
+      Size.Width = 550.000000000000000000
+      Size.Height = 170.000000000000000000
+      Size.PlatformDefault = False
+      Stroke.Kind = None
+      XRadius = 5.000000000000000000
+      YRadius = 5.000000000000000000
+      object PrKeyMemo: TMemo
+        Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+        AutoSelect = True
+        DataDetectorTypes = []
+        MaxLength = 64
+        StyledSettings = [Family, Style]
+        TextSettings.Font.Family = 'Inter'
+        TextSettings.Font.Size = 15.000000000000000000
+        TextSettings.FontColor = xFF323130
+        OnChangeTracking = PrKeyMemoChangeTracking
+        Align = Client
+        Size.Width = 530.000000000000000000
+        Size.Height = 156.000000000000000000
+        Size.PlatformDefault = False
+        StyleLookup = 'PathMemostyle'
+        TabOrder = 0
+        Viewport.Width = 526.000000000000000000
+        Viewport.Height = 152.000000000000000000
+      end
+    end
+    object SaveKeyButton: TButton
+      Enabled = False
+      StyledSettings = []
+      Position.X = 420.000000000000000000
+      Position.Y = 379.000000000000000000
+      Size.Width = 170.000000000000000000
+      Size.Height = 35.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = 'Buttonstyle'
+      TabOrder = 5
+      Text = 'Save'
+      TextSettings.Font.Family = 'Inter'
+      TextSettings.Font.Size = 14.000000000000000000
+      TextSettings.FontColor = claWhite
+      TextSettings.Trimming = None
+      OnClick = SaveKeyButtonClick
+    end
+    object TextInfoLabel: TLabel
+      Align = Top
+      AutoSize = True
+      StyledSettings = [Style]
+      Margins.Top = 17.000000000000000000
+      Position.X = 40.000000000000000000
+      Position.Y = 104.000000000000000000
+      Size.Width = 550.000000000000000000
+      Size.Height = 37.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.Font.Family = 'Inter'
+      TextSettings.Font.Size = 15.000000000000000000
+      TextSettings.FontColor = xFF323130
+      Text = 
+        'To send a transaction, it is necessary to enter a private key. Y' +
+        'ou can retrieve the private key from your account:'
+      TabOrder = 2
+    end
+    object ShadowEffect1: TShadowEffect
+      Distance = 2.000000000000000000
+      Direction = 45.000000000000000000
+      Softness = 0.800000011920929000
+      Opacity = 0.500000000000000000
+      ShadowColor = claBlack
+    end
+  end
+end
