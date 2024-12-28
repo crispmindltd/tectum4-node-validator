@@ -179,6 +179,8 @@ begin
         DataCache.UpdateCache(txn, FromID + i div SizeOf(TTxn));
         Inc(i, SizeOf(TTxn));
       end;
+      if Length(AResponse.Data) > 0 then
+        UI.NotifyNewTETBlocks;
       Sleep(50);
       if not FIsShuttingDown and FIsForSync then
         SendRequest(GetTxnsCommandCode, GetBlocksCountBytes<TTxn>(TTxn.Filename), False);

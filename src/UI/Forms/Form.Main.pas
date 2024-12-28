@@ -7,10 +7,10 @@ uses
   App.Logs,
   App.Intf,
   App.Updater,
-//  Blockchain.BaseTypes,
+  Blockchain.Data,
 //  Blockchain.Intf,
-//  Frame.Explorer,
-//  Frame.History,
+  Frame.Explorer,
+  Frame.History,
 //  Frame.PageNum,
 //  Frame.Ticker,
   Generics.Collections,
@@ -367,7 +367,7 @@ type
 //    procedure RefreshExplorer(ATransactions: TArray<TExplorerTransactionInfo>;
 //      AShowTicker: Boolean);
 //    procedure AlignExplorerHeaders(AShowTicker: Boolean);
-//    procedure CleanScrollBox(AVertScrollBox: TVertScrollBox);
+    procedure CleanScrollBox(AVertScrollBox: TVertScrollBox);
 
 //    procedure AddTickerFrame(const ATicker: string; ATokenID: Integer = -1);
 //    procedure AddTokenItem(ATokenID: Integer; AName: string; AValue: Double);
@@ -393,7 +393,7 @@ type
 //    procedure TokenCreatingCallBack(const AResponse: string);
 //    procedure TokenTransferCallBack(const AResponse: string);
   public
-    procedure NewTETChainBlocksEvent(ANeedRefreshBalance: Boolean);
+    procedure NewTETChainBlocksEvent;
 //    procedure NewTokenEvent(ASmartKey: TCSmartKey);
 //    procedure NewTokenBlocksEvent(ASmartKey: TCSmartKey;
 //      ANeedRefreshBalance: Boolean);
@@ -606,8 +606,8 @@ begin
     else
       ContentWidth := HistoryTETVertScrollBox.ContentBounds.Width;
 
-//    Width := ContentWidth - DateTimeLabelWidth -
-//      BlockLabelWidth - ValueLabelWidth - IncomRectWidth - 85;
+    Width := ContentWidth - DateTimeLabelWidth -
+      BlockLabelWidth - ValueLabelWidth - IncomRectWidth - 85;
     AddressTETHeaderLabel.Width := Width * 0.4;
     HashTETHeaderLabel.Width := Width * 0.6;
   finally
@@ -696,22 +696,22 @@ begin
 //  TETTabControl.Previous;
 end;
 
-//procedure TMainForm.CleanScrollBox(AVertScrollBox: TVertScrollBox);
-//var
-//  Frame: TComponent;
-//  i: Integer;
-//begin
-//  i := 0;
-//  while i < AVertScrollBox.ComponentCount do
-//  begin
-//    Frame := AVertScrollBox.Components[i];
-//    if (AVertScrollBox.Components[i] is THistoryTransactionFrame) or
-//       (AVertScrollBox.Components[i] is TExplorerTransactionFrame) then
-//      Frame.Free
-//    else
-//      Inc(i);
-//  end;
-//end;
+procedure TMainForm.CleanScrollBox(AVertScrollBox: TVertScrollBox);
+var
+  Frame: TComponent;
+  i: Integer;
+begin
+  i := 0;
+  while i < AVertScrollBox.ComponentCount do
+  begin
+    Frame := AVertScrollBox.Components[i];
+    if (AVertScrollBox.Components[i] is THistoryTransactionFrame) or
+       (AVertScrollBox.Components[i] is TExplorerTransactionFrame) then
+      Frame.Free
+    else
+      Inc(i);
+  end;
+end;
 
 procedure TMainForm.CopyFromLayoutClick(Sender: TObject);
 //var
@@ -977,7 +977,7 @@ end;
 
 procedure TMainForm.FormShow(Sender: TObject);
 begin
-//  AddressTETLabel.Text := AppCore.TETAddress;
+  AddressTETLabel.Text := AppCore.Address;
 //  AddressTokenLabel.Text := AppCore.TETAddress;
 //  RefreshTokensBalances;
   Tabs.TabIndex := 0;
@@ -1033,7 +1033,7 @@ begin
         RefreshTETBalance;
         RefreshTETHistory;
         AlignTETHeaders;
-        SendTETToEdit.SetFocus;
+//        SendTETToEdit.SetFocus;
       end;
 //    1:
 //      begin
@@ -1045,7 +1045,7 @@ begin
     3: begin
          ExplorerTabControl.TabIndex := 0;
 //         AlignExplorerHeaders(TickerExplorerHeaderLabel.Visible);
-         SearchEdit.SetFocus;
+//         SearchEdit.SetFocus;
        end;
   end;
 end;
@@ -1122,9 +1122,9 @@ begin
 //  SearchTokenEdit.Text := '';
 end;
 
-procedure TMainForm.NewTETChainBlocksEvent(ANeedRefreshBalance: Boolean);
+procedure TMainForm.NewTETChainBlocksEvent;
 begin
-  if ANeedRefreshBalance and (Tabs.TabIndex = 0) then
+  if Tabs.TabIndex = 0 then
   begin
     RefreshTETBalance;
     RefreshTETHistory;
@@ -1434,15 +1434,16 @@ end;
 
 procedure TMainForm.RefreshTETBalance;
 var
-  val: Double;
+  BalanceValue: Double;
+  FloatSize: Byte;
 begin
   try
-//    val := AppCore.GetTETBalance(FDynTETBlockNum, FDynTET);
-    FBalances.AddOrSetValue('TET', val);
-    BalanceTETValueLabel.Text := FormatFloat('0.########', val) + ' TET';
+    BalanceValue := AppCore.GetTokenBalance(AppCore.Address, FloatSize);
+    FBalances.AddOrSetValue('TET', BalanceValue);
+    BalanceTETValueLabel.Text := FormatFloat('0.########', BalanceValue) + ' TET';
   except
-    on E:ENoInfoForThisAccountError do
-      BalanceTETValueLabel.Text := '<ERROR: DATA NOT FOUND>';
+    on E:EValidError do
+      BalanceTETValueLabel.Text := 'Error: ' + E.Message;
     on E:Exception do
       BalanceTETValueLabel.Text := '<UNKNOWN ERROR>';
   end;
@@ -1452,22 +1453,21 @@ procedure TMainForm.RefreshTETHistory;
 const
   MaxTransactionsNumber = 20;
 var
-//  TETTransactions: TArray<THistoryTransactionInfo>;
+  TETTransactions: TArray<THistoryTransactionInfo>;
 //  TETTransactionFrame: THistoryTransactionFrame;
   i: Integer;
 begin
-//  TETTransactions := AppCore.GetTETUserLastTransactions(AppCore.UserID, 0,
-//    MaxTransactionsNumber);
+  TETTransactions := AppCore.GetTETUserLastTransactions(AppCore.Address);
 
-//  NoTETHistoryLabel.Visible := Length(TETTransactions) = 0;
+  NoTETHistoryLabel.Visible := Length(TETTransactions) = 0;
   HistoryTETHeaderLayout.Visible := not NoTETHistoryLabel.Visible;
   HistoryTETVertScrollBox.Visible := not NoTETHistoryLabel.Visible;
   if NoTETHistoryLabel.Visible then
     exit;
 
-//  HistoryTETVertScrollBox.BeginUpdate;
-//  CleanScrollBox(HistoryTETVertScrollBox);
-//  try
+  HistoryTETVertScrollBox.BeginUpdate;
+  CleanScrollBox(HistoryTETVertScrollBox);
+  try
 //    for i := 0 to Length(TETTransactions) - 1 do
 //    begin
 //      with TETTransactions[i] do
@@ -1477,10 +1477,10 @@ begin
 //      TETTransactionFrame.OnClick := onTETHistoryFrameClick;
 //      TETTransactionFrame.Parent := HistoryTETVertScrollBox;
 //    end;
-//  finally
-//    HistoryTETVertScrollBox.EndUpdate;
-//    AlignTETHeaders;
-//  end;
+  finally
+    HistoryTETVertScrollBox.EndUpdate;
+    AlignTETHeaders;
+  end;
 end;
 
 //procedure TMainForm.RefreshTokenHistory;
