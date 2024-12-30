@@ -87,7 +87,10 @@ end;
 
 procedure TConsoleCore.DoMessage(const AMessage: string);
 begin
-  Writeln(AMessage)
+  TThread.Queue(nil, procedure
+  begin
+    Writeln(AMessage)
+  end);
 end;
 
 procedure TConsoleCore.DoTerminate;

@@ -18,19 +18,22 @@ uses
   Types;
 
 type
+  TCheckConnectFunc = function(Sender: TObject): Boolean of object;
+
   TServerConnection = class(TConnection)
     strict private
+      FBytesToSign: TBytes;
       FPubKey: T65Bytes;
     private
       FStatus: Byte;
-      FOnConnectionChecked: TNotifyEvent;
+      FOnConnectionChecked: TCheckConnectFunc;
 
       procedure DoDisconnect; override;
       procedure ProcessCommand(const AResponse: TResponseData); override;
       procedure ReceiveCallBack(const ASyncResult: IAsyncResult); override;
     public
       constructor Create(ASocket: TSocket; ACommandHandler: TCommandHandler;
-        AOnDisconnected: TNotifyEvent; AOnConnectionChecked: TNotifyEvent);
+        AOnDisconnected: TNotifyEvent; AOnConnectionChecked: TCheckConnectFunc);
       destructor Destroy; override;
 
       procedure Stop; override;
@@ -41,44 +44,29 @@ type
 
 implementation
 
+uses
+  App.Intf;
+
 { TServerConnection }
 
 constructor TServerConnection.Create(ASocket: TSocket; ACommandHandler: TCommandHandler;
-  AOnDisconnected: TNotifyEvent; AOnConnectionChecked: TNotifyEvent);
+  AOnDisconnected: TNotifyEvent; AOnConnectionChecked: TCheckConnectFunc);
 begin
   inherited Create(ASocket, ACommandHandler, AOnDisconnected);
 
   FStatus := 0;
   FOnConnectionChecked := AOnConnectionChecked;
 
-  BeginReceive;
   Randomize;
-
-  try
-    const Answer = DoRequest(CheckVersionCommandCode, []{, 500});
-    const ToSign = TEncoding.ANSI.GetBytes(THash.GetRandomString(32));
-    try
-      const KeyAndSign = DoRequest(InitConnectCode, ToSign{, 500});
-      FPubKey := Copy(KeyAndSign, 0, 65);
-      const Sign = Copy(KeyAndSign, 65, Length(KeyAndSign));
-      FConnectionChecked := ECDSACheckBytesSign(ToSign, Sign, FPubKey);
-    except
-      FConnectionChecked := False;
-    end;
-  finally
-    if FConnectionChecked then
-    begin
-      FOnConnectionChecked(Self);
-      FSocket.Send([PingCode]);
-    end else
-      FOnDisconnected(Self);
-  end;
+  FBytesToSign := TEncoding.ANSI.GetBytes(THash.GetRandomString(32));
+  SendRequest(InitConnectCode, FBytesToSign, False);
+  BeginReceive;
 end;
 
 destructor TServerConnection.Destroy;
 begin
   if FStatus <> 0 then
-    FSocket.Send([KeyAlreadyUsesErrorCode]);
+    FSocket.Send([FStatus]);
 
   inherited;
 end;
@@ -90,7 +78,27 @@ end;
 
 procedure TServerConnection.ProcessCommand(const AResponse: TResponseData);
 begin
-
+  case AResponse.RequestData.Code of
+    InitConnectCode:
+      begin
+        FPubKey := Copy(AResponse.Data, 0, 65);
+        const Sign = Copy(AResponse.Data, 65, Length(AResponse.Data));
+        FConnectionChecked := ECDSACheckBytesSign(FBytesToSign, Sign, FPubKey);
+        if FConnectionChecked then
+        begin
+          if FOnConnectionChecked(Self) then
+            FSocket.Send([SuccessCode])
+          else begin
+            FStatus := KeyAlreadyUsesErrorCode;
+            DoDisconnect;
+          end;
+        end else
+        begin
+          FStatus := InitConnectErrorCode;
+          DoDisconnect;
+        end;
+      end;
+  end;
 end;
 
 procedure TServerConnection.ReceiveCallBack(const ASyncResult: IAsyncResult);
@@ -99,31 +107,30 @@ var
   LengthBytes: array[0..3] of Byte;
   Length: Integer absolute LengthBytes;
 begin
-  if FIsShuttingDown then
-    exit;
   try
     IncomData.Data := FSocket.EndReceiveBytes(ASyncResult);
     if Assigned(IncomData.Data) then
     begin
       FSocket.Receive(IncomData.RequestData.Code, 1, [TSocketFlag.WAITALL]);
-      if not FConnectionChecked and (IncomData.RequestData.Code <> ResponseCode) then
-        raise ESocketError.Create('');
+
+      if not (FConnectionChecked or (IncomData.RequestData.Code = ResponseCode)) then
+          raise ESocketError.Create('Identification error');
 
       case IncomData.RequestData.Code of
         PingCode:
           begin
-            FSocket.BeginReceive(ReceiveCallBack, -1, [TSocketFlag.PEEK]);
+            if not FIsShuttingDown then
+              BeginReceive;
             FSocket.Send([PongCode]);
           end;
 
         else
           begin
-//            IncomData._PubKey := Self.FPubKey;
-
             FSocket.Receive(IncomData.RequestData.ID, 8, [TSocketFlag.WAITALL]);
             FSocket.Receive(LengthBytes, 4, [TSocketFlag.WAITALL]);
             FSocket.Receive(IncomData.Data, Length, [TSocketFlag.WAITALL]);
-            FSocket.BeginReceive(ReceiveCallBack, -1, [TSocketFlag.PEEK]);
+            if not FIsShuttingDown then
+              BeginReceive;
 
             if IncomData.RequestData.Code in [ResponseCode, ResponseSyncCode] then
               WriteResponseData(IncomData, IncomData.RequestData.Code = ResponseCode)
@@ -135,15 +142,21 @@ begin
       raise ESocketError.Create('');
   except
     on E:ESocketError do
+    begin
+//      if not E.Message.IsEmpty then
+//        UI.DoMessage(Format('%s. Disconnect...', [E.Message]));
       DoDisconnect;
+    end;
   end;
 end;
 
 procedure TServerConnection.Stop;
 begin
-  FSocket.Send([ImShuttingDownCode]);
-
   inherited;
+
+  FSocket.Send([ImShuttingDownCode]);
+  if IsReadyToStop then
+    DoDisconnect;
 end;
 
 end.

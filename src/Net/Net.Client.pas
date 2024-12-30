@@ -13,20 +13,27 @@ uses
   Net.Socket,
   Net.Data,
   SyncObjs,
-  SysUtils;
+  SysUtils,
+  Threading;
 
 type
+  TClientStatus = (csStarted, csShuttingDown, csStoped);
+
   TNodeClient = class
   const
     ShutDownTimeout = 5000;
   private
+    FStatus: TClientStatus;
     FServers: TObjectList<TClientConnection>;
+    FServForSync: TClientConnection;
     FCommandHandler: TCommandHandler;
     FLock: TCriticalSection;
     FClientStoped: TEvent;
 
-    procedure EstablishConnection(const ASocket: TSocket; const AAddress: string);
+    procedure EstablishConnection(const AAddress: string);
+    procedure OnServerIsNotAvailable(Sender: TObject);
     procedure OnDisconnectedFromServer(Sender: TObject);
+    function OnCheckIfNeedSync(Sender: TObject): Boolean;
     procedure ChooseConnectionForChainsSync;
   public
     constructor Create;
@@ -43,19 +50,31 @@ implementation
 { TNodeClient }
 
 procedure TNodeClient.ChooseConnectionForChainsSync;
+var
+  Ind: Integer;
 begin
-  if not FServers.IsEmpty then
-    FServers[Random(FServers.Count)].IsForSync := True;
+  if not FServers.IsEmpty and not Assigned(FServForSync) then
+  begin
+    Ind := Random(FServers.Count);
+    if not FServers[Ind].IsReconnecting then
+    begin
+      FServers[Ind].IsForSync := True;
+      FServForSync := FServers[Ind];
+    end;
+  end;
 end;
 
 constructor TNodeClient.Create;
 begin
   inherited Create;
 
+  FStatus := csStoped;
   FLock := TCriticalSection.Create;
   FCommandHandler := TCommandHandler.Create;
   FClientStoped := TEvent.Create;
+  FClientStoped.ResetEvent;
   FServers := TObjectList<TClientConnection>.Create;
+  FServForSync := nil;
 end;
 
 destructor TNodeClient.Destroy;
@@ -69,21 +88,21 @@ begin
   inherited;
 end;
 
-procedure TNodeClient.EstablishConnection(const ASocket: TSocket;
-  const AAddress: string);
+procedure TNodeClient.EstablishConnection(const AAddress: string);
 var
   Splitted: TArray<string>;
   NewConnection: TClientConnection;
 begin
-  NewConnection := TClientConnection.Create(ASocket, FCommandHandler,
-    OnDisconnectedFromServer);
+  NewConnection := TClientConnection.Create(TSocket.Create(TSocketType.TCP,
+    TEncoding.ANSI), FCommandHandler, OnDisconnectedFromServer,
+    OnServerIsNotAvailable, OnCheckIfNeedSync);
   Splitted := AAddress.Split([':']);
+
   if NewConnection.Connect(Splitted[0], Splitted[1].ToInteger) then
   begin
     FLock.Enter;
     try
       FServers.Add(NewConnection);
-      FClientStoped.ResetEvent;
     finally
       FLock.Leave;
     end;
@@ -94,15 +113,32 @@ begin
   end;
 end;
 
+function TNodeClient.OnCheckIfNeedSync(Sender: TObject): Boolean;
+begin
+  Result := not Assigned(FServForSync);
+  if Result then
+    FServForSync := Sender as TClientConnection;
+end;
+
 procedure TNodeClient.OnDisconnectedFromServer(Sender: TObject);
 begin
   FLock.Enter;
   try
     FServers.Remove(Sender as TClientConnection);
-    if FServers.IsEmpty then
+    if FServers.IsEmpty and (FStatus = csShuttingDown) then
       FClientStoped.SetEvent;
   finally
     FLock.Leave;
+  end;
+end;
+
+procedure TNodeClient.OnServerIsNotAvailable(Sender: TObject);
+begin
+  const WasSyncServ = (Sender as TClientConnection).Equals(FServForSync);
+  if WasSyncServ and (FStatus = csStarted) then
+  begin
+    FServForSync := nil;
+    ChooseConnectionForChainsSync;
   end;
 end;
 
@@ -123,26 +159,50 @@ end;
 procedure TNodeClient.Start;
 var
   i: Integer;
+  Tasks: array of ITask;
+  procedure Connect(Anum:Integer);
+  begin
+    Tasks[Anum] := TTask.Run(procedure
+    begin
+      EstablishConnection(Nodes.GetNodesArray[Anum]);
+    end);
+  end;
 begin
   FClientStoped.ResetEvent;
   FServers.Clear;
-  for i := 0 to Length(Nodes.GetNodesArray) - 1 do
-    EstablishConnection(TSocket.Create(TSocketType.TCP, TEncoding.ANSI),
-      Nodes.GetNodesArray[i]);
-  ChooseConnectionForChainsSync;
+
+  SetLength(Tasks, Length(Nodes.GetNodesArray));
+  for i := 0 to Length(Tasks) - 1 do
+    Connect(i);
+
+  TTask.WaitForAll(Tasks, 2000);
+  Sleep(500);
+  if FStatus = csStoped then
+  begin
+    ChooseConnectionForChainsSync;
+    FStatus := csStarted;
+  end;
 end;
 
 procedure TNodeClient.Stop;
 var
   i: Integer;
 begin
+  if FStatus <> csStarted then
+    exit;
+
+  FStatus := csShuttingDown;
   if FServers.Count = 0 then
+  begin
     FClientStoped.SetEvent;
+    exit;
+  end;
   for i := 0 to FServers.Count - 1 do
     FServers[i].Stop;
 
   if FClientStoped.WaitFor(ShutDownTimeout) <> wrSignaled then
     Logs.DoLog('Client shutdown timeout', ltError);
+  FStatus := csStoped;
 end;
 
 end.
