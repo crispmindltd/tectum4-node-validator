@@ -77,7 +77,8 @@ begin
   try
     case AIncomData.RequestData.Code of
       InitConnectCode:
-        Result := HexToBytes(AppCore.PubKey) + ECDSASignBytes(AIncomData.Data, HexToBytes(AppCore.PrKey));
+        Result := HexToBytes(AppCore.PubKey) +
+          ECDSASignBytes(AIncomData.Data, HexToBytes(AppCore.PrKey));
 
       GetRewardsCommandCode:
         Result := GetBlocks<TReward>(TReward.Filename, AIncomData.Data);

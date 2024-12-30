@@ -10,7 +10,6 @@ uses
   System.Classes,
   Generics.Collections,
   Net.CommandHandler,
-  Net.Data,
   Net.ServerConnection,
   Net.Socket,
   System.SyncObjs,
@@ -37,7 +36,7 @@ type
       procedure AcceptCallback(const ASyncResult: IAsyncResult);
       procedure AcceptConnections;
       procedure OnClientDisconnected(Sender: TObject);
-      procedure OnConnectionChecked(Sender: TObject);
+      function OnConnectionChecked(Sender: TObject): Boolean;
       procedure TerminateAllClients;
     public
       function GetValidators(const [Ref] AExcludePubKey:T65Bytes):TArray<TServerConnection>;
@@ -135,7 +134,7 @@ begin
   end;
 end;
 
-procedure TNodeServer.OnConnectionChecked(Sender: TObject);
+function TNodeServer.OnConnectionChecked(Sender: TObject): Boolean;
 var
   i: Integer;
   Connect: TServerConnection;
@@ -146,11 +145,9 @@ begin
     for i := 0 to FClients.Count - 1 do
       if (FClients.Items[i].PubKey = Connect.PubKey) and
          not FClients.Items[i].Equals(Sender) then
-      begin
-        FClients.Items[i].Status := KeyAlreadyUsesErrorCode;
-        OnClientDisconnected(Sender);
-        exit;
-      end;
+        Exit(False);
+
+    Result := True;
   finally
     FLock.Leave;
   end;

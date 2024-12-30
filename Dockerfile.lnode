@@ -1,0 +1,12 @@
+FROM ubuntu:latest
+
+WORKDIR /app
+
+
+COPY  src/Linux64/Release/exe/lnodeconsole /app/
+COPY settings.ini /app/
+COPY run.sh /app/run.sh
+RUN chmod +x /app/run.sh
+RUN chmod +x /app/lnodeconsole
+EXPOSE 50000
+CMD ["/app/run.sh"]

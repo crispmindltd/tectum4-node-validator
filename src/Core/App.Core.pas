@@ -440,7 +440,7 @@ begin
     if Assigned(FHTTPServer) then
       FHTTPServer.Start(HTTPPort);
     FNodeClient.Start;
-    Updater.Run;
+//    Updater.Run;
   except
     on E:Exception do
     begin

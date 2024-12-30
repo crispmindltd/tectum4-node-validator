@@ -19,7 +19,8 @@ type
   TConnection = class
     const
       DebugMultiplier = 1;
-      ReceiveDataTimeout = 200 * DebugMultiplier;
+      ReceiveDataTimeout = 1500 * DebugMultiplier;
+      ConnectTimeout = 1500 * DebugMultiplier;
       CommandExecTimeout = 1000 * DebugMultiplier;
       ResponseWaitingTimeout = 1500 * DebugMultiplier;
       ShutDownTimeout = 3000 * DebugMultiplier;
@@ -39,8 +40,8 @@ type
       FOnDisconnected: TNotifyEvent;
       FStopwatch: TStopwatch;
 
-      procedure BeginReceive;
-      procedure Disconnect;
+      procedure BeginReceive; inline;
+      procedure Disconnect; virtual;
       procedure DoDisconnect; virtual; abstract;
       procedure ReceiveCallBack(const ASyncResult: IAsyncResult); virtual; abstract;
       procedure SendRequest(const ACommandByte: Byte; const ABytes: TBytes;
@@ -48,7 +49,7 @@ type
       procedure ProcessCommand(const AResponse: TResponseData); virtual; abstract;
       procedure AddIncomRequest(const ARequest: TResponseData);
       procedure WriteResponseData(const AResponse: TResponseData;
-        AToLog: Boolean = True);
+        AToLog: Boolean = True); virtual;
       function IsReadyToStop: Boolean;
     public
       constructor Create(ASocket: TSocket; ACommandHandler: TCommandHandler;
@@ -72,6 +73,7 @@ begin
   FOnDisconnected := AOnDisconnected;
   FConnectionChecked := False;
   FIsShuttingDown := False;
+  FSocket.ConnectTimeout := ConnectTimeout;
   FSocket.ReceiveTimeout := ReceiveDataTimeout;
   FOutgoRequests := TThreadList<TOutgoRequestData>.Create;
   FIncomRequestsCount := 0;
@@ -97,6 +99,7 @@ begin
       FSocket.Close;
     {$ENDIF}
 
+    FConnectionChecked := False;
     FOutgoRequests.Clear;
     FIncomRequestsCount := 0;
     FStopwatch.Stop;
@@ -181,8 +184,6 @@ end;
 procedure TConnection.Stop;
 begin
   FIsShuttingDown := True;
-  if IsReadyToStop then
-    DoDisconnect;
 end;
 
 procedure TConnection.AddIncomRequest(const ARequest: TResponseData);

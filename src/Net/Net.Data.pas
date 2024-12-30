@@ -38,7 +38,8 @@ const
   GetValidationsCommandCode = 106;
   GetRewardsCommandCode = 107;
 
-  KeyAlreadyUsesErrorCode = 200;
+  InitConnectErrorCode = 200;
+  KeyAlreadyUsesErrorCode = 201;
 
 type
   TNodesConnectManager = class
