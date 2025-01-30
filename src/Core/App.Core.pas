@@ -1,4 +1,4 @@
-unit App.Core;
+﻿unit App.Core;
 
 interface
 
@@ -8,12 +8,13 @@ uses
   Blockchain.Txn,
   Blockchain.Validation,
   Blockchain.Address,
+  Blockchain.Reward,
   App.Constants,
   App.Exceptions,
   App.Intf,
   App.Logs,
   App.Settings,
-  App.Updater,
+  Update.Core,
   Classes,
   ClpIAsymmetricCipherKeyPair,
   ClpIECPrivateKeyParameters,
@@ -38,11 +39,14 @@ type
     FPrKey: string;
     FPubKey: string;
     FAddress: string;
+  public
+
   private
     FSettings: TSettingsFile;
     FNodeServer: TNodeServer;
     FNodeClient: TNodeClient;
     FHTTPServer: THTTPServer;
+    FUpdate: TUpdateCore;
 
     function CheckTickerName(const ATicker: string): Boolean;
     function CheckShortName(const AShortName: string): Boolean;
@@ -52,12 +56,14 @@ type
     function IsURKError(const AText: string): Boolean;
     function CheckIncomingSign(const ATransBytes: TBytes): Boolean;
     function InitKeys: Boolean;
+    procedure InitBCFiles;
   public
     constructor Create;
     destructor Destroy; override;
 
     procedure Run;
     procedure Stop;
+    procedure Reset;
     function GetPrKey: string;
     function GetPubKey: string;
     function GetAddress: string;
@@ -67,20 +73,28 @@ type
     procedure GenNewKeys(var ASeedPhrase, APrKey, APubKey, AAddress: string);
     function DoRecoverKeys(ASeed: string; out APubKey: string;
       out APrKey: string; out AAddress: string): string;
-//    function DoNewToken(AReqID, ASessionKey, AFullName, AShortName,
-//      ATicker: string; AAmount: Int64; ADecimals: Integer): string;
+    function GetBlocksCount: Int64;
     function GetNewTokenFee(AAmount: Int64; ADecimals: Integer): Integer;
-    function DoTokenTransfer(AAddrFrom, AAddrTo: string; AAmount: UInt64;
-      APrKey, APubKey: string): string;
-    function DoTokenStake(AAddr: string; AAmount: UInt64; APrKey, APubKey: string): string;
-    function GetTokenBalance(AAddress: string; out AFloatSize: Byte): UInt64;
-    function GetTETUserLastTransactions(AAddress: string): TArray<THistoryTransactionInfo>;
+    function DoTokenTransfer(AAddrFrom, AAddrTo: string; AAmount: UInt64; APrKey: string): string;
+    function DoTokenMigrate(AAddrFrom, AAddrTo: string; AAmount: UInt64; APrKey: string): string;
+    function DoTokenStake(AAddr: string; AAmount: UInt64; APrKey: string): string;
+    function DoTokenUnstake(AAddr: string; AAmount: UInt64; APrKey: string): string;
+    function GetTokenBalance(AAddress: string): UInt64;
+    function GetStakingBalance(AAddress: string): UInt64;
+    function GetStakingReward(StartIndex: UInt64; AAddress: string): TRewardTotalInfo;
+    function GetUserLastTransactions(AAddress: string; Skip,Count: Int64): TArray<TTransactionInfo>;
+    function GetLastTransactions(Skip,Count: Int64): TArray<TTransactionInfo>;
     function TrySaveKeysToFile(APrivateKey: string): Boolean;
-    function DoValidation(const ATransBytes: TBytes; out ASign: string): Boolean; overload;
+    procedure ChangePrivateKey(const PrKey: string);
     function DoValidation(const [Ref] ATxn: TMemBlock<TTxn>;
-      out ASign: TMemBlock<TValidation>): Boolean; overload;
+      out ASign: TMemBlock<TValidation>): Boolean;
 
     function DoRequestToArchivator(const ACommandCode: Byte; ARequest: TBytes): TBytes;
+
+    function GetAppVersion: string;
+    function GetAppVersionText: string;
+    procedure StartUpdate;
+    procedure WaitForStop;
 
     property PrKey: string read GetPrKey;
     property PubKey: string read GetPubKey;
@@ -155,78 +169,113 @@ end;
 
 constructor TAppCore.Create;
 begin
-  Logs := TLog.Create;
   FSettings := TSettingsFile.Create;
+  Logs := TLog.Create(FSettings.LogsLevel);
+  InitBCFiles;
   FNodeServer := TNodeServer.Create;
   FNodeClient := TNodeClient.Create;
+  FUpdate:=TUpdateCore.Create;
+  FUpdate.UpdatesRef:='https://raw.githubusercontent.com/crispmindltd/tectum4-node-release/refs/heads/main/update/lnode-updates.json';
+
   if FSettings.EnabledHTTP then
     FHTTPServer := THTTPServer.Create;
 end;
 
 destructor TAppCore.Destroy;
 begin
+  FUpdate.Free;
   FNodeServer.Free;
   FHTTPServer.Free;
   FNodeClient.Free;
   FSettings.Free;
-  Logs.Free;
+  FreeAndNil(Logs);
 
   inherited;
 end;
 
-function TAppCore.DoTokenStake(AAddr: string; AAmount: UInt64; APrKey, APubKey: string): string;
+function TAppCore.DoTokenStake(AAddr: string; AAmount: UInt64; APrKey: string): string;
 begin
   if not CheckAddress(AAddr) then
-    raise EValidError.Create('invalid address "from"');
+    raise EValidError.Create('invalid address');
   if Length(APrKey) <> 64 then
     raise EValidError.Create('invalid private key');
-  if Length(APubKey) <> 130 then
-    raise EValidError.Create('invalid public key');
 
   var LTx:TMemBlock<TTxn> := CreateTx(AAddr, AAddr, AAmount, CalculateFee(AAmount), TTxnType.txStake, TET_Id, APrKey);
 
-  assert(LTx.Data.SenderPubKey = apubkey);
-
   const Answer = DoRequestToArchivator(NewTransactionCommandCode, LTx);
 
-  if Answer[0] = SuccessCode then begin
-    Result := Crypto.BytesToHex(Copy(Answer, 1));
-  end
-  else begin
-    Result := TEncoding.ANSI.GetString(Answer);
-  end;
+  if Answer[0] = SuccessCode then
+    Result := Crypto.BytesToHex(Copy(Answer, 1))
+  else
+    raise Exception.Create(TEncoding.ANSI.GetString(Answer));
 
 end;
 
+function TAppCore.DoTokenUnstake(AAddr: string; AAmount: UInt64; APrKey: string): string;
+begin
+  if not CheckAddress(AAddr) then
+    raise EValidError.Create('invalid address');
+  if Length(APrKey) <> 64 then
+    raise EValidError.Create('invalid private key');
+
+  var LTx:TMemBlock<TTxn> := CreateTx(AAddr, AAddr, AAmount, CalculateFee(AAmount), TTxnType.txUnStake, TET_Id, APrKey);
+
+  const Answer = DoRequestToArchivator(NewTransactionCommandCode, LTx);
+
+  if Answer[0] = SuccessCode then
+    Result := Crypto.BytesToHex(Copy(Answer, 1))
+  else
+    raise Exception.Create(TEncoding.ANSI.GetString(Answer));
+end;
+
 function TAppCore.DoTokenTransfer(AAddrFrom, AAddrTo: string; AAmount: UInt64;
-  APrKey, APubKey: string): string;
+  APrKey: string): string;
 begin
   if not CheckAddress(AAddrFrom) then
     raise EValidError.Create('invalid address "from"');
   if not CheckAddress(AAddrTo) then
     raise EValidError.Create('invalid address "to"');
   if AAddrFrom.Equals(AAddrTo) then
-    raise ESameAddressesError.Create('');
+    raise ESameAddressesError.Create('addresses match');
 
   if Length(APrKey) <> 64 then
     raise EValidError.Create('invalid private key');
-  if Length(APubKey) <> 130 then
-    raise EValidError.Create('invalid public key');
-
 
   var LTx:TMemBlock<TTxn> := CreateTx(AAddrFrom, AAddrTo, AAmount, CalculateFee(AAmount), TTxnType.txSend, TET_Id, APrKey);
 
-  assert(LTx.Data.SenderPubKey = apubkey);
+  const Answer = DoRequestToArchivator(NewTransactionCommandCode, LTx);
+
+  if Length(Answer) = 0 then
+    raise Exception.Create('no answer from archiever');
+
+  if Answer[0] = SuccessCode then
+    Result := Crypto.BytesToHex(Copy(Answer, 1))
+  else
+    raise Exception.Create(TEncoding.ANSI.GetString(Answer));
+
+end;
+
+function TAppCore.DoTokenMigrate(AAddrFrom, AAddrTo: string; AAmount: UInt64;
+  APrKey: string): string;
+begin
+  if not CheckAddress(AAddrFrom) then
+    raise EValidError.Create('invalid address "from"');
+  if not CheckAddress(AAddrTo) then
+    raise EValidError.Create('invalid address "to"');
+  if AAddrFrom.Equals(AAddrTo) then
+    raise ESameAddressesError.Create('addresses match');
+
+  if Length(APrKey) <> 64 then
+    raise EValidError.Create('invalid private key');
+
+  var LTx:TMemBlock<TTxn> := CreateTx(AAddrFrom, AAddrTo, AAmount, {fee=} 0, TTxnType.txMigrate, TET_Id, APrKey);
 
   const Answer = DoRequestToArchivator(NewTransactionCommandCode, LTx);
-  // FNodeClient.DoRequestToArchiever(NewTransactionCommandCode, LTx);
 
-  if Answer[0] = SuccessCode then begin
-    Result := Crypto.BytesToHex(Copy(Answer, 1));
-  end
-  else begin
-    Result := TEncoding.ANSI.GetString(Answer);
-  end;
+  if Answer[0] = SuccessCode then
+    Result := Crypto.BytesToHex(Copy(Answer, 1))
+  else
+    raise Exception.Create(TEncoding.ANSI.GetString(Answer));
 
 end;
 
@@ -237,35 +286,16 @@ begin
   if not Result then Exit;
 
   ASign := ATxn.Data.GetValidation(AppCore.PrKey);
-
-end;
-
-function TAppCore.DoValidation(const ATransBytes: TBytes; out ASign: string): Boolean;
-var
-  IncomStr: string;
-  Splitted: TArray<string>;
-begin
-  Result := CheckIncomingSign(ATransBytes);
-  if not Result then
-  begin
-    ASign := 'URKError 41502';
-    Exit;
-  end;
-
-  try
-    IncomStr := TEncoding.ANSI.GetString(Copy(ATransBytes, 0, Length(ATransBytes) - 65));
-    Splitted := IncomStr.Trim.Split([' '], '<', '>');
-    ECDSASignText(Splitted[1], HexToBytes(FPrKey), ASign);
-    ASign := ASign + ' ' + PubKey.ToLower;
-  except
-    on E:EFileNotExistsError do
-      ASign := 'URKError 41503';
-  end;
 end;
 
 function TAppCore.GetNeedAutoUpdate: Boolean;
 begin
   Result := FSettings.AutoUpdate;
+end;
+
+function TAppCore.GetBlocksCount: Int64;
+begin
+  Result:=TMemBlock<TTxn>.RecordsCount(TTxn.Filename);
 end;
 
 function TAppCore.GetNewTokenFee(AAmount: Int64; ADecimals: Integer): Integer;
@@ -285,63 +315,136 @@ begin
   Result := FNodeServer;
 end;
 
-function TAppCore.GetTETUserLastTransactions(
-  AAddress: string): TArray<THistoryTransactionInfo>;
+function TAppCore.GetUserLastTransactions(AAddress: string; Skip,Count: Int64): TArray<TTransactionInfo>;
 begin
-  Result := [];
+  Result:=GetAccountTxns(AAddress,Skip,Count);
 end;
 
-function TAppCore.GetTokenBalance(AAddress: string;
-  out AFloatSize: Byte): UInt64;
+function TAppCore.GetLastTransactions(Skip,Count: Int64): TArray<TTransactionInfo>;
 begin
-  if not CheckAddress(AAddress) then
-    raise EValidError.Create('invalid address');
+  Result:=GetTxns(Skip,Count);
+end;
 
+function TAppCore.GetTokenBalance(AAddress: string): UInt64;
+begin
   Result := DataCache.GetTokenBalance(AAddress);
+end;
+
+function TAppCore.GetStakingBalance(AAddress: string): UInt64;
+begin
+  Result := DataCache.GetStakeBalance(AAddress);
+end;
+
+function TAppCore.GetStakingReward(StartIndex: UInt64; AAddress: string): TRewardTotalInfo;
+begin
+  Result:=GetRewardTotalInfo(StartIndex, TAccount.GetAddressId(FAddress));
+end;
+
+procedure TAppCore.InitBCFiles;
+begin
+  const ProgramPath = ExtractFilePath(ParamStr(0));
+  const ChainsDirPath = TPath.Combine(ProgramPath, 'chains');
+  if not DirectoryExists(ChainsDirPath) then
+    TDirectory.CreateDirectory(ChainsDirPath);
+
+  const AddressPath = TPath.Combine(ChainsDirPath, ConstStr.AddressChainFileName);
+  if not TFile.Exists(AddressPath) then
+    TFile.WriteAllText(AddressPath, '');
+  TAccount.Filename := AddressPath;
+
+  const TxnPath = TPath.Combine(ChainsDirPath, ConstStr.TxnFileName);
+  if not TFile.Exists(TxnPath) then
+    TFile.WriteAllText(TxnPath, '');
+  TTxn.Filename := TxnPath;
+
+  const RewardPath = TPath.Combine(ChainsDirPath, ConstStr.RewardFileName);
+  if not TFile.Exists(RewardPath) then
+    TFile.WriteAllText(RewardPath, '');
+  TReward.FileName := RewardPath;
+
+  const ValidationPath = TPath.Combine(ChainsDirPath, ConstStr.ValidationFileName);
+  if not TFile.Exists(ValidationPath) then
+    TFile.WriteAllText(ValidationPath, '');
+  TValidation.FileName := ValidationPath;
+  
 end;
 
 function TAppCore.InitKeys: Boolean;
 var
-  SearchRec: TSearchRec;
-  Lines: TArray<string>;
   Seed, Path, RestoredKey: string;
 begin
-  Result := False;
+
   Path := TPath.Combine(ExtractFilePath(ParamStr(0)), 'keys');
-  if not DirectoryExists(Path) then
-    TDirectory.CreateDirectory(Path);
+  ForceDirectories(Path);
 
-  const Filenames = TDirectory.GetFiles(Path, '*.txt');
+  const Address = FSettings.Address;
 
-  if Length(Filenames) = 0 then begin
-    GenNewKeys(Seed, FPrKey, FPubKey, FAddress);
-    UI.DoMessage('No keys found. New keys generated and saved in the "keys" folder');
-    Result := True;
-  end
-  else begin
-    Path := Filenames[0];
-    Lines := TFile.ReadAllLines(Path);
-    try
-      for var i := 0 to Length(Lines) - 1 do begin
-        if Lines[i].StartsWith('private key') then
-          FPrKey := Lines[i].Split([':'])[1]
-        else if Lines[i].StartsWith('public key') then
-          FPubKey := Lines[i].Split([':'])[1];
-        if not(FPrKey.IsEmpty or FPubKey.IsEmpty) then
-          break;
-      end;
-      Result := RestorePublicKey(FPrKey, RestoredKey) and (RestoredKey = FPubKey);
-    except
-      Result := False;
-    end;
+  if Address.IsEmpty then
+  begin
 
-    if Result then
-      FAddress := '0x' + FPubKey.Substring(Length(FPubKey) - 40, 40).ToLower;
+    var Filenames := TDirectory.GetFiles(Path, '*.txt');
+
+    if Length(Filenames) = 0 then begin
+      GenNewKeys(Seed, FPrKey, FPubKey, FAddress);
+      UI.DoMessage('No keys found. New keys generated and saved in the "keys" folder');
+      Exit(True);
+    end else
+      Path := Filenames[0];
+
+  end else
+     Path := TPath.Combine(Path,Address+'.txt');
+
+  try
+
+    for var L in TFile.ReadAllLines(Path) do
+      if L.StartsWith('private key') then
+        FPrKey := L.Split([':'])[1]
+      else if L.StartsWith('public key') then
+        FPubKey := L.Split([':'])[1];
+
+    Result := RestorePublicKey(FPrKey, RestoredKey) and (CompareText(RestoredKey, FPubKey) = 0);
+
+  except
+    Result:=False;
   end;
 
   if Result then
-    UI.DoMessage(Format('Keys from the file "%s.txt" successfully read', [FAddress]));
+  begin
+    FAddress := RestoreAddressAsStr(FPubKey);
+    UI.DoMessage(Format('Keys from the file "%s" successfully read',[TPath.GetFileName(Path)]));
+  end;
+
+//  FAddress := '0xE38465D9EA628BBE533067E0395F66212B723873';
+//  FPrKey := '5f6843e1a0da7c4507adb2cfc1451a11c4ab400b4acd3acbe1e548e015caeb16';
+//  FPubKey := '048cc86cc39867c02e975d482e9e7a82e409a30a1f433b41e23279a58832b86af45a65a59d65d70178fea5164f5a51fca4498a2c79ae26084c7f581ac8aa504c6e';
+
 end;
+
+//procedure TAppCore.ChangePrivateKey(const PrKey: string);
+//begin
+//
+//  var PubKeyStr: string;
+//
+//  if not RestorePublicKey(PrKey, PubKeyStr) then
+//    raise Exception.Create('Restorte error');
+//
+//  const pubKey:T65Bytes = PubKeyStr;
+//
+//  const Address = AddressToStr(pubKey.address);
+//
+//  var KeyFile:=TPath.Combine(TPath.Combine(ExtractFilePath(ParamStr(0)), 'keys'),Address+'.txt');
+//
+//  if TFile.Exists(KeyFile) then
+//    raise Exception.Create('Key file already exists');
+//
+//  TFile.WriteAllText(KeyFile, 'seed phrase:'+sLineBreak+
+//    'public key:' + PubKey + sLineBreak+
+//    'private key:' + PrKey + sLineBreak+
+//    'address:' + Address);
+//
+//   FSettings.SetKeyFile(Address);
+//
+//end;
 
 function TAppCore.IsURKError(const AText: string): Boolean;
 begin
@@ -362,7 +465,7 @@ begin
   SetLength(APubKey, Length(BytesArray) * 2);
   BinToHex(BytesArray, PChar(APubKey), Length(BytesArray));
   APubKey := PubKey.ToLower;
-  AAddress := '0x' + APubKey.Substring(Length(APubKey) - 40, 40).ToLower;
+  AAddress := RestoreAddressAsStr(APubKey);
 
   SetLength(BytesArray, 0);
   APrKey := '';
@@ -375,7 +478,7 @@ end;
 function TAppCore.DoRequestToArchivator(const ACommandCode: Byte;
   ARequest: TBytes): TBytes;
 begin
-  Result := FNodeClient.DoRequestToArchiever(ACommandCode, ARequest);
+  Result := FNodeClient.DoRequestToArchiver(ACommandCode, ARequest);
 end;
 
 procedure TAppCore.GenNewKeys(var ASeedPhrase, APrKey, APubKey, AAddress: string);
@@ -392,7 +495,7 @@ begin
   APrKey := BytesToHex(BytesArray).ToLower;
   BytesArray := (Keys.Public as IECPublicKeyParameters).Q.GetEncoded;
   APubKey := BytesToHex(BytesArray).ToLower;
-  AAddress := '0x' + APubKey.Substring(Length(APubKey) - 40, 40).ToLower;
+  AAddress := RestoreAddressAsStr(APubKey);
 
   SavingPath := TPath.Combine(ExtractFilePath(ParamStr(0)), 'keys');
   if not DirectoryExists(SavingPath) then
@@ -402,6 +505,30 @@ begin
   TFile.AppendAllText(SavingPath, 'public key:' + APubKey + sLineBreak);
   TFile.AppendAllText(SavingPath, 'private key:' + APrKey + sLineBreak);
   TFile.AppendAllText(SavingPath, 'address:' + AAddress);
+end;
+
+procedure TAppCore.ChangePrivateKey(const PrKey: string);
+begin
+
+  var PubKeyStr: string;
+
+  if not RestorePublicKey(PrKey, PubKeyStr) then
+    raise EKeyException.Create('Restore public key error',EKeyException.INVALID_KEY);
+
+  const Address = RestoreAddressAsStr(PubKeyStr);
+
+  var KeyFile:=TPath.Combine(TPath.Combine(ExtractFilePath(ParamStr(0)), 'keys'),Address+'.txt');
+
+  if TFile.Exists(KeyFile) then
+    raise EKeyException.Create('Private key already exists',EKeyException.KEYFILE_EXISTS);
+
+  TFile.WriteAllText(KeyFile, 'seed phrase:'+sLineBreak+
+    'public key:' + PubKeyStr + sLineBreak+
+    'private key:' + PrKey + sLineBreak+
+    'address:' + Address);
+
+   FSettings.SetAddress(Address);
+
 end;
 
 function TAppCore.GetPrKey: string;
@@ -432,6 +559,7 @@ var
   splt: TArray<string>;
 begin
   try
+    DataCache.Init;
     FSettings.Init;
     if not InitKeys then
       raise Exception.Create('Failed to read keys from file or it is invalid');
@@ -440,15 +568,23 @@ begin
     if Assigned(FHTTPServer) then
       FHTTPServer.Start(HTTPPort);
     FNodeClient.Start;
-//    Updater.Run;
+    if GetNeedAutoUpdate then
+      FUpdate.StartUpdate;
   except
     on E:Exception do
     begin
-      Logs.DoLog('Error starting node: ' + E.Message, ltError);
+      Logs.DoLog('Error starting node: ' + E.Message, CmnLvlLogs, ltError);
       Stop;
       raise;
     end;
   end;
+end;
+
+procedure TAppCore.Reset;
+begin
+  Stop;
+  Run;
+  UI.NotifyNewTETBlocks;
 end;
 
 function TAppCore.TrySaveKeysToFile(APrivateKey: string): Boolean;
@@ -477,12 +613,32 @@ begin
   ECDSASignText(AToSign,prKeyBytes,Result);
 end;
 
+function TAppCore.GetAppVersion: string;
+begin
+  Result:=FUpdate.AppVersion;
+end;
+
+function TAppCore.GetAppVersionText: string;
+begin
+  Result:='v'+GetAppVersion+' beta';
+end;
+
+procedure TAppCore.StartUpdate;
+begin
+  FUpdate.StartUpdate;
+end;
+
 procedure TAppCore.Stop;
 begin
-  FNodeServer.Stop;
   if Assigned(FHTTPServer) then
     FHTTPServer.Stop;
   FNodeClient.Stop;
+  FNodeServer.Stop;
+end;
+
+procedure TAppCore.WaitForStop;
+begin
+  FNodeServer.WaitFor;
 end;
 
 end.

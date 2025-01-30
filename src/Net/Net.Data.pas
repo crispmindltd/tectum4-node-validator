@@ -18,12 +18,11 @@ const
 
   ImShuttingDownCode = 0;
   ResponseCode = 1;
-  ResponseSyncCode = 2;
+  DisconnectWithErrorCode = 2;
   SuccessCode = 3;
   ErrorCode = 4;
   InitConnectCode = 5;
-  PingCode = 38;
-  PongCode = 39;
+  UnknownCommandErrorCode = 6;
   CheckVersionCommandCode = 99;
 
   NewTransactionCommandCode = 100;
@@ -41,6 +40,12 @@ const
   InitConnectErrorCode = 200;
   KeyAlreadyUsesErrorCode = 201;
 
+  CommandsCodes = [ImShuttingDownCode..InitConnectCode,
+    CheckVersionCommandCode, NewTransactionCommandCode, ValidateCommandCode,
+    ValidationDoneCode, NewValidatedTransactionCommandCode,
+    GetTxnsCommandCode..GetRewardsCommandCode, InitConnectErrorCode,
+    KeyAlreadyUsesErrorCode];
+
 type
   TNodesConnectManager = class
   private
@@ -53,7 +58,6 @@ type
 
     procedure AddNodeToPool(const ANodeAddress: string);
     function GetNodeToConnect: string;
-    function GetAnotherNodeToConnect(const ACurNode: string): string;
     function GetNodesArray: TArray<string>;
 
     property IsEmpty: Boolean read IsPoolEmpty;
@@ -85,33 +89,22 @@ begin
   inherited;
 end;
 
-function TNodesConnectManager.GetAnotherNodeToConnect(const ACurNode: string): string;
-var
-  i: Integer;
-begin
-  if FNodesPool.Count > 1 then begin
-    Randomize;
-    repeat
-      i := Random(FNodesPool.Count);
-    until not FNodesPool.Strings[i].Equals(ACurNode);
-    Result := FNodesPool.Strings[i];
-  end
-  else
-    Result := FNodesPool[0];
-end;
-
 function TNodesConnectManager.GetNodesArray: TArray<string>;
 begin
   Result := FNodesPool.ToStringArray;
 end;
 
 function TNodesConnectManager.GetNodeToConnect: string;
+var
+  id: Integer;
 begin
   if FNodesPool.Count = 0 then
     exit('');
 
   Randomize;
-  Result := FNodesPool.Strings[Random(FNodesPool.Count)];
+  id := Random(FNodesPool.Count);
+  Result := FNodesPool.Strings[id];
+  FNodesPool.Delete(id);
 end;
 
 function TNodesConnectManager.IsPoolEmpty: Boolean;

@@ -3,19 +3,20 @@
 interface
 
 uses
+  App.Exceptions,
   App.Logs,
   Blockchain.Address,
   Blockchain.Data,
-  Classes,
+  System.Classes,
   Crypto,
-  Hash,
+  System.Hash,
   Net.CommandHandler,
   Net.Connection,
   Net.Data,
   Net.Socket,
-  SyncObjs,
-  SysUtils,
-  Types;
+  System.SyncObjs,
+  System.SysUtils,
+  System.Types;
 
 type
   TCheckConnectFunc = function(Sender: TObject): Boolean of object;
@@ -25,21 +26,23 @@ type
       FBytesToSign: TBytes;
       FPubKey: T65Bytes;
     private
-      FStatus: Byte;
+      FRemoteAddress: string;
       FOnConnectionChecked: TCheckConnectFunc;
 
-      procedure DoDisconnect; override;
+      procedure DoDisconnect(const AErrorMsg: string = ''); override;
       procedure ProcessCommand(const AResponse: TResponseData); override;
       procedure ReceiveCallBack(const ASyncResult: IAsyncResult); override;
+      function GetRemoteAddress: string; override;
     public
+      shortAddr: string;
+
       constructor Create(ASocket: TSocket; ACommandHandler: TCommandHandler;
         AOnDisconnected: TNotifyEvent; AOnConnectionChecked: TCheckConnectFunc);
       destructor Destroy; override;
 
-      procedure Stop; override;
-
       property PubKey: T65Bytes read FPubKey;
       property Status: Byte write FStatus;
+      property Address: string read GetRemoteAddress;
   end;
 
 implementation
@@ -54,26 +57,39 @@ constructor TServerConnection.Create(ASocket: TSocket; ACommandHandler: TCommand
 begin
   inherited Create(ASocket, ACommandHandler, AOnDisconnected);
 
-  FStatus := 0;
+  FRemoteAddress := Format('%s:%d', [FSocket.RemoteEndpoint.Address.Address,
+    FSocket.RemoteEndpoint.Port]);
   FOnConnectionChecked := AOnConnectionChecked;
+  FRemoteIsAvailable := True;
 
   Randomize;
   FBytesToSign := TEncoding.ANSI.GetBytes(THash.GetRandomString(32));
-  SendRequest(InitConnectCode, FBytesToSign, False);
-  BeginReceive;
+  SendRequest(InitConnectCode, FBytesToSign, '[bytes for signing]');
+//  SendRequest(CheckVersionCommandCode, TEncoding.ANSI.GetBytes(AppCore.GetAppVersion));
+  WaitForReceive(True);
 end;
 
 destructor TServerConnection.Destroy;
 begin
-  if FStatus <> 0 then
-    FSocket.Send([FStatus]);
 
   inherited;
 end;
 
-procedure TServerConnection.DoDisconnect;
+procedure TServerConnection.DoDisconnect(const AErrorMsg: string);
+var
+  LogStr: string;
 begin
+  LogStr := Format('%s disconnected', [Address]);
+  if not AErrorMsg.IsEmpty then
+    LogStr := Format('%s: %s', [LogStr, AErrorMsg]);
+
+  Logs.DoLog(LogStr, AdvLvlLogs, ltNone);
   FOnDisconnected(Self);
+end;
+
+function TServerConnection.GetRemoteAddress: string;
+begin
+  Result := FRemoteAddress;
 end;
 
 procedure TServerConnection.ProcessCommand(const AResponse: TResponseData);
@@ -82,20 +98,39 @@ begin
     InitConnectCode:
       begin
         FPubKey := Copy(AResponse.Data, 0, 65);
+        shortAddr := Copy(FPubKey.Address, 35);
+        FRemoteAddress := Format('%s:%d:%s', [FSocket.RemoteEndpoint.Address.Address,
+          FSocket.RemoteEndpoint.Port, shortAddr]);
         const Sign = Copy(AResponse.Data, 65, Length(AResponse.Data));
-        FConnectionChecked := ECDSACheckBytesSign(FBytesToSign, Sign, FPubKey);
-        if FConnectionChecked then
+        const SignVerified = ECDSACheckBytesSign(FBytesToSign, Sign, FPubKey);
+        if SignVerified then
         begin
-          if FOnConnectionChecked(Self) then
-            FSocket.Send([SuccessCode])
-          else begin
+          FConnectionChecked := FOnConnectionChecked(Self);
+          if FConnectionChecked then
+          begin
+            WaitForReceive;
+            FSocket.Send([SuccessCode]);
+            Logs.DoLog(Format('Connection to %s checked', [Address]), CmnLvlLogs, ltNone);
+          end else
+          begin
             FStatus := KeyAlreadyUsesErrorCode;
-            DoDisconnect;
+            raise EConnectionClosed.Create('key is already in use');
           end;
         end else
         begin
           FStatus := InitConnectErrorCode;
-          DoDisconnect;
+          raise EConnectionClosed.Create('init connection error');
+        end;
+      end;
+
+    CheckVersionCommandCode:
+      begin
+        if AResponse.Data[0] = SuccessCode then
+        begin
+          Randomize;
+          FBytesToSign := TEncoding.ANSI.GetBytes(THash.GetRandomString(32));
+          SendRequest(InitConnectCode, FBytesToSign, '[bytes for signing]');
+          WaitForReceive(True);
         end;
       end;
   end;
@@ -109,54 +144,62 @@ var
 begin
   try
     IncomData.Data := FSocket.EndReceiveBytes(ASyncResult);
+
     if Assigned(IncomData.Data) then
     begin
       FSocket.Receive(IncomData.RequestData.Code, 1, [TSocketFlag.WAITALL]);
+      if not (IncomData.RequestData.Code in CommandsCodes) then
+      begin
+        FIsShuttingDown := True;
+        FStatus := UnknownCommandErrorCode;
+        raise EConnectionClosed.CreateFmt('unknown command(code %d) received',
+          [IncomData.RequestData.Code]);
+      end;
 
       if not (FConnectionChecked or (IncomData.RequestData.Code = ResponseCode)) then
-          raise ESocketError.Create('Identification error');
+      begin
+        FIsShuttingDown := True;
+        FStatus := InitConnectCode;
+        raise EConnectionClosed.Create('identification error');
+      end;
 
       case IncomData.RequestData.Code of
-        PingCode:
-          begin
-            if not FIsShuttingDown then
-              BeginReceive;
-            FSocket.Send([PongCode]);
-          end;
+        ImShuttingDownCode:
+        begin
+          FRemoteIsAvailable := False;
+          WaitForReceive;
+        end;
+
+        UnknownCommandErrorCode:
+        begin
+          FIsShuttingDown := True;
+          raise EConnectionClosed.Create('remote node has terminated the connection: unknown command sended');
+        end
 
         else
           begin
             FSocket.Receive(IncomData.RequestData.ID, 8, [TSocketFlag.WAITALL]);
             FSocket.Receive(LengthBytes, 4, [TSocketFlag.WAITALL]);
             FSocket.Receive(IncomData.Data, Length, [TSocketFlag.WAITALL]);
-            if not FIsShuttingDown then
-              BeginReceive;
 
-            if IncomData.RequestData.Code in [ResponseCode, ResponseSyncCode] then
-              WriteResponseData(IncomData, IncomData.RequestData.Code = ResponseCode)
-            else
-              AddIncomRequest(IncomData);
+            case IncomData.RequestData.Code of
+              ResponseCode:
+                WriteResponseData(IncomData);
+              else begin
+                AddIncomRequest(IncomData);
+                WaitForReceive;
+              end;
+            end;
           end;
       end;
     end else
-      raise ESocketError.Create('');
+      raise EConnectionClosed.Create('');
   except
+    on E:EConnectionClosed do
+      DoDisconnect(E.Message);
     on E:ESocketError do
-    begin
-//      if not E.Message.IsEmpty then
-//        UI.DoMessage(Format('%s. Disconnect...', [E.Message]));
-      DoDisconnect;
-    end;
+      DoDisconnect('timeout data receiving');
   end;
-end;
-
-procedure TServerConnection.Stop;
-begin
-  inherited;
-
-  FSocket.Send([ImShuttingDownCode]);
-  if IsReadyToStop then
-    DoDisconnect;
 end;
 
 end.

@@ -5,17 +5,13 @@ interface
 type
   ConstStr = class
     const
-      DBCPath = 'dbc';
-      SmartCPath = 'smartc';
-
-      TokenCHNFileName = 'token.chn';
-      SmartKeyFileName = 'smartkey.db';
-      ICODatFileName = 'icodat.db';
-      Token64FileName = 'token64.db';
+      ChainsDir = 'chains';
+      AddressChainFileName = 'address.db';
+      TxnFileName = 'txn.db';
+      RewardFileName = 'reward.db';
+      ValidationFileName = 'validation.db';
 
       SettingsFileName = 'settings.ini';
-
-      URKError = 'URKError';
   end;
 
 implementation

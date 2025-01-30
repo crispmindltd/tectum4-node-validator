@@ -270,4 +270,5 @@ sources/infrastructure/SoftNote.Vault.DataAccess/obj/
 *.dcu
 *.vlb
 Win32/
+Win64/
 OSX64/

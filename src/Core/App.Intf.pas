@@ -6,6 +6,7 @@ uses
   Blockchain.Data,
   Blockchain.Txn,
   Blockchain.Validation,
+  BlockChain.Reward,
   Net.Server,
   Classes,
   SysUtils;
@@ -22,6 +23,7 @@ type
   IAppCore = interface
     procedure Run;
     procedure Stop;
+    procedure Reset;
     function GetPrKey: string;
     function GetPubKey: string;
     function GetAddress: string;
@@ -31,19 +33,28 @@ type
     procedure GenNewKeys(var ASeedPhrase, APrKey, APubKey, AAddress: string);
     function DoRecoverKeys(ASeed: string; out APubKey: string;
       out APrKey: string; out AAddress: string): string;
+    function GetBlocksCount: Int64;
     function GetNewTokenFee(AAmount: Int64; ADecimals: Integer): Integer;
-    function DoTokenTransfer(AAddrFrom, AAddrTo: string; AAmount: UInt64;
-      APrKey, APubKey: string): string;
-    function DoTokenStake(AAddr: string; AAmount: UInt64; APrKey, APubKey: string): string;
-    function GetTokenBalance(AAddress: string; out AFloatSize: Byte): UInt64;
-    function GetTETUserLastTransactions(AAddress: string): TArray<THistoryTransactionInfo>;
+    function DoTokenTransfer(AAddrFrom, AAddrTo: string; AAmount: UInt64; APrKey: string): string;
+    function DoTokenMigrate(AAddrFrom, AAddrTo: string; AAmount: UInt64; APrKey: string): string;
+    function DoTokenStake(AAddr: string; AAmount: UInt64; APrKey: string): string;
+    function DoTokenUnstake(AAddr: string; AAmount: UInt64; APrKey: string): string;
+    function GetTokenBalance(AAddress: string): UInt64;
+    function GetStakingBalance(AAddress: string): UInt64;
+    function GetStakingReward(StartIndex: UInt64; AAddress: string): TRewardTotalInfo;
+    function GetUserLastTransactions(AAddress: string; Skip,Count: Int64): TArray<TTransactionInfo>;
+    function GetLastTransactions(Skip,Count: Int64): TArray<TTransactionInfo>;
     function TrySaveKeysToFile(APrivateKey: string): Boolean;
+    procedure ChangePrivateKey(const PrKey: string);
 
-    function DoValidation(const ATransBytes: TBytes; out ASign: string): Boolean; overload;
     function DoValidation(const [Ref] ATxn: TMemBlock<TTxn>;
-      out ASign: TMemBlock<TValidation>): Boolean; overload;
-
+      out ASign: TMemBlock<TValidation>): Boolean;
     function DoRequestToArchivator(const ACommandCode: Byte; ARequest: TBytes): TBytes;
+
+    function GetAppVersion: string;
+    function GetAppVersionText: string;
+    procedure StartUpdate;
+    procedure WaitForStop;
 
     property PrKey: string read GetPrKey;
     property PubKey: string read GetPubKey;

@@ -42,7 +42,6 @@ type
     public
       class var FCustomCommandProcessor:TProcessCommand;
       class function ProcessCommand(const AIncomData: TResponseData; AConnection:TObject): TBytes;
-      class procedure ProcessResponseData(const AResponseData: TResponseData);
   end;
 
 implementation
@@ -96,9 +95,16 @@ begin
         begin
           const Tx = AIncomData.Data;
           var Validation: TMemBlock<TValidation>;
-          Assert(AppCore.DoValidation(Tx, Validation));
+          Assert(AppCore.DoValidation(Tx, Validation), 'can not do validation');
           Result := Validation;
         end;
+
+      CheckVersionCommandCode:
+        begin
+          if AppCore.GetAppVersion <> TEncoding.ANSI.GetString(AIncomData.Data) then
+            AppCore.StartUpdate;
+          Result := [SuccessCode];
+        end
     else
       if Assigned(FCustomCommandProcessor) then
         Result := FCustomCommandProcessor(AIncomData, AConnection);
@@ -107,12 +113,6 @@ begin
     on E: Exception do
       Result := [ErrorCode] + TEncoding.ANSI.getbytes(E.Message);
   end;
-end;
-
-class procedure TCommandHandler.ProcessResponseData(
-  const AResponseData: TResponseData);
-begin
-
 end;
 
 end.

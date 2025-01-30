@@ -2,7 +2,7 @@ object PageNumFrame: TPageNumFrame
   Align = Vertical
   Cursor = crHandPoint
   Size.Width = 320.000000000000000000
-  Size.Height = 30.000000000000000000
+  Size.Height = 28.000000000000000000
   Size.PlatformDefault = False
   OnMouseEnter = FrameMouseEnter
   OnMouseLeave = FrameMouseLeave

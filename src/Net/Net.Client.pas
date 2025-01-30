@@ -3,10 +3,8 @@
 interface
 
 uses
-  App.Intf,
+  App.Exceptions,
   App.Logs,
-  Classes,
-  Crypto,
   Generics.Collections,
   Net.CommandHandler,
   Net.ClientConnection,
@@ -21,26 +19,27 @@ type
 
   TNodeClient = class
   const
-    ShutDownTimeout = 5000;
+    ShutDownTimeout = 10000;
   private
     FStatus: TClientStatus;
     FServers: TObjectList<TClientConnection>;
     FServForSync: TClientConnection;
     FCommandHandler: TCommandHandler;
-    FLock: TCriticalSection;
+    FListLock: TCriticalSection;
     FClientStoped: TEvent;
 
     procedure EstablishConnection(const AAddress: string);
-    procedure OnServerIsNotAvailable(Sender: TObject);
+    procedure OnConnectionChecked(Sender: TObject);
     procedure OnDisconnectedFromServer(Sender: TObject);
-    function OnCheckIfNeedSync(Sender: TObject): Boolean;
-    procedure ChooseConnectionForChainsSync;
+    procedure OnConnectionLost(Sender: TObject);
+    function GetCheckedConnection: TClientConnection;
+    procedure ChooseConnectionForSync;
   public
     constructor Create;
     destructor Destroy; override;
 
     procedure Start;
-    function DoRequestToArchiever(ACommandCode: Byte;
+    function DoRequestToArchiver(ACommandCode: Byte;
       const ARequest: TBytes): TBytes;
     procedure Stop;
 end;
@@ -49,18 +48,19 @@ implementation
 
 { TNodeClient }
 
-procedure TNodeClient.ChooseConnectionForChainsSync;
+procedure TNodeClient.ChooseConnectionForSync;
 var
-  Ind: Integer;
+  Connection: TClientConnection;
 begin
-  if not FServers.IsEmpty and not Assigned(FServForSync) then
+  if FServers.IsEmpty or Assigned(FServForSync) or (FStatus <> csStarted) then
+    exit;
+
+  Connection := GetCheckedConnection;
+  if Assigned(Connection) then
   begin
-    Ind := Random(FServers.Count);
-    if not FServers[Ind].IsReconnecting then
-    begin
-      FServers[Ind].IsForSync := True;
-      FServForSync := FServers[Ind];
-    end;
+    Connection.IsForSync := True;
+    FServForSync := Connection;
+    Logs.DoLog(Format('%s for sync', [Connection.Address]), AdvLvlLogs, ltNone);
   end;
 end;
 
@@ -69,7 +69,7 @@ begin
   inherited Create;
 
   FStatus := csStoped;
-  FLock := TCriticalSection.Create;
+  FListLock := TCriticalSection.Create;
   FCommandHandler := TCommandHandler.Create;
   FClientStoped := TEvent.Create;
   FClientStoped.ResetEvent;
@@ -83,7 +83,7 @@ begin
   FServers.Free;
   FClientStoped.Free;
   FCommandHandler.Free;
-  FLock.Free;
+  FListLock.Free;
 
   inherited;
 end;
@@ -95,114 +95,149 @@ var
 begin
   NewConnection := TClientConnection.Create(TSocket.Create(TSocketType.TCP,
     TEncoding.ANSI), FCommandHandler, OnDisconnectedFromServer,
-    OnServerIsNotAvailable, OnCheckIfNeedSync);
+    OnConnectionChecked, OnConnectionLost);
   Splitted := AAddress.Split([':']);
 
-  if NewConnection.Connect(Splitted[0], Splitted[1].ToInteger) then
-  begin
-    FLock.Enter;
-    try
-      FServers.Add(NewConnection);
-    finally
-      FLock.Leave;
-    end;
-  end else
-  begin
-    UI.DoMessage(Format('%s is not responding', [AAddress]));
-    NewConnection.Free;
+  FListLock.Enter;
+  try
+    FServers.Add(NewConnection);
+  finally
+    FListLock.Leave;
   end;
+
+  NewConnection.Connect(Splitted[0], Splitted[1].ToInteger);
+  if not NewConnection.IsConnected then
+    OnDisconnectedFromServer(NewConnection);
 end;
 
-function TNodeClient.OnCheckIfNeedSync(Sender: TObject): Boolean;
+function TNodeClient.GetCheckedConnection: TClientConnection;
+var
+  Connections: TList<TClientConnection>;
 begin
-  Result := not Assigned(FServForSync);
-  if Result then
-    FServForSync := Sender as TClientConnection;
+  Result := nil;
+  Connections := TList<TClientConnection>.Create(FServers.ToArray);
+  try
+    repeat
+      if Connections.IsEmpty then
+        Exit(nil);
+
+      Result := Connections[Random(Connections.Count)];
+      Connections.Remove(Result);
+    until Result.IsChecked and (not Result.IsConnecting);
+  finally
+    Connections.Free;
+  end;
 end;
 
 procedure TNodeClient.OnDisconnectedFromServer(Sender: TObject);
 begin
-  FLock.Enter;
+  FListLock.Enter;
   try
     FServers.Remove(Sender as TClientConnection);
-    if FServers.IsEmpty and (FStatus = csShuttingDown) then
+    if (FStatus = csShuttingDown) and FServers.IsEmpty then
       FClientStoped.SetEvent;
   finally
-    FLock.Leave;
+    FListLock.Leave;
   end;
 end;
 
-procedure TNodeClient.OnServerIsNotAvailable(Sender: TObject);
+procedure TNodeClient.OnConnectionChecked(Sender: TObject);
+var
+  Connection: TClientConnection;
 begin
-  const WasSyncServ = (Sender as TClientConnection).Equals(FServForSync);
-  if WasSyncServ and (FStatus = csStarted) then
+  if not Assigned(FServForSync) and (FStatus = csStarted) then
   begin
-    FServForSync := nil;
-    ChooseConnectionForChainsSync;
+    Connection := Sender as TClientConnection;
+    FServForSync := Connection;
+    Connection.IsForSync := True;
+    Logs.DoLog(Format('%s for sync', [Connection.Address]), AdvLvlLogs, ltNone);
   end;
 end;
 
-function TNodeClient.DoRequestToArchiever(ACommandCode: Byte;
+procedure TNodeClient.OnConnectionLost(Sender: TObject);
+var
+  Connection: TClientConnection;
+begin
+  Connection := Sender as TClientConnection;
+  const WasForSync = Connection.Equals(FServForSync);
+  if WasForSync and (FStatus = csStarted) then
+  begin
+    Connection.IsForSync := False;
+    FServForSync := nil;
+    ChooseConnectionForSync;
+  end;
+end;
+
+function TNodeClient.DoRequestToArchiver(ACommandCode: Byte;
   const ARequest: TBytes): TBytes;
 var
-  ConInd, Pos: Integer;
-  ReqWithoutKey: string;
-  ToSend: TBytes;
+  Connection: TClientConnection;
 begin
-  ConInd := Random(FServers.Count);
+  Connection := GetCheckedConnection;
+  if Assigned(Connection) then
+  begin
+    Logs.DoLog(Format('Selected server: %s. Servers count: %d',
+      [Connection.Address, FServers.Count]), DbgLvlLogs, TLogType.ltNone);
 
-  Result := FServers[ConInd].DoRequest(ACommandCode, ARequest);
-//  Logs.DoLog(Format('<From %s>[%d]: %s', [FServers[ConInd].Address, ACommandCode,
-//    Result]), INCOM, tcp);
+    Result := Connection.DoRequest(ACommandCode, ARequest);
+  end else
+    raise ENoArchiversAvailableError.Create('');
 end;
 
 procedure TNodeClient.Start;
 var
-  i: Integer;
-  Tasks: array of ITask;
-  procedure Connect(Anum:Integer);
+  Node: string;
+
+  procedure Connect(AAddress: string);
   begin
-    Tasks[Anum] := TTask.Run(procedure
+    TTask.Run(procedure
     begin
-      EstablishConnection(Nodes.GetNodesArray[Anum]);
+      EstablishConnection(AAddress);
     end);
   end;
+
 begin
+  if FStatus <> csStoped then
+    exit;
+
   FClientStoped.ResetEvent;
   FServers.Clear;
 
-  SetLength(Tasks, Length(Nodes.GetNodesArray));
-  for i := 0 to Length(Tasks) - 1 do
-    Connect(i);
-
-  TTask.WaitForAll(Tasks, 2000);
-  Sleep(500);
-  if FStatus = csStoped then
+  Node := Nodes.GetNodeToConnect;
+  while not Node.IsEmpty do
   begin
-    ChooseConnectionForChainsSync;
-    FStatus := csStarted;
+    Connect(Node);
+    Node := Nodes.GetNodeToConnect;
   end;
+
+  FStatus := csStarted;
 end;
 
 procedure TNodeClient.Stop;
-var
-  i: Integer;
+  procedure Disconnect(AConnection:TClientConnection);
+  begin
+    TTask.Run(procedure
+    begin
+      AConnection.Stop;
+    end);
+  end;
+
 begin
   if FStatus <> csStarted then
     exit;
-
-  FStatus := csShuttingDown;
-  if FServers.Count = 0 then
-  begin
-    FClientStoped.SetEvent;
-    exit;
+  try
+    FStatus := csShuttingDown;
+    if FServers.Count = 0 then begin
+      FClientStoped.SetEvent;
+      exit;
+    end;
+    for var lConnection in FServers do
+      Disconnect(lConnection);
+  finally
+    if FClientStoped.WaitFor(ShutDownTimeout) <> wrSignaled then
+      Logs.DoLog('Client shutdown timeout', CmnLvlLogs, ltError);
+    FStatus := csStoped;
   end;
-  for i := 0 to FServers.Count - 1 do
-    FServers[i].Stop;
-
-  if FClientStoped.WaitFor(ShutDownTimeout) <> wrSignaled then
-    Logs.DoLog('Client shutdown timeout', ltError);
-  FStatus := csStoped;
 end;
 
 end.

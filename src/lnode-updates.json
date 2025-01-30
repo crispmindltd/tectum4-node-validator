@@ -1,0 +1,32 @@
+{
+    "windows-desktop-x64":{
+        "version":"4.1.100",
+        "timestamp":1736865300,
+        "path":"https://raw.githubusercontent.com/crispmindltd/tectum4-node-release/refs/heads/main/update/windows/lnode.zip",
+        "description":""
+    },
+    "windows-console-x64":{
+        "version":"4.1.100",
+        "timestamp":1736865300,
+        "path":"https://raw.githubusercontent.com/crispmindltd/tectum4-node-release/refs/heads/main/update/windows/lnodeconsole.zip",
+        "description":""
+    },
+    "windows-console-x32":{
+        "version":"4.1.100",
+        "timestamp":1736865300,
+        "path":"https://raw.githubusercontent.com/crispmindltd/tectum4-node-release/refs/heads/main/update/windows/lnodeconsole.zip",
+        "description":""
+    },
+    "linux-console-x64":{
+        "version":"4.1.100",
+        "timestamp":1736865300,
+        "path":"https://raw.githubusercontent.com/crispmindltd/tectum4-node-release/refs/heads/main/update/linux/lnodeconsole.zip",
+        "description":""
+    },
+    "macos-desktop-x64":{
+        "version":"4.1.100",
+        "timestamp":1736865300,
+        "path":"https://raw.githubusercontent.com/crispmindltd/tectum4-node-release/refs/heads/main/update/macos/lnodeconsole.pkg",
+        "description":""
+    }
+}

@@ -4,72 +4,72 @@ object HistoryTransactionFrame: THistoryTransactionFrame
   Margins.Top = 5.000000000000000000
   Margins.Right = 5.000000000000000000
   Position.Y = 5.000000000000000000
-  Size.Width = 998.000000000000000000
-  Size.Height = 30.000000000000000000
+  Size.Width = 927.000000000000000000
+  Size.Height = 28.000000000000000000
   Size.PlatformDefault = False
   OnMouseEnter = FrameMouseEnter
   OnMouseLeave = FrameMouseLeave
-  OnResize = FrameResize
   object Rectangle: TRectangle
     Align = Contents
     Fill.Kind = None
     HitTest = False
-    Size.Width = 998.000000000000000000
-    Size.Height = 30.000000000000000000
+    Size.Width = 927.000000000000000000
+    Size.Height = 28.000000000000000000
     Size.PlatformDefault = False
     Stroke.Kind = None
     XRadius = 8.000000000000000000
     YRadius = 8.000000000000000000
+    OnResized = RectangleResized
     object DateTimeLabel: TLabel
       Align = Left
       StyledSettings = [Style]
       Size.Width = 150.000000000000000000
-      Size.Height = 30.000000000000000000
+      Size.Height = 28.000000000000000000
       Size.PlatformDefault = False
       TextSettings.Font.Family = 'Inter'
       TextSettings.Font.Size = 14.000000000000000000
       TextSettings.FontColor = xFF5A6773
       TextSettings.WordWrap = False
       Text = 'DateTime'
-      TabOrder = 4
+      TabOrder = 5
     end
     object BlockLabel: TLabel
       Align = Left
       StyledSettings = [Style]
-      Margins.Left = 15.000000000000000000
-      Position.X = 165.000000000000000000
+      Margins.Left = 5.000000000000000000
+      Position.X = 155.000000000000000000
       Size.Width = 72.000000000000000000
-      Size.Height = 30.000000000000000000
+      Size.Height = 28.000000000000000000
       Size.PlatformDefault = False
       TextSettings.Font.Family = 'Inter'
       TextSettings.Font.Size = 14.000000000000000000
       TextSettings.FontColor = xFF5A6773
       TextSettings.WordWrap = False
       Text = 'Block'
-      TabOrder = 2
+      TabOrder = 3
     end
-    object AddressLabel: TLabel
+    object AddressFromLabel: TLabel
       Align = Left
       StyledSettings = [Style]
-      Margins.Left = 15.000000000000000000
-      Position.X = 252.000000000000000000
-      Size.Width = 290.000000000000000000
-      Size.Height = 30.000000000000000000
+      Margins.Left = 5.000000000000000000
+      Position.X = 232.000000000000000000
+      Size.Width = 189.000000000000000000
+      Size.Height = 28.000000000000000000
       Size.PlatformDefault = False
       TextSettings.Font.Family = 'Inter'
       TextSettings.Font.Size = 14.000000000000000000
       TextSettings.FontColor = xFF4285F4
       TextSettings.WordWrap = False
       Text = 'Address'
-      TabOrder = 1
+      TabOrder = 2
     end
     object HashLabel: TLabel
       Align = Left
       StyledSettings = [Style]
-      Margins.Left = 15.000000000000000000
-      Position.X = 557.000000000000000000
+      Margins.Left = 5.000000000000000000
+      Position.X = 608.000000000000000000
       Size.Width = 290.000000000000000000
-      Size.Height = 30.000000000000000000
+      Size.Height = 28.000000000000000000
       Size.PlatformDefault = False
       TextSettings.Font.Family = 'Inter'
       TextSettings.Font.Size = 14.000000000000000000
@@ -78,45 +78,71 @@ object HistoryTransactionFrame: THistoryTransactionFrame
       Text = 'Hash'
       TabOrder = 0
     end
+    object AddressToLabel: TLabel
+      Align = Left
+      StyledSettings = [Style]
+      Margins.Left = 5.000000000000000000
+      Position.X = 426.000000000000000000
+      Size.Width = 177.000000000000000000
+      Size.Height = 28.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.Font.Family = 'Inter'
+      TextSettings.Font.Size = 14.000000000000000000
+      TextSettings.FontColor = xFF4285F4
+      TextSettings.WordWrap = False
+      Text = 'Address'
+      TabOrder = 1
+    end
+    object IncomLayout: TLayout
+      Align = Left
+      Padding.Left = 5.000000000000000000
+      Position.X = 1013.000000000000000000
+      Size.Width = 63.000000000000000000
+      Size.Height = 28.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 6
+      object IncomRectangle: TRectangle
+        Align = Contents
+        Fill.Color = xFF0F9A62
+        HitTest = False
+        Opacity = 0.300000011920929000
+        Margins.Top = 2.000000000000000000
+        Margins.Bottom = 2.000000000000000000
+        Size.Width = 63.000000000000000000
+        Size.Height = 24.000000000000000000
+        Size.PlatformDefault = False
+        Stroke.Kind = None
+        XRadius = 2.000000000000000000
+        YRadius = 2.000000000000000000
+      end
+      object IncomText: TText
+        Align = Contents
+        HitTest = False
+        Size.Width = 63.000000000000000000
+        Size.Height = 28.000000000000000000
+        Size.PlatformDefault = False
+        Text = 'IN'
+        TextSettings.Font.Family = 'Inter'
+        TextSettings.Font.Size = 14.000000000000000000
+        TextSettings.FontColor = xFF0F9A62
+        TextSettings.Trimming = Character
+        TextSettings.WordWrap = False
+      end
+    end
     object ValueLabel: TLabel
       Align = Left
       StyledSettings = [Style]
-      Margins.Left = 15.000000000000000000
-      Position.X = 862.000000000000000000
+      Margins.Left = 5.000000000000000000
+      Position.X = 903.000000000000000000
       Size.Width = 110.000000000000000000
-      Size.Height = 30.000000000000000000
+      Size.Height = 28.000000000000000000
       Size.PlatformDefault = False
       TextSettings.Font.Family = 'Inter'
       TextSettings.Font.Size = 14.000000000000000000
       TextSettings.FontColor = xFF5A6773
       TextSettings.WordWrap = False
       Text = 'Value'
-      TabOrder = 3
-    end
-    object IncomRectangle: TRectangle
-      Align = Left
-      Fill.Color = xFF0F9A62
-      HitTest = False
-      Margins.Left = 15.000000000000000000
-      Margins.Top = 2.000000000000000000
-      Margins.Bottom = 2.000000000000000000
-      Position.X = 987.000000000000000000
-      Position.Y = 2.000000000000000000
-      Size.Width = 70.000000000000000000
-      Size.Height = 26.000000000000000000
-      Size.PlatformDefault = False
-      Stroke.Kind = None
-      object IncomText: TText
-        Align = Client
-        HitTest = False
-        Size.Width = 70.000000000000000000
-        Size.Height = 26.000000000000000000
-        Size.PlatformDefault = False
-        Text = 'IN'
-        TextSettings.Font.Family = 'Inter'
-        TextSettings.Font.Size = 14.000000000000000000
-        TextSettings.FontColor = claWhite
-      end
+      TabOrder = 4
     end
   end
 end

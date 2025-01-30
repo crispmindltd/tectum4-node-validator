@@ -3,28 +3,45 @@ unit App.Logs;
 interface
 
 uses
+  Blockchain.Address,
+  Blockchain.Reward,
+  Blockchain.Txn,
+  Blockchain.Validation,
   Classes,
   IOUtils,
+  Net.Data,
   SyncObjs,
   SysUtils;
+
+const
+  NoneLvlLogs = 0;
+  CmnLvlLogs = 1;
+  AdvLvlLogs = 2;
+  DbgLvlLogs = 3;
 
 type
   TLogType = (ltIncom, ltOutgo, ltNone, ltError);
 
   TLog = class
     const
+      KByte = 1024;
+      MByte = KByte * 1024;
+      MaxLogFileSize = 2 * MByte;
       MainLogsFolderName = 'logs';
     private
+      FLogLevel: Byte;
       FPath: string;
-      FLogNum: Int64;
+      FLogNum: UInt64;
       FLock: TCriticalSection;
 
       function CutLogString(const ALogStr: string): string;
     public
-      constructor Create;
+      constructor Create(ALogsLevel: Byte = CmnLvlLogs);
       destructor Destroy; override;
 
-      procedure DoLog(AText: string; AType: TLogType = ltIncom);
+      procedure DoLog(AText: string; ALogLevel: Byte; AType: TLogType = ltIncom);
+      procedure DoSyncLog(AAddress: string; AReqCode: Byte; ALogBytes: TBytes;
+        ALogLevel: Byte; AType: TLogType = ltIncom);
   end;
 
 var
@@ -34,8 +51,12 @@ implementation
 
 { TLog }
 
-constructor TLog.Create;
+uses
+  App.Intf;
+
+constructor TLog.Create(ALogsLevel: Byte);
 begin
+  FLogLevel := ALogsLevel;
   FPath := TPath.Combine(ExtractFilePath(ParamStr(0)), MainLogsFolderName);
   FLogNum := 0;
   FLock := TCriticalSection.Create;
@@ -60,7 +81,37 @@ begin
   inherited;
 end;
 
-procedure TLog.DoLog(AText: string; AType: TLogType);
+procedure TLog.DoSyncLog(AAddress: string; AReqCode: Byte; ALogBytes: TBytes;
+  ALogLevel: Byte; AType: TLogType);
+var
+  ToLog: string;
+begin
+  if (ALogLevel > FLogLevel) or (FLogLevel = NoneLvlLogs) or (ALogLevel = NoneLvlLogs) or
+    (Length(ALogBytes) = 0) then
+    exit;
+
+  case AReqCode of
+    GetTxnsCommandCode:
+      ToLog := Format('<%s>[%d]: %d blocks',
+        [AAddress, AReqCode, Length(ALogBytes) div SizeOf(TTxn)]);
+
+    GetAddressesCommandCode:
+      ToLog := Format('<%s>[%d]: %d blocks',
+        [AAddress, AReqCode, Length(ALogBytes) div SizeOf(TAccount)]);
+
+    GetValidationsCommandCode:
+      ToLog := Format('<%s>[%d]: %d blocks',
+        [AAddress, AReqCode, Length(ALogBytes) div SizeOf(TValidation)]);
+
+    GetRewardsCommandCode:
+      ToLog := Format('<%s>[%d]: %d blocks',
+        [AAddress, AReqCode, Length(ALogBytes) div SizeOf(TReward)]);
+  end;
+
+  DoLog(ToLog, ALogLevel, AType);
+end;
+
+procedure TLog.DoLog(AText: string; ALogLevel: Byte; AType: TLogType);
 var
   FileName: string;
   i: Integer;
@@ -83,6 +134,9 @@ var
   end;
 
 begin
+  if (ALogLevel > FLogLevel) or (FLogLevel = NoneLvlLogs) or (ALogLevel = NoneLvlLogs) then
+    exit;
+
   FLock.Enter;
   ToLog := TStringBuilder.Create;
   try
@@ -91,7 +145,7 @@ begin
 
     i := 0;
     FileName := TPath.Combine(FPath, FormatDateTime('yyyy.mm.dd', Now) + '.log');
-    while FileExists(FileName) and (GetFileSize(FileName) >= 2097152) do  //group the logs into files no larger than 2 megabytes
+    while FileExists(FileName) and (GetFileSize(FileName) >= MaxLogFileSize) do  //group the logs into files no larger than 2 megabytes
     begin
       FileName := Format('%s(%d).log', [TPath.Combine(FPath, FormatDateTime('yyyy.mm.dd', Now) + '.log'), i]);
       Inc(i);
@@ -112,8 +166,8 @@ begin
     end;
     ToLog.Append(CutLogString(AText));
 
-    TFile.AppendAllText(FileName, ToLog.ToString.Replace(#10, '#10', [rfReplaceAll]).
-                                                 Replace(#13, '#13', [rfReplaceAll]) + #13#10, TEncoding.ANSI);
+    UI.DoMessage(ToLog.ToString);
+    TFile.AppendAllText(FileName, ToLog.ToString + sLineBreak, TEncoding.ANSI);
     Inc(FLogNum);
   finally
     FreeAndNil(ToLog);

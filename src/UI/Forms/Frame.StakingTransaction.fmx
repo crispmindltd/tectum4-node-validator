@@ -1,25 +1,25 @@
-object ExplorerTransactionFrame: TExplorerTransactionFrame
+object StakingTransactionFrame: TStakingTransactionFrame
   Align = Top
   Cursor = crHandPoint
-  Margins.Top = 6.000000000000000000
-  Margins.Right = 6.000000000000000000
-  Position.Y = 6.000000000000000000
-  Size.Width = 798.000000000000000000
+  Margins.Top = 5.000000000000000000
+  Margins.Right = 5.000000000000000000
+  Position.Y = 5.000000000000000000
+  Size.Width = 1047.000000000000000000
   Size.Height = 28.000000000000000000
   Size.PlatformDefault = False
   OnMouseEnter = FrameMouseEnter
   OnMouseLeave = FrameMouseLeave
-  OnResized = FrameResized
   object Rectangle: TRectangle
     Align = Contents
     Fill.Kind = None
     HitTest = False
-    Size.Width = 798.000000000000000000
+    Size.Width = 1047.000000000000000000
     Size.Height = 28.000000000000000000
     Size.PlatformDefault = False
     Stroke.Kind = None
-    XRadius = 1.000000000000000000
-    YRadius = 1.000000000000000000
+    XRadius = 8.000000000000000000
+    YRadius = 8.000000000000000000
+    OnResized = RectangleResized
     object DateTimeLabel: TLabel
       Align = Left
       StyledSettings = [Style]
@@ -31,7 +31,7 @@ object ExplorerTransactionFrame: TExplorerTransactionFrame
       TextSettings.FontColor = xFF5A6773
       TextSettings.WordWrap = False
       Text = 'DateTime'
-      TabOrder = 5
+      TabOrder = 4
     end
     object BlockLabel: TLabel
       Align = Left
@@ -46,44 +46,29 @@ object ExplorerTransactionFrame: TExplorerTransactionFrame
       TextSettings.FontColor = xFF5A6773
       TextSettings.WordWrap = False
       Text = 'Block'
-      TabOrder = 3
+      TabOrder = 2
     end
     object AddressFromLabel: TLabel
       Align = Left
       StyledSettings = [Style]
       Margins.Left = 5.000000000000000000
       Position.X = 232.000000000000000000
-      Size.Width = 215.000000000000000000
+      Size.Width = 189.000000000000000000
       Size.Height = 28.000000000000000000
       Size.PlatformDefault = False
       TextSettings.Font.Family = 'Inter'
       TextSettings.Font.Size = 14.000000000000000000
       TextSettings.FontColor = xFF4285F4
       TextSettings.WordWrap = False
-      Text = 'From'
-      TabOrder = 2
-    end
-    object AddressToLabel: TLabel
-      Align = Left
-      StyledSettings = [Style]
-      Margins.Left = 5.000000000000000000
-      Position.X = 452.000000000000000000
-      Size.Width = 215.000000000000000000
-      Size.Height = 28.000000000000000000
-      Size.PlatformDefault = False
-      TextSettings.Font.Family = 'Inter'
-      TextSettings.Font.Size = 14.000000000000000000
-      TextSettings.FontColor = xFF4285F4
-      TextSettings.WordWrap = False
-      Text = 'To'
+      Text = 'Address'
       TabOrder = 1
     end
     object HashLabel: TLabel
       Align = Left
       StyledSettings = [Style]
       Margins.Left = 5.000000000000000000
-      Position.X = 672.000000000000000000
-      Size.Width = 215.000000000000000000
+      Position.X = 426.000000000000000000
+      Size.Width = 290.000000000000000000
       Size.Height = 28.000000000000000000
       Size.PlatformDefault = False
       TextSettings.Font.Family = 'Inter'
@@ -93,30 +78,14 @@ object ExplorerTransactionFrame: TExplorerTransactionFrame
       Text = 'Hash'
       TabOrder = 0
     end
-    object AmountLabel: TLabel
-      Align = Left
-      StyledSettings = [Style]
-      Margins.Left = 5.000000000000000000
-      Position.X = 892.000000000000000000
-      Size.Width = 110.000000000000000000
-      Size.Height = 28.000000000000000000
-      Size.PlatformDefault = False
-      TextSettings.Font.Family = 'Inter'
-      TextSettings.Font.Size = 14.000000000000000000
-      TextSettings.FontColor = xFF5A6773
-      TextSettings.WordWrap = False
-      Text = 'Amount'
-      TabOrder = 4
-    end
     object IncomLayout: TLayout
       Align = Left
       Padding.Left = 5.000000000000000000
-      Margins.Left = 5.000000000000000000
-      Position.X = 1007.000000000000000000
-      Size.Width = 90.000000000000000000
+      Position.X = 831.000000000000000000
+      Size.Width = 63.000000000000000000
       Size.Height = 28.000000000000000000
       Size.PlatformDefault = False
-      TabOrder = 6
+      TabOrder = 5
       object IncomRectangle: TRectangle
         Align = Contents
         Fill.Color = xFF0F9A62
@@ -124,7 +93,7 @@ object ExplorerTransactionFrame: TExplorerTransactionFrame
         Opacity = 0.300000011920929000
         Margins.Top = 2.000000000000000000
         Margins.Bottom = 2.000000000000000000
-        Size.Width = 90.000000000000000000
+        Size.Width = 63.000000000000000000
         Size.Height = 24.000000000000000000
         Size.PlatformDefault = False
         Stroke.Kind = None
@@ -134,7 +103,7 @@ object ExplorerTransactionFrame: TExplorerTransactionFrame
       object IncomText: TText
         Align = Contents
         HitTest = False
-        Size.Width = 90.000000000000000000
+        Size.Width = 63.000000000000000000
         Size.Height = 28.000000000000000000
         Size.PlatformDefault = False
         Text = 'IN'
@@ -144,6 +113,21 @@ object ExplorerTransactionFrame: TExplorerTransactionFrame
         TextSettings.Trimming = Character
         TextSettings.WordWrap = False
       end
+    end
+    object ValueLabel: TLabel
+      Align = Left
+      StyledSettings = [Style]
+      Margins.Left = 5.000000000000000000
+      Position.X = 721.000000000000000000
+      Size.Width = 110.000000000000000000
+      Size.Height = 28.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.Font.Family = 'Inter'
+      TextSettings.Font.Size = 14.000000000000000000
+      TextSettings.FontColor = xFF5A6773
+      TextSettings.WordWrap = False
+      Text = 'Value'
+      TabOrder = 3
     end
   end
 end

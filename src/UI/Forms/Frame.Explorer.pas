@@ -3,58 +3,73 @@ unit Frame.Explorer;
 interface
 
 uses
-  System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants, 
+  System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
   FMX.Types, FMX.Graphics, FMX.Controls, FMX.Forms, FMX.Dialogs, FMX.StdCtrls,
-  FMX.Controls.Presentation, FMX.Objects;
+  FMX.Controls.Presentation, FMX.Objects, Blockchain.Txn, Desktop.Controls,
+  Blockchain.Reward, FMX.Layouts;
 
 type
   TExplorerTransactionFrame = class(TFrame)
     DateTimeLabel: TLabel;
     BlockLabel: TLabel;
-    FromLabel: TLabel;
-    ToLabel: TLabel;
+    AddressFromLabel: TLabel;
+    AddressToLabel: TLabel;
     HashLabel: TLabel;
     AmountLabel: TLabel;
     Rectangle: TRectangle;
-    TickerLabel: TLabel;
+    IncomLayout: TLayout;
+    IncomRectangle: TRectangle;
+    IncomText: TText;
     procedure FrameMouseEnter(Sender: TObject);
     procedure FrameMouseLeave(Sender: TObject);
     procedure FrameResized(Sender: TObject);
   private
+    FTrx: TTransactionInfo;
   public
-    constructor Create(AOwner: TComponent; ADateTime: TDateTime; ABlock: Integer;
-      ATicker, AFrom, ATo, AHash, AAmount: string; AShowTicker: Boolean);
-    destructor Destroy; override;
+    procedure UpdateTransaction;
+    procedure SetData(const Trx: TTransactionInfo);
+    property Transaction: TTransactionInfo read FTrx;
   end;
 
 implementation
 
 {$R *.fmx}
 
-{ TExplorerTransactionFrame }
-
-constructor TExplorerTransactionFrame.Create(AOwner: TComponent; ADateTime: TDateTime;
-  ABlock: Integer; ATicker, AFrom, ATo, AHash, AAmount: string; AShowTicker: Boolean);
-begin
-  inherited Create(AOwner);
-
-  TickerLabel.Visible := AShowTicker;
-  if AShowTicker then
-    TickerLabel.Position.X := FromLabel.Position.X - 1;
-  DateTimeLabel.Text := FormatDateTime('dd.mm.yyyy hh:mm:ss', ADateTime);
-  BlockLabel.Text := ABlock.ToString;
-  TickerLabel.Text := ATicker;
-  FromLabel.Text := AFrom;
-  ToLabel.Text := ATo;
-  HashLabel.Text := AHash;
-  AmountLabel.Text := AAmount;
-  Name := AOwner.Name + AOwner.ComponentCount.ToString;
-end;
-
-destructor TExplorerTransactionFrame.Destroy;
+procedure TExplorerTransactionFrame.SetData(const Trx: TTransactionInfo);
 begin
 
-  inherited;
+  Name := '';
+
+  FTrx:=Trx;
+
+  DateTimeLabel.Text := FormatDateTime('dd.mm.yyyy hh:mm:ss', Trx.DateTime);
+  BlockLabel.Text := Trx.TxId.ToString;
+  AddressFromLabel.Text := Trx.AddressFrom;
+  AddressToLabel.Text := Trx.AddressTo;
+  HashLabel.Text := Trx.Hash;
+  AmountLabel.Text := AmountToStr(Trx.Amount);
+
+  if Transaction.TxType='stake' then
+  begin
+    IncomRectangle.Fill.Color := $FF0F9A62;
+    IncomText.Text := 'STAKE';
+  end else
+  if Transaction.TxType='unstake' then
+  begin
+    IncomRectangle.Fill.Color := $FFE85D42;
+    IncomText.Text := 'UNSTAKE';
+  end else
+  if Transaction.TxType='migrate' then
+  begin
+    IncomRectangle.Fill.Color := $FFFF6900;
+    IncomText.Text := 'MIGRATE';
+  end else begin
+    IncomRectangle.Fill.Color := $FF0F9A62;
+    IncomText.Text := 'TRANSFER';
+  end;
+
+  IncomText.TextSettings.FontColor := IncomRectangle.Fill.Color;
+
 end;
 
 procedure TExplorerTransactionFrame.FrameMouseEnter(Sender: TObject);
@@ -68,17 +83,15 @@ begin
 end;
 
 procedure TExplorerTransactionFrame.FrameResized(Sender: TObject);
-var
-  Width: Single;
 begin
-  Width := Self.Width - DateTimeLabel.Width - BlockLabel.Width -
-    AmountLabel.Width - 70;
-  if TickerLabel.Visible then
-    Width := Width - TickerLabel.Width - 15;
+  ControlsFlexWidth([DateTimeLabel,BlockLabel,AddressFromLabel,AddressToLabel,
+    HashLabel,AmountLabel,IncomLayout],[0.1,0.05,0.2,0.2,0.27,0.1,0.08],Self);
+end;
 
-  FromLabel.Width := Width * 0.25;
-  ToLabel.Width := Width * 0.25;
-  HashLabel.Width := Width * 0.5;
+procedure TExplorerTransactionFrame.UpdateTransaction;
+begin
+  if Length(FTrx.Rewards)=0 then
+    FTrx.Rewards:=GetRwd(FTrx.RewardId);
 end;
 
 end.

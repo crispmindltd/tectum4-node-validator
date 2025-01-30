@@ -3,10 +3,12 @@ unit Crypto;
 interface
 
 uses
-  Hash,
   SysUtils,
   SyncObjs,
   SbpBase58,
+
+  HlpHashFactory,
+
   ClpBigInteger,
   ClpCryptoLibTypes,
   ClpIECKeyPairGenerator,
@@ -75,6 +77,9 @@ procedure GenECDSARandomKeys(out KeyPair: IAsymmetricCipherKeyPair);
 procedure GenECDSAKeysOnPhrase(const Phrase: string; out KeyPair: IAsymmetricCipherKeyPair); overload;
 procedure GenECDSAKeysOnPhrase(const Phrase: string; out PrivKey: string; out PubKey: string); overload;
 function RestorePublicKey(const PrivKey: string; out PubKey: string): Boolean;
+
+function RestoreAddress(const PubKeyStr: string; out HexAddrStr: string; const Prefix:string = ''): Boolean;
+
 procedure ECDSASignText(const InputText: string; const PrivKey: TBytes; out Sign: string); overload;
 procedure ECDSASignText(const InputText: string; const PrivKeyBase58: string; out Sign: string); overload;
 function ECDSACheckTextSign(const InputText: string; const Sign: string; const PubKey: TBytes): Boolean; overload;
@@ -311,6 +316,26 @@ begin
   finally
     LCS.Leave
   end;
+end;
+
+function RestoreAddress(const PubKeyStr: string; out HexAddrStr: string; const Prefix: string = ''): Boolean;
+begin
+
+  var PubKeyBytes:TBytes := HexToBytes(PubKeyStr);
+  assert(Length(PubKeyBytes) in [64, 65], 'incorrect public Key Length');
+
+  if Length(PubKeyBytes) = 65 then begin
+    Assert(PubKeyBytes[0] = 4, 'incorrect public Key');
+    PubKeyBytes := Copy(PubKeyBytes, 1);
+  end;
+
+  const HashInstance = THashFactory.TCrypto.CreateKeccak_256();
+  const Keccak256 = HashInstance.ComputeBytes(PubKeyBytes);
+  const HashBytes = Keccak256.GetBytes;
+  HexAddrStr := Prefix + BytesToHex(copy(HashBytes, 12));
+
+  Result := True;
+
 end;
 
 function ECDSACheckBytesSign(const InputBytes: TBytes; const Sign: TBytes; const PubKey: TBytes): Boolean;
