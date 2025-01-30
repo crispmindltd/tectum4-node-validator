@@ -48,7 +48,7 @@ begin
   var Spent: UInt64 := 0;
   DataCache.TryGetValue(Key, Spent);
 
-  Assert(Income >= Spent);
+  Assert(Income >= Spent, 'stake value < 0. address: ' + AAddress);
   Result := Income - Spent;
 end;
 
@@ -62,7 +62,7 @@ begin
   var Spent: UInt64 := 0;
   DataCache.TryGetValue(Key, Spent);
 
-  Assert(Income >= Spent);
+  Assert(Income >= Spent, 'token balance < 0. address: ' + AAddress + ' token:' + ATokenId.ToString);
   Result := Income - Spent;
 
   if ATokenId <> 0 then
@@ -70,12 +70,13 @@ begin
 
   const LStaked = GetStakeBalance(AAddress);
 
-  Assert(LStaked <= Result);
+  Assert(LStaked <= Result, 'staked more than balance. address: ' + AAddress + ' token:' + ATokenId.ToString);
   Result := Result - LStaked;
 end;
 
 procedure TDataCahe.Init;
 begin
+  Clear;
   // прочитаем балансы напрямую из блокчейна.
   const BlocksAmount = TMemBlock<TTxn>.RecordsCount(TTxn.FileName); // еще не определено
   begin
@@ -98,13 +99,13 @@ end;
 procedure TDataCahe.UpdateCache([Ref] const ATxn: TMemBlock<TTxn>; ATxId: UInt64);
 begin
   case ATxn.Data.TxnType of
-    txSend: begin
+    TTxnType.txSend, TTxnType.txMigrate: begin
         UpdateCache(ATxn.Data.Sender.Address, cdnDecBalance, ATxn.Data.Amount, ATxn.Data.TokenId);
         UpdateCache(ATxn.Data.Receiver.Address, cdnIncBalance, ATxn.Data.Amount, ATxn.Data.TokenId);
       end;
-    txStake:
+    TTxnType.txStake:
       UpdateCache(ATxn.Data.Sender.Address, cdnIncStakeSum, ATxn.Data.Amount);
-    txUnStake:
+    TTxnType.txUnStake:
       UpdateCache(ATxn.Data.Sender.Address, cdnDecStakeSum, ATxn.Data.Amount);
   end;
 

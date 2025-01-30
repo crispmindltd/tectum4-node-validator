@@ -1,0 +1,698 @@
+object TransactionFrame: TTransactionFrame
+  Size.Width = 1040.000000000000000000
+  Size.Height = 844.000000000000000000
+  Size.PlatformDefault = False
+  object TETTransactionDetailsLayout: TLayout
+    Align = MostTop
+    Margins.Top = 30.000000000000000000
+    Position.Y = 30.000000000000000000
+    Size.Width = 1040.000000000000000000
+    Size.Height = 37.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    object TETTransactionDetailsLabel: TLabel
+      Align = Left
+      AutoSize = True
+      StyledSettings = []
+      Margins.Left = 15.000000000000000000
+      Position.X = 52.000000000000000000
+      Size.Width = 267.200012207031300000
+      Size.Height = 37.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.Font.Family = 'Inter'
+      TextSettings.Font.Size = 30.000000000000000000
+      TextSettings.Font.StyleExt = {00070000000000000004000000}
+      TextSettings.FontColor = xFF323130
+      TextSettings.WordWrap = False
+      Text = 'Transaction Details'
+      TabOrder = 0
+    end
+    object TETBackCircle: TCircle
+      Align = MostLeft
+      Cursor = crHandPoint
+      Fill.Kind = None
+      Size.Width = 37.000000000000000000
+      Size.Height = 37.000000000000000000
+      Size.PlatformDefault = False
+      Stroke.Kind = None
+      OnMouseEnter = TETBackCircleMouseEnter
+      OnMouseLeave = TETBackCircleMouseLeave
+      object TETBackArrowPath: TPath
+        Align = Center
+        Data.Path = {
+          05000000000000003400A041860F1B41010000000CB045407C0F1B4100000000
+          18262241E23BB13F01000000F8DFD63FD3131B41010000001826224100009041}
+        Fill.Kind = None
+        HitTest = False
+        Size.Width = 20.000000000000000000
+        Size.Height = 18.000000000000000000
+        Size.PlatformDefault = False
+        Stroke.Color = xFF323130
+        Stroke.Thickness = 2.000000000000000000
+      end
+    end
+    object Layout6: TLayout
+      Align = Left
+      Margins.Left = 20.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Bottom = 4.000000000000000000
+      Position.X = 339.200012207031300000
+      Position.Y = 4.000000000000000000
+      Size.Width = 73.000000000000000000
+      Size.Height = 29.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 1
+      object IncomRectangle: TRectangle
+        Align = Contents
+        Fill.Color = xFF0F9A62
+        HitTest = False
+        Opacity = 0.300000011920929000
+        Size.Width = 73.000000000000000000
+        Size.Height = 29.000000000000000000
+        Size.PlatformDefault = False
+        Stroke.Kind = None
+        XRadius = 5.000000000000000000
+        YRadius = 5.000000000000000000
+      end
+      object IncomText: TText
+        Align = Contents
+        HitTest = False
+        Size.Width = 73.000000000000000000
+        Size.Height = 29.000000000000000000
+        Size.PlatformDefault = False
+        Text = 'IN'
+        TextSettings.Font.Family = 'Inter'
+        TextSettings.Font.Size = 14.000000000000000000
+        TextSettings.FontColor = xFF0F9A62
+      end
+    end
+  end
+  object TETTransactionDetailsRectangle: TRectangle
+    Align = Top
+    Fill.Color = x55FFFFFF
+    Padding.Left = 15.000000000000000000
+    Padding.Right = 15.000000000000000000
+    Margins.Top = 35.000000000000000000
+    Position.Y = 102.000000000000000000
+    Size.Width = 1040.000000000000000000
+    Size.Height = 691.000000000000000000
+    Size.PlatformDefault = False
+    Stroke.Kind = None
+    object TETHashDetailsLayout: TLayout
+      Align = Top
+      Margins.Top = 20.000000000000000000
+      Position.X = 15.000000000000000000
+      Position.Y = 20.000000000000000000
+      Size.Width = 1010.000000000000000000
+      Size.Height = 23.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 19
+      object TETHashDetailsLabel: TLabel
+        Align = Left
+        AutoSize = True
+        StyledSettings = []
+        Size.Width = 200.000000000000000000
+        Size.Height = 23.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.Font.Family = 'Inter'
+        TextSettings.Font.Size = 15.000000000000000000
+        TextSettings.FontColor = xFF5A6773
+        Text = 'Hash'
+        TabOrder = 0
+      end
+      object TETHashDetailsText: TText
+        Align = Left
+        AutoSize = True
+        HitTest = False
+        Position.X = 200.000000000000000000
+        Size.Width = 441.000000000000000000
+        Size.Height = 23.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.Font.Family = 'Inter'
+        TextSettings.Font.Size = 15.000000000000000000
+        TextSettings.FontColor = xFF1E2022
+        TextSettings.WordWrap = False
+        TextSettings.HorzAlign = Leading
+      end
+      object TETCopyLoginLayout: TLayout
+        Align = Left
+        Cursor = crHandPoint
+        Hint = 'Copy hash'
+        HitTest = True
+        Margins.Left = 5.000000000000000000
+        Margins.Top = -4.000000000000000000
+        Margins.Bottom = -4.000000000000000000
+        Position.X = 646.000000000000000000
+        Position.Y = -4.000000000000000000
+        Size.Width = 32.000000000000000000
+        Size.Height = 31.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 4
+        object TETCopyHashSvg: TPath
+          Align = Center
+          Cursor = crHandPoint
+          Data.Path = {
+            300000000000000052550541CEAA62410100000000007041CEAA624102000000
+            AC0B8341CEAA62410200000000008C4127C250410200000000008C41CEAA3A41
+            0100000000008C41EBFF9F400200000000008C4149A2674002000000AC0B8341
+            D6FF1F400200000000007041D6FF1F400100000052550541D6FF1F4002000000
+            DD7BDE40D6FF1F4002000000A4AABA4049A2674002000000A4AABA40EBFF9F40
+            01000000A4AABA40CEAA3A4102000000A4AABA4027C2504102000000DD7BDE40
+            CEAA62410200000052550541CEAA62410300000052550541CEAA624100000000
+            52550541CEAA62410100000000007041CEAA624102000000AC0B8341CEAA6241
+            0200000000008C4127C250410200000000008C41CEAA3A410100000000008C41
+            EBFF9F400200000000008C4149A2674002000000AC0B8341D6FF1F4002000000
+            00007041D6FF1F400100000052550541D6FF1F4002000000DD7BDE40D6FF1F40
+            02000000A4AABA4049A2674002000000A4AABA40EBFF9F4001000000A4AABA40
+            CEAA3A4102000000A4AABA4027C2504102000000DD7BDE40CEAA624102000000
+            52550541CEAA62410300000052550541CEAA624100000000CEAA624174248641
+            020000003D2C5B41FEE58941020000005DFE5041D8018C4102000000E5614641
+            00008C41010000000000A04000008C410200000073A2674000008C4102000000
+            00002040E10B83410200000000002040000070410100000000002040753CF340
+            0200000095F11F405C03DE400200000018CF304072A7C94002000000B1DC4E40
+            B9AABA40}
+          Fill.Kind = None
+          HitTest = False
+          Size.Width = 22.000000000000000000
+          Size.Height = 22.000000000000000000
+          Size.PlatformDefault = False
+          Stroke.Color = xFF5A6773
+          Stroke.Thickness = 2.000000000000000000
+        end
+      end
+    end
+    object TETBlockDetailsLayout: TLayout
+      Align = Top
+      Margins.Top = 20.000000000000000000
+      Position.X = 15.000000000000000000
+      Position.Y = 63.000000000000000000
+      Size.Width = 1010.000000000000000000
+      Size.Height = 23.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 11
+      object TETBlockDetailsLabel: TLabel
+        Align = Left
+        AutoSize = True
+        StyledSettings = []
+        Size.Width = 200.000000000000000000
+        Size.Height = 23.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.Font.Family = 'Inter'
+        TextSettings.Font.Size = 15.000000000000000000
+        TextSettings.FontColor = xFF5A6773
+        Text = 'Block'
+        TabOrder = 0
+      end
+      object TETBlockDetailsText: TText
+        Align = Left
+        Position.X = 200.000000000000000000
+        Size.Width = 441.000000000000000000
+        Size.Height = 23.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.Font.Family = 'Inter'
+        TextSettings.Font.Size = 15.000000000000000000
+        TextSettings.FontColor = xFF1E2022
+        TextSettings.WordWrap = False
+        TextSettings.HorzAlign = Leading
+      end
+    end
+    object TETDateTimeDetailsLayout: TLayout
+      Align = Top
+      Margins.Top = 20.000000000000000000
+      Position.X = 15.000000000000000000
+      Position.Y = 106.000000000000000000
+      Size.Width = 1010.000000000000000000
+      Size.Height = 23.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 12
+      object TETDateTimeDetailsLabel: TLabel
+        Align = Left
+        AutoSize = True
+        StyledSettings = []
+        Size.Width = 200.000000000000000000
+        Size.Height = 23.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.Font.Family = 'Inter'
+        TextSettings.Font.Size = 15.000000000000000000
+        TextSettings.FontColor = xFF5A6773
+        Text = 'Date/Time'
+        TabOrder = 0
+      end
+      object TETDateTimeDetailsText: TText
+        Align = Left
+        Position.X = 200.000000000000000000
+        Size.Width = 441.000000000000000000
+        Size.Height = 23.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.Font.Family = 'Inter'
+        TextSettings.Font.Size = 15.000000000000000000
+        TextSettings.FontColor = xFF1E2022
+        TextSettings.WordWrap = False
+        TextSettings.HorzAlign = Leading
+      end
+    end
+    object Line3: TLine
+      Align = Top
+      LineType = Bottom
+      Margins.Top = 20.000000000000000000
+      Position.X = 15.000000000000000000
+      Position.Y = 149.000000000000000000
+      Size.Width = 1010.000000000000000000
+      Size.Height = 1.000000000000000000
+      Size.PlatformDefault = False
+      Stroke.Color = xFFC9C9C9
+    end
+    object TETAddressDetailsLayout: TLayout
+      Align = Top
+      Margins.Top = 20.000000000000000000
+      Position.X = 15.000000000000000000
+      Position.Y = 170.000000000000000000
+      Size.Width = 1010.000000000000000000
+      Size.Height = 23.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 18
+      object AddressFromLabel: TLabel
+        Align = Left
+        AutoSize = True
+        StyledSettings = []
+        Size.Width = 200.000000000000000000
+        Size.Height = 23.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.Font.Family = 'Inter'
+        TextSettings.Font.Size = 15.000000000000000000
+        TextSettings.FontColor = xFF5A6773
+        Text = 'Address From'
+        TabOrder = 0
+      end
+      object AddressFromText: TText
+        Align = Left
+        AutoSize = True
+        Position.X = 200.000000000000000000
+        Size.Width = 441.000000000000000000
+        Size.Height = 23.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.Font.Family = 'Inter'
+        TextSettings.Font.Size = 15.000000000000000000
+        TextSettings.FontColor = xFF1E2022
+        TextSettings.WordWrap = False
+        TextSettings.HorzAlign = Leading
+      end
+      object TETCopyAddressLayout: TLayout
+        Align = Left
+        Cursor = crHandPoint
+        Hint = 'Copy address'
+        HitTest = True
+        Margins.Left = 5.000000000000000000
+        Margins.Top = -4.000000000000000000
+        Margins.Bottom = -4.000000000000000000
+        Position.X = 646.000000000000000000
+        Position.Y = -4.000000000000000000
+        Size.Width = 32.000000000000000000
+        Size.Height = 31.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 4
+        object TETCopyAddressSvg: TPath
+          Align = Center
+          Cursor = crHandPoint
+          Data.Path = {
+            300000000000000052550541CEAA62410100000000007041CEAA624102000000
+            AC0B8341CEAA62410200000000008C4127C250410200000000008C41CEAA3A41
+            0100000000008C41EBFF9F400200000000008C4149A2674002000000AC0B8341
+            D6FF1F400200000000007041D6FF1F400100000052550541D6FF1F4002000000
+            DD7BDE40D6FF1F4002000000A4AABA4049A2674002000000A4AABA40EBFF9F40
+            01000000A4AABA40CEAA3A4102000000A4AABA4027C2504102000000DD7BDE40
+            CEAA62410200000052550541CEAA62410300000052550541CEAA624100000000
+            52550541CEAA62410100000000007041CEAA624102000000AC0B8341CEAA6241
+            0200000000008C4127C250410200000000008C41CEAA3A410100000000008C41
+            EBFF9F400200000000008C4149A2674002000000AC0B8341D6FF1F4002000000
+            00007041D6FF1F400100000052550541D6FF1F4002000000DD7BDE40D6FF1F40
+            02000000A4AABA4049A2674002000000A4AABA40EBFF9F4001000000A4AABA40
+            CEAA3A4102000000A4AABA4027C2504102000000DD7BDE40CEAA624102000000
+            52550541CEAA62410300000052550541CEAA624100000000CEAA624174248641
+            020000003D2C5B41FEE58941020000005DFE5041D8018C4102000000E5614641
+            00008C41010000000000A04000008C410200000073A2674000008C4102000000
+            00002040E10B83410200000000002040000070410100000000002040753CF340
+            0200000095F11F405C03DE400200000018CF304072A7C94002000000B1DC4E40
+            B9AABA40}
+          Fill.Kind = None
+          HitTest = False
+          Size.Width = 22.000000000000000000
+          Size.Height = 22.000000000000000000
+          Size.PlatformDefault = False
+          Stroke.Color = xFF5A6773
+          Stroke.Thickness = 2.000000000000000000
+        end
+      end
+    end
+    object Line4: TLine
+      Align = Top
+      LineType = Bottom
+      Margins.Top = 20.000000000000000000
+      Position.X = 15.000000000000000000
+      Position.Y = 256.000000000000000000
+      Size.Width = 1010.000000000000000000
+      Size.Height = 1.000000000000000000
+      Size.PlatformDefault = False
+      Stroke.Color = xFFC9C9C9
+    end
+    object TETAmountDetailsLayout: TLayout
+      Align = Top
+      Margins.Top = 20.000000000000000000
+      Position.X = 15.000000000000000000
+      Position.Y = 277.000000000000000000
+      Size.Width = 1010.000000000000000000
+      Size.Height = 23.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 16
+      object TETAmountDetailsLabel: TLabel
+        Align = Left
+        AutoSize = True
+        StyledSettings = []
+        Size.Width = 200.000000000000000000
+        Size.Height = 23.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.Font.Family = 'Inter'
+        TextSettings.Font.Size = 15.000000000000000000
+        TextSettings.FontColor = xFF5A6773
+        Text = 'Amount'
+        TabOrder = 0
+      end
+      object TETAmountDetailsText: TText
+        Align = Left
+        Position.X = 200.000000000000000000
+        Size.Width = 441.000000000000000000
+        Size.Height = 23.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.Font.Family = 'Inter'
+        TextSettings.Font.Size = 15.000000000000000000
+        TextSettings.FontColor = xFF1E2022
+        TextSettings.WordWrap = False
+        TextSettings.HorzAlign = Leading
+      end
+    end
+    object TETDetailsLayout: TLayout
+      Align = Top
+      Margins.Top = 20.000000000000000000
+      Position.X = 15.000000000000000000
+      Position.Y = 540.000000000000000000
+      Size.Width = 1010.000000000000000000
+      Size.Height = 23.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 14
+      object TETDetailsLabel: TLabel
+        Align = Left
+        AutoSize = True
+        StyledSettings = []
+        Size.Width = 200.000000000000000000
+        Size.Height = 23.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.Font.Family = 'Inter'
+        TextSettings.Font.Size = 15.000000000000000000
+        TextSettings.FontColor = xFF5A6773
+        Text = 'Token'
+        TabOrder = 0
+      end
+      object TETDetailsText: TText
+        Align = Left
+        Position.X = 200.000000000000000000
+        Size.Width = 441.000000000000000000
+        Size.Height = 23.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.Font.Family = 'Inter'
+        TextSettings.Font.Size = 15.000000000000000000
+        TextSettings.FontColor = xFF1E2022
+        TextSettings.WordWrap = False
+        TextSettings.HorzAlign = Leading
+      end
+    end
+    object TETInfoDetailsLayout: TLayout
+      Align = Top
+      Margins.Top = 20.000000000000000000
+      Position.X = 15.000000000000000000
+      Position.Y = 583.000000000000000000
+      Size.Width = 1010.000000000000000000
+      Size.Height = 105.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 13
+      object TETInfoDetailsLabel: TLabel
+        Align = Left
+        AutoSize = True
+        StyledSettings = []
+        Size.Width = 200.000000000000000000
+        Size.Height = 105.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.Font.Family = 'Inter'
+        TextSettings.Font.Size = 15.000000000000000000
+        TextSettings.FontColor = xFF5A6773
+        TextSettings.VertAlign = Leading
+        Text = 'Token Info'
+        TabOrder = 0
+      end
+      object TETInfoDetailsLabelValue: TLabel
+        StyledSettings = [Style]
+        Position.X = 200.000000000000000000
+        Size.Width = 450.000000000000000000
+        Size.Height = 105.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.Font.Family = 'Inter'
+        TextSettings.Font.Size = 14.000000000000000000
+        TextSettings.FontColor = xFF1E2022
+        TextSettings.VertAlign = Leading
+        TabOrder = 1
+      end
+    end
+    object TETFeeDetailsLayout: TLayout
+      Align = Top
+      Margins.Top = 20.000000000000000000
+      Position.X = 15.000000000000000000
+      Position.Y = 320.000000000000000000
+      Size.Width = 1010.000000000000000000
+      Size.Height = 23.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 15
+      object TETFeeDetailsLabel: TLabel
+        Align = Left
+        AutoSize = True
+        StyledSettings = []
+        Size.Width = 200.000000000000000000
+        Size.Height = 23.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.Font.Family = 'Inter'
+        TextSettings.Font.Size = 15.000000000000000000
+        TextSettings.FontColor = xFF5A6773
+        Text = 'Fee'
+        TabOrder = 0
+      end
+      object TETFeeDetailsText: TText
+        Align = Left
+        AutoSize = True
+        Position.X = 200.000000000000000000
+        Size.Width = 40.500488281250000000
+        Size.Height = 19.951171875000000000
+        Size.PlatformDefault = False
+        Text = '0 TET'
+        TextSettings.Font.Family = 'Inter'
+        TextSettings.Font.Size = 15.000000000000000000
+        TextSettings.FontColor = xFF1E2022
+        TextSettings.WordWrap = False
+        TextSettings.HorzAlign = Leading
+      end
+      object Layout11: TLayout
+        Align = Left
+        HitTest = True
+        Margins.Left = 20.000000000000000000
+        Position.X = 260.500488281250000000
+        Size.Width = 32.000000000000000000
+        Size.Height = 23.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 1
+        OnClick = Layout11Click
+        object pthArrowDown: TPath
+          Align = Client
+          Data.Path = {
+            1800000000000000CF775942CDCC14410100000033B378420AD7884102000000
+            4F0A7A4257A38B4102000000CA427C42BABB8B4102000000F1A87D42830D8941
+            02000000170F7F424B5F864102000000481B7F4255EE8141020000002DC47D42
+            10447E4102000000A0BB7D425F207E4102000000E5B27D4263FD7D4102000000
+            FCA97D4223DB7D410100000073E8604279E90A4101000000F6A87D420000C03F
+            0200000072087F42A222943F02000000E7087F4226EB193F02000000FCA97D42
+            8018843E02000000124B7C423895AEBD02000000A9117A42D87FAFBD02000000
+            2EB278427E95833E01000000C9765942F4FD004102000000551E58421B800641
+            02000000CA1E5842E04C0F4102000000CF775942CDCC144103000000CF775942
+            CDCC1441}
+          Fill.Color = claBlack
+          HitTest = False
+          Opacity = 0.600000023841857900
+          Margins.Top = 3.000000000000000000
+          Margins.Bottom = 3.000000000000000000
+          RotationAngle = -90.000000000000000000
+          Size.Width = 32.000000000000000000
+          Size.Height = 17.000000000000000000
+          Size.PlatformDefault = False
+          Stroke.Kind = None
+          Stroke.Thickness = 0.000000000000000000
+          WrapMode = Fit
+          object FloatAnimation7: TFloatAnimation
+            Duration = 0.200000002980232200
+            OnProcess = FloatAnimation7Process
+            PropertyName = 'RotationAngle'
+            StartValue = 90.000000000000000000
+            StopValue = -90.000000000000000000
+          end
+        end
+      end
+    end
+    object Layout12: TLayout
+      Align = Top
+      ClipChildren = True
+      Position.X = 15.000000000000000000
+      Position.Y = 343.000000000000000000
+      Size.Width = 1010.000000000000000000
+      Size.Height = 177.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 20
+      object Layout13: TLayout
+        Align = Left
+        Size.Width = 200.000000000000000000
+        Size.Height = 177.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 0
+      end
+      object RewardsLayout: TLayout
+        Align = Client
+        Size.Width = 810.000000000000000000
+        Size.Height = 177.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 1
+        object Label4: TLabel
+          Align = Top
+          AutoSize = True
+          StyledSettings = []
+          Margins.Top = 10.000000000000000000
+          Position.Y = 10.000000000000000000
+          Size.Width = 810.000000000000000000
+          Size.Height = 19.200000762939450000
+          Size.PlatformDefault = False
+          TextSettings.Font.Family = 'Inter'
+          TextSettings.Font.Size = 14.000000000000000000
+          TextSettings.FontColor = xFF5A6773
+          Text = 'Validators'
+          TabOrder = 1
+        end
+        object RewardValidatorsLayout: TLayout
+          Align = Top
+          Position.Y = 29.200000762939450000
+          Size.Width = 810.000000000000000000
+          Size.Height = 78.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 3
+        end
+        object RewardArchiverLayout: TLayout
+          Align = Top
+          Position.Y = 136.399993896484400000
+          Size.Width = 810.000000000000000000
+          Size.Height = 45.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 2
+        end
+        object Label5: TLabel
+          Align = Top
+          AutoSize = True
+          StyledSettings = []
+          Margins.Top = 10.000000000000000000
+          Position.Y = 117.199996948242200000
+          Size.Width = 810.000000000000000000
+          Size.Height = 19.199996948242190000
+          Size.PlatformDefault = False
+          TextSettings.Font.Family = 'Inter'
+          TextSettings.Font.Size = 14.000000000000000000
+          TextSettings.FontColor = xFF5A6773
+          Text = 'Archiver'
+          TabOrder = 0
+        end
+      end
+    end
+    object Layout1: TLayout
+      Align = Top
+      Margins.Top = 20.000000000000000000
+      Position.X = 15.000000000000000000
+      Position.Y = 213.000000000000000000
+      Size.Width = 1010.000000000000000000
+      Size.Height = 23.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 17
+      object AddressToLabel: TLabel
+        Align = Left
+        AutoSize = True
+        StyledSettings = []
+        Size.Width = 200.000000000000000000
+        Size.Height = 23.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.Font.Family = 'Inter'
+        TextSettings.Font.Size = 15.000000000000000000
+        TextSettings.FontColor = xFF5A6773
+        Text = 'Address To'
+        TabOrder = 0
+      end
+      object AddressToText: TText
+        Align = Left
+        AutoSize = True
+        Position.X = 200.000000000000000000
+        Size.Width = 441.000000000000000000
+        Size.Height = 23.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.Font.Family = 'Inter'
+        TextSettings.Font.Size = 15.000000000000000000
+        TextSettings.FontColor = xFF1E2022
+        TextSettings.WordWrap = False
+        TextSettings.HorzAlign = Leading
+      end
+      object Layout2: TLayout
+        Align = Left
+        Cursor = crHandPoint
+        Hint = 'Copy address'
+        HitTest = True
+        Margins.Left = 5.000000000000000000
+        Margins.Top = -4.000000000000000000
+        Margins.Bottom = -4.000000000000000000
+        Position.X = 646.000000000000000000
+        Position.Y = -4.000000000000000000
+        Size.Width = 32.000000000000000000
+        Size.Height = 31.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 4
+        object Path1: TPath
+          Align = Center
+          Cursor = crHandPoint
+          Data.Path = {
+            300000000000000052550541CEAA62410100000000007041CEAA624102000000
+            AC0B8341CEAA62410200000000008C4127C250410200000000008C41CEAA3A41
+            0100000000008C41EBFF9F400200000000008C4149A2674002000000AC0B8341
+            D6FF1F400200000000007041D6FF1F400100000052550541D6FF1F4002000000
+            DD7BDE40D6FF1F4002000000A4AABA4049A2674002000000A4AABA40EBFF9F40
+            01000000A4AABA40CEAA3A4102000000A4AABA4027C2504102000000DD7BDE40
+            CEAA62410200000052550541CEAA62410300000052550541CEAA624100000000
+            52550541CEAA62410100000000007041CEAA624102000000AC0B8341CEAA6241
+            0200000000008C4127C250410200000000008C41CEAA3A410100000000008C41
+            EBFF9F400200000000008C4149A2674002000000AC0B8341D6FF1F4002000000
+            00007041D6FF1F400100000052550541D6FF1F4002000000DD7BDE40D6FF1F40
+            02000000A4AABA4049A2674002000000A4AABA40EBFF9F4001000000A4AABA40
+            CEAA3A4102000000A4AABA4027C2504102000000DD7BDE40CEAA624102000000
+            52550541CEAA62410300000052550541CEAA624100000000CEAA624174248641
+            020000003D2C5B41FEE58941020000005DFE5041D8018C4102000000E5614641
+            00008C41010000000000A04000008C410200000073A2674000008C4102000000
+            00002040E10B83410200000000002040000070410100000000002040753CF340
+            0200000095F11F405C03DE400200000018CF304072A7C94002000000B1DC4E40
+            B9AABA40}
+          Fill.Kind = None
+          HitTest = False
+          Size.Width = 22.000000000000000000
+          Size.Height = 22.000000000000000000
+          Size.PlatformDefault = False
+          Stroke.Color = xFF5A6773
+          Stroke.Thickness = 2.000000000000000000
+        end
+      end
+    end
+  end
+end

@@ -1,0 +1,74 @@
+object NavigationFrame: TNavigationFrame
+  Size.Width = 316.000000000000000000
+  Size.Height = 36.000000000000000000
+  Size.PlatformDefault = False
+  object PagesPanelLayout: TLayout
+    Align = Client
+    Size.Width = 268.000000000000000000
+    Size.Height = 36.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    object Text1: TText
+      Align = Left
+      AutoSize = True
+      Size.Width = 13.958333015441890000
+      Size.Height = 36.000000000000000000
+      Size.PlatformDefault = False
+      Text = '2'
+      TextSettings.Font.Family = 'Inter'
+      TextSettings.Font.Size = 16.000000000000000000
+    end
+  end
+  object NextPageLayout: TLayout
+    Align = Right
+    Cursor = crHandPoint
+    HitTest = True
+    Position.X = 292.000000000000000000
+    Size.Width = 24.000000000000000000
+    Size.Height = 36.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 2
+    OnClick = NextPageLayoutClick
+    object NextPagePath: TPath
+      Align = Center
+      Data.Path = {
+        03000000000000002540953F65AA2A410100000051A5BA4058FFBF4001000000
+        2540953FF0A7AA3F}
+      Enabled = False
+      Fill.Kind = None
+      HitTest = False
+      Size.Width = 7.000000000000000000
+      Size.Height = 14.000000000000000000
+      Size.PlatformDefault = False
+      Stroke.Color = xFF5A6773
+      Stroke.Thickness = 2.500000000000000000
+      Stroke.Cap = Round
+    end
+  end
+  object PrevPageLayout: TLayout
+    Align = MostLeft
+    Cursor = crHandPoint
+    HitTest = True
+    Size.Width = 24.000000000000000000
+    Size.Height = 36.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    OnClick = PrevPageLayoutClick
+    object PrevPagePath: TPath
+      Align = Center
+      Data.Path = {
+        03000000000000002540953F65AA2A410100000051A5BA4058FFBF4001000000
+        2540953FF0A7AA3F}
+      Enabled = False
+      Fill.Kind = None
+      HitTest = False
+      RotationAngle = 180.000000000000000000
+      Size.Width = 7.000000000000000000
+      Size.Height = 14.000000000000000000
+      Size.PlatformDefault = False
+      Stroke.Color = xFF5A6773
+      Stroke.Thickness = 2.500000000000000000
+      Stroke.Cap = Round
+    end
+  end
+end

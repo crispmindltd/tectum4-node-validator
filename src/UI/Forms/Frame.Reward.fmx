@@ -1,0 +1,46 @@
+object RewardFrame: TRewardFrame
+  Align = Top
+  Size.Width = 524.000000000000000000
+  Size.Height = 32.000000000000000000
+  Size.PlatformDefault = False
+  object AddressLabel: TLabel
+    Align = Left
+    StyledSettings = [Style]
+    Size.Width = 345.000000000000000000
+    Size.Height = 32.000000000000000000
+    Size.PlatformDefault = False
+    TextSettings.Font.Family = 'Inter'
+    TextSettings.Font.Size = 15.000000000000000000
+    TextSettings.FontColor = xFF1E2022
+    TextSettings.WordWrap = False
+    Text = 'Address'
+    TabOrder = 5
+  end
+  object Rectangle1: TRectangle
+    Align = Left
+    Margins.Top = 5.000000000000000000
+    Margins.Bottom = 5.000000000000000000
+    Position.X = 345.000000000000000000
+    Position.Y = 5.000000000000000000
+    Size.Width = 120.000000000000000000
+    Size.Height = 22.000000000000000000
+    Size.PlatformDefault = False
+    Stroke.Thickness = 0.000000000000000000
+    XRadius = 2.000000000000000000
+    YRadius = 2.000000000000000000
+    object AmountLabel: TLabel
+      Align = Client
+      StyledSettings = [Style]
+      Size.Width = 120.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.Font.Family = 'Inter'
+      TextSettings.Font.Size = 15.000000000000000000
+      TextSettings.FontColor = xFF1E2022
+      TextSettings.HorzAlign = Center
+      TextSettings.WordWrap = False
+      Text = 'Amount'
+      TabOrder = 5
+    end
+  end
+end

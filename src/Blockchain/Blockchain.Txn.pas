@@ -5,6 +5,9 @@ interface
 uses
   System.SysUtils,
   System.IOUtils,
+  System.DateUtils,
+  System.Hash,
+  System.Math,
   Crypto,
   Blockchain.Validation,
   Blockchain.Reward,
@@ -13,12 +16,11 @@ uses
 
 type
 
-  TTxnType = (txSend, txStake, txUnStake { , txNewToken } );
+  TTxnType = (txSend, txStake, txUnStake, txMigrate { , txNewToken } );
 
   TTxnParty = record
     Address: T20Bytes;
     AddressId: UInt64;
-    // Balance: Int64; // balance after tx
     FromBlock: UInt64; // previous tx
   end;
 
@@ -55,9 +57,24 @@ type
     function CalculateSign(const [Ref] APrivKey: T32Bytes):TSign;
     function GetValidation(const [Ref] AValidatorPrivKey: T32Bytes):TMemBlock<TValidation>;
     class function NextId: UInt64; static;
-  private
-    class operator Initialize(out Dest: TTxn);
+    function TxnHash: string;
   end;
+
+  TTransactionInfo = record
+    DateTime: TDateTime;
+    TxId: Int64;
+    TxType: string;
+    AddressFrom: string;
+    AddressTo: string;
+    Amount: Int64;
+    Hash: string;
+    Fee: Int64;
+    RewardId: UInt64;
+    Rewards: TArray<TRewardInfo>;
+    class operator Implicit(const Block: TMemBlock<TTxn>): TTransactionInfo;
+  end;
+
+  TFilterPredicate = reference to procedure(const Trx: TTransactionInfo);
 
 procedure SaveBlock(var ATxn: TMemBlock<TTxn>);
 
@@ -67,10 +84,130 @@ procedure SaveValidatedBlock(var ATxn: TMemBlock<TTxn>; var AArchiver: TMemBlock
 function CreateTx(const [Ref] ASenderAddr, AReceiverAddr: T20Bytes; AValue, AFee: UInt64; ATxnType: TTxnType; ATokenId: Integer;
   const [Ref] ASenderPrivKey: T32Bytes; isNeedSign: Boolean = True): TMemBlock<TTxn>;
 
+function AmountToStr(const Amount: Int64; WithName: Boolean=False): string;
+function StrToAmount(S: string; Digits: Byte=8): UInt64;
+function NowUTC: TDateTime;
+function GetAccountTxns(const [Ref] AAddress:T20Bytes; Skip,Count: Int64): TArray<TTransactionInfo>;
+function GetTxns(Skip,Count: Int64): TArray<TTransactionInfo>;
+procedure EnumTxns(Filter: TFilterPredicate);
+
 implementation
 
 uses
   Blockchain.DataCache;
+
+function AmountToStr(const Amount: Int64; WithName: Boolean=False): string;
+const Name: array[Boolean] of string = ('',' TET');
+begin
+  Result := FormatFloat('0.########'+Name[WithName],Amount/100000000);
+end;
+
+function StrToAmount(S: string; Digits: Byte=8): UInt64;
+begin
+  var I:=S.IndexOfAny(['.',',']);
+  if I=-1 then
+    I:=S.Length
+  else
+    S:=S.Remove(I,1);
+  Result:=(S+''.Create('0',Digits)).Substring(0,I+Digits).ToInt64;
+end;
+
+function DateTimeUTC(DateTime: TDateTime): TDateTime;
+begin
+  Result:=TTimeZone.Local.ToUniversalTime(DateTime);
+end;
+
+function NowUTC: TDateTime;
+begin
+  Result:=DateTimeUTC(Now);
+end;
+
+function GetAccountTxns(const [Ref] AAddress:T20Bytes; Skip,Count: Int64): TArray<TTransactionInfo>;
+begin
+
+  var CurrentTxId:UInt64 := DataCache.GetLastTxId(AAddress);
+
+  while (Count > 0) and (CurrentTxId <> INVALID) do begin
+
+    const Block = TMemBlock<TTxn>.ReadFromFile(TTxn.Filename, CurrentTxId);
+
+    if Skip > 0 then
+      Dec(Skip)
+    else begin
+      var Item: TTransactionInfo:=Block;
+      Item.TxId := CurrentTxId;
+      Result := Result + [Item];
+      Dec(Count);
+    end;
+
+    if Block.Data.Sender.Address = AAddress then begin
+      CurrentTxId := Block.Data.Sender.FromBlock;
+      Continue;
+    end;
+    if Block.Data.Receiver.Address = AAddress then begin
+      CurrentTxId := Block.Data.Receiver.FromBlock;
+      Continue;
+    end;
+
+    raise Exception.Create('Corrupted blockchain !');
+
+  end;
+
+end;
+
+function GetTxns(Skip,Count: Int64): TArray<TTransactionInfo>;
+begin
+
+  var RecordCount:=TTxn.NextId;
+  var StartIndex:=RecordCount;
+
+  if StartIndex>Skip+Count then StartIndex:=StartIndex-(Skip+Count) else StartIndex:=0;
+  if StartIndex+Count>RecordCount then Count:=RecordCount-StartIndex;
+
+  Result:=[];
+
+  if Count=0 then Exit;
+
+  const Blocks = TMemBlock<TTxn>.ByteArrayFromFile(TTxn.Filename,StartIndex,Count);
+
+  for var I := 0 to Count-1 do
+  begin
+
+    const Block: TMemBlock<TTxn> = Copy(Blocks, I*SizeOf(TTxn), SizeOf(TTxn));
+
+    var Tx: TTransactionInfo := Block;
+
+    Tx.TxId:=StartIndex+I;
+
+    Result := [Tx] + Result;
+
+  end;
+
+end;
+
+function SafeSub(V,S: UInt64): UInt64;
+begin
+  if V>S then Result:=V-S else V:=0;
+end;
+
+procedure EnumTxns(Filter: TFilterPredicate);
+const ReadCount = 100;
+begin
+
+  const RecordCount = TMemBlock<TTxn>.RecordsCount(TTxn.Filename);
+  var I := SafeSub(RecordCount,1);
+
+  while I>0 do
+  begin
+
+//    I :=Safe
+//
+//    const Blocks = TMemBlock<TTxn>.ByteArrayFromFile(TTxn.Filename,I,Min(Count));
+//
+//    I := SafeSub
+  end;
+
+end;
 
 function CreateTx(const [Ref] ASenderAddr, AReceiverAddr: T20Bytes; AValue, AFee: UInt64; ATxnType: TTxnType; ATokenId: Integer;
   const [Ref] ASenderPrivKey: T32Bytes; isNeedSign: Boolean = True): TMemBlock<TTxn>;
@@ -90,14 +227,21 @@ begin
     Result.Data.Fee := CalculateFee(AValue)
   else
     Result.Data.Fee := AFee;
-  Result.Data.CreatedAt := Now();
+
+  Result.Data.CreatedAt := NowUTC;
+
+  const isSenderOwnerOfToken = (Result.Data.Sender.AddressId = 0);
+  const isReceiverOwnerOfToken = (Result.Data.Receiver.AddressId = 0);
+
+  Assert( (atxnType <> TTxnType.txMigrate) or isSenderOwnerOfToken or isReceiverOwnerOfToken,
+    'Token owner must take part in migrate transaction!');
 
   if isNeedSign then begin
     var PubKeyStr: string;
-    Assert(RestorePublicKey(ASenderPrivKey, PubKeyStr));
+    Assert(RestorePublicKey(ASenderPrivKey, PubKeyStr), 'can not restore pubkey from privkey when creating new tx');
     Result.Data.SenderPubKey := PubKeyStr;
     Result.Data.SignWithKey(ASenderPrivKey);
-    Assert(Result.Data.isSigned());
+    Assert(Result.Data.isSigned(), 'error checking new tx`s sign');
   end;
 end;
 
@@ -109,7 +253,7 @@ begin
     ATxn.Data.PreviousHash := TMemBlock<TTxn>.LastHash(TTxn.Filename);
   end;
 
-    // если получатель - новый адрес, то запишем его в цепочку.
+    // save new address to chain
   if ATxn.Data.Receiver.AddressId = INVALID then begin
     var LAcccount: TMemBlock<TAccount>;
     LAcccount.Data.Address := ATxn.Data.Receiver.Address;
@@ -128,49 +272,46 @@ var
   TxId: UInt64;
   procedure SaveValidator(var AValidator: TMemBlock<TValidation>);
   begin
-    // эти поля уже заполнены !
-    // Assert(AValidators[i].Data.SignerId > 0);
-    // Assert(AValidators[i].Data.StartedAt > 0)
-    // Assert(AValidators[i].Data.FinishedAt > 0);
-    // Assert(AValidators[i].Data.SignerPubKey
-    // Assert(AValidators[i].Data.Sign
-
     AValidator.Data.TxnId := TxId;
     AValidator.Data.PreviousHash := AValidator.LastHash(TValidation.FileName);
     AValidator.SaveToFile(TValidation.Filename);
   end;
 
+  procedure SaveReward(AAccountId:UInt64; AAmount:UInt64; ARewardType:TRewardType);
+  begin
+      var LReward: TMemBlock<TReward>;
+      LReward.Data.RewardType := ARewardType;
+      LReward.Data.RecieverAddressId := AAccountId;
+      LReward.Data.Amount := AAmount;
+      LReward.Data.TxnId := TxId;
+      LReward.Data.PreviousHash := LReward.LastHash(TReward.FileName);
+      LReward.SaveToFile(TReward.Filename);
+      DataCache.UpdateCache(LReward);
+  end;
+
 begin
-  // выполняется только на А13 поэтому проверки подписей уже не делаем.
-  // делаем следующие проверки перед сохранением блока.
-
-  // проверка корректного заполнения последнего блока
   const LSenderLastTxnId = DataCache.GetLastTxId(ATxn.Data.Sender.Address);
-  Assert(LSenderLastTxnId = ATxn.Data.Sender.FromBlock);
+  Assert(LSenderLastTxnId = ATxn.Data.Sender.FromBlock, '(a13) incorrect FromBlock value for tx sender');
 
-  // проверка получателя не обязательна, уже сделано ранее валидаторами
-  // const LReceiverLastTxnId = DataCache.GetLastTxId(ATxn.Data.Receiver.Address);
-  // Assert(LReceiverLastTxnId = ATxn.Data.Receiver.FromBlock);
-
-  // проверка достаточности баланса (пока предполагаю что токен один и тот же)
-  if ATxn.Data.TxnType in [txSend, txStake] then begin
+  // checking balance (assuming this is a TET tx)
+  if ATxn.Data.TxnType in [TTxnType.txSend, TTxnType.txStake, TTxnType.txMigrate] then begin
     const Balance = DataCache.GetTokenBalance(ATxn.Data.Sender.Address, ATxn.Data.TokenId);
-    Assert(Balance >= (ATxn.Data.Amount + ATxn.Data.Fee.Fee1));
+    Assert(Balance >= (ATxn.Data.Amount + ATxn.Data.Fee.Fee1), '(a13) insufficient funds for tx');
   end;
 
-  // для анстейкинга свои проверки
-  if ATxn.Data.TxnType = txUnStake then begin
+  // check before unstake
+  if ATxn.Data.TxnType = TTxnType.txUnStake then begin
     const Stake = DataCache.GetStakeBalance(ATxn.Data.Sender.Address);
-    Assert(Stake > ATxn.Data.Amount);
+    Assert(Stake > ATxn.Data.Amount, '(a13) not enough staked to unstake');
 
     const Balance = DataCache.GetTokenBalance(ATxn.Data.Sender.Address, ATxn.Data.TokenId);
-    Assert(Balance > ATxn.Data.Fee.Fee1);
+    Assert(Balance > ATxn.Data.Fee.Fee1, '(a13) insufficient funds for unstake fee');
   end;
 
-  // если получатель - новый адрес, нет ли его уже в существующих.
+  // check if the NEW address exists already
   if ATxn.Data.Receiver.AddressId = INVALID then begin
     const AddrId = TAccount.GetAddressId(ATxn.Data.Receiver.Address);
-    Assert(AddrId = INVALID);
+    Assert(AddrId = INVALID, '(a13) address already exists ' + ATxn.Data.Receiver.Address);
   end;
 
   TxId := TTxn.NextId;
@@ -180,34 +321,35 @@ begin
   var ValidatorStakes: Tarray<UInt64>;
   SetLength(ValidatorStakes, Length(AValidators));
 
-  // теперь записать блоки валидации и вознаграждения.
+  // now save validation and reward blocks
   try
     SaveValidator(AArchiver);
-    // заполним недостающие поля валидаторов
-    for var I := 0 to high(AValidators) do begin
-      SaveValidator(AValidators[I]);
-      ValidatorStakes[I] := DataCache.GetStakeBalance(AValidators[I].Data.SignerPubKey.Address);
-    end;
 
-    const RewardValue = GetRewards(ATxn.Data.Fee.Fee1, ValidatorStakes);
+    ATxn.Data.RewardId := INVALID;
 
-    for var I := 0 to high(AValidators) do begin
-      var LReward: TMemBlock<TReward>;
-      LReward.Data.RewardType := rtTxnFee;
-      LReward.Data.RecieverAddressId := //
-        TAccount.GetAddressId(AValidators[I].Data.SignerPubKey.Address);
-      LReward.Data.Amount := RewardValue[I];
-      LReward.Data.TxnId := TxId;
-      LReward.Data.PreviousHash := LReward.LastHash(TReward.FileName);
-      LReward.SaveToFile(TReward.Filename);
-      DataCache.UpdateCache(LReward);
+    if ATxn.Data.TxnType in [TTxnType.txSend, TTxnType.txStake] then begin
+
+      for var I := 0 to high(AValidators) do begin
+        SaveValidator(AValidators[I]);
+        ValidatorStakes[I] := DataCache.GetStakeBalance(AValidators[I].Data.SignerPubKey.Address);
+      end;
+
+      const RewardValue = GetRewards(ATxn.Data.Fee.Fee1, ValidatorStakes);
+      for var I := 0 to high(AValidators) do begin
+        const LAccountId = TAccount.GetAddressId(AValidators[I].Data.SignerPubKey.Address);
+        const RewardAmount = RewardValue[I];
+        SaveReward(LAccountId, RewardAmount, rtValidatorReward);
+      end;
+      const LAccountId = TAccount.GetAddressId(AArchiver.Data.SignerPubKey.Address);
+      const RewardAmount = ATxn.Data.Fee.Fee1;
+      SaveReward(LAccountId, RewardAmount, rtArchiverReward);
+
+      ATxn.Data.RewardId := RewardId;
     end;
 
     ATxn.Data.ValidationId := ValidationId;
-    ATxn.Data.RewardId := RewardId;
 
     SaveBlock(ATxn);
-
   except
     on E: Exception do begin
       Writeln('Transaction save error. Cannot continue. Stop Node!');
@@ -234,12 +376,13 @@ end;
 
 function TTxn.GetValidation(const [Ref] AValidatorPrivKey: T32Bytes): TMemBlock<TValidation>;
 begin
-  // надо бы провалидировать по настоящему ))
+  // must validate in truth ))
   var PubKey:string;
-  Assert(RestorePublicKey(AValidatorPrivKey, PubKey));
+  Assert(RestorePublicKey(AValidatorPrivKey, PubKey), 'cannot restore pubkey on create new validation');
 
-  const AddressId = TAccount.GetAddressId( T65Bytes(PubKey).Address );
-  Assert(AddressId <> INVALID);
+  const ValidatorAddress = T65Bytes(PubKey).Address;
+  const AddressId = TAccount.GetAddressId( ValidatorAddress );
+  Assert(AddressId <> INVALID, 'validator`s address not found: ' + ValidatorAddress);
 
   Result.Data.SignerId := AddressId;
   Result.Data.SignerPubKey := PubKey;
@@ -252,11 +395,6 @@ begin
   Result := ECDSASignBytes(BytesToSign, LPrivKey); // implicit Assert
 end;
 
-class operator TTxn.Initialize(out Dest: TTxn);
-begin
-  FillChar(Dest, Sizeof(Dest), 0);
-end;
-
 function TTxn.isSigned(): Boolean;
 begin
   Result := ECDSACheckBytesSign(BytesToSign, SenderSign, SenderPubKey);
@@ -267,20 +405,67 @@ begin
   Result := TMemBlock<TTxn>.RecordsCount(TTxn.Filename);
 end;
 
+type
+  TTxnHash = record
+    TxnType: TTxnType;
+    TokenId: Integer;
+    Amount: Int64;
+    AddressFrom: T20Bytes;
+    AddressTo: T20Bytes;
+    CreatedAt: TDateTime;
+    SenderSign: TSign;
+  end;
+
+function TTxn.TxnHash: string;
+var TxnHash: TTxnHash;
+begin
+
+  Assert(isSigned,'transaction is not signed');
+
+  TxnHash.TxnType := TxnType;
+  TxnHash.TokenId := TokenId;
+  TxnHash.Amount := Amount;
+  TxnHash.AddressFrom := Sender.Address;
+  TxnHash.AddressTo := Receiver.Address;
+  TxnHash.CreatedAt := CreatedAt;
+  TxnHash.SenderSign := SenderSign;
+
+  const LSHA2 = THashSHA2.Create(THashSHA2.TSHA2Version.SHA256);
+
+  LSHA2.Update(TxnHash, SizeOf(TTxnHash));
+
+  Result := LSHA2.HashAsString;
+
+end;
+
 procedure TTxn.SignWithKey(const [Ref] APrivKey: T32Bytes);
 begin
   SenderSign := CalculateSign(APrivKey);
 end;
 
-initialization
+class operator TTransactionInfo.Implicit(const Block: TMemBlock<TTxn>): TTransactionInfo;
+begin
+  const tx = Block.Data;
 
-const ProgramPath = ExtractFilePath(ParamStr(0));
+  Result.DateTime := tx.CreatedAt;
+  Result.TxId := 0;
+  Result.AddressFrom := AddressToStr(tx.Sender.Address);
+  Result.AddressTo := AddressToStr(tx.Receiver.Address);
+  Result.Amount := tx.Amount;
+  Result.Fee := tx.Fee.Fee1;
+  Result.Hash := BytesToHex(Block.Hash).ToLower;
+  Result.RewardId := tx.RewardId;
 
-const TxnPath = TPath.Combine(ProgramPath, 'txn.db');
-if not TFile.Exists(TxnPath) then
-  TFile.WriteAllText(TxnPath, '');
+  case tx.TxnType of
+    TTxnType.txSend: Result.TxType := 'transfer';
+    TTxnType.txStake: Result.TxType := 'stake';
+    TTxnType.txUnStake: Result.TxType := 'unstake';
+    TTxnType.txMigrate: Result.TxType := 'migrate';
+  end;
 
-TTxn.Filename := TxnPath;
+  //Result.Validations:=GetVns(tx.ValidationId);
+  //Result.Rewards:=GetRwd(tx.RewardId);
+
+end;
 
 end.
-

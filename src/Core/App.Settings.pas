@@ -4,6 +4,7 @@ interface
 
 uses
   App.Constants,
+  App.Logs,
   IniFiles,
   IOUtils,
   Net.Data,
@@ -22,14 +23,19 @@ type
 
       function GetHTTPEnabled: Boolean;
       function GetAutoUpdate: Boolean;
+      function GetLogsLevel: Byte;
+      function GetAddress: string;
     public
       constructor Create;
       destructor Destroy; override;
 
       procedure Init;
+      procedure SetAddress(const Address: string);
 
       property EnabledHTTP: Boolean read GetHTTPEnabled;
       property AutoUpdate: Boolean read GetAutoUpdate;
+      property LogsLevel: Byte read GetLogsLevel;
+      property Address: string read GetAddress;
   end;
 
 implementation
@@ -65,6 +71,7 @@ begin
     FIni.WriteString('http', 'enabled', BoolToStr(True, True));
     FIni.WriteString('http', 'port', DefaultPortHTTP.ToString);
     FIni.WriteString('settings', 'auto_update', BoolToStr(True, True));
+    FIni.WriteInteger('settings', 'logs_level', CmnLvlLogs);
     FIni.UpdateFile;
   end;
 end;
@@ -90,6 +97,11 @@ begin
       Nodes.AddNodeToPool(Splitted[i]);
 end;
 
+function TSettingsFile.GetAddress: string;
+begin
+  Result := FIni.ReadString('settings', 'address', '');
+end;
+
 function TSettingsFile.GetAutoUpdate: Boolean;
 begin
   Result := StrToBool(FIni.ReadString('settings', 'auto_update', 'True'));
@@ -103,6 +115,11 @@ end;
 function TSettingsFile.GetHTTPEnabled: Boolean;
 begin
   Result := StrToBool(FIni.ReadString('http', 'enabled', 'True'));
+end;
+
+function TSettingsFile.GetLogsLevel: Byte;
+begin
+  Result := FIni.ReadInteger('settings', 'logs_level', CmnLvlLogs);
 end;
 
 procedure TSettingsFile.Init;
@@ -137,6 +154,11 @@ begin
     raise Exception.Create(Format('HTTP port "%s" is invalid', [APort]));
 
   HTTPPort := PortValue;
+end;
+
+procedure TSettingsFile.SetAddress(const Address: string);
+begin
+  FIni.WriteString('settings', 'address', Address);
 end;
 
 end.

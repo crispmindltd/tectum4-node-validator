@@ -5,7 +5,7 @@ interface
 uses
   App.Exceptions,
   App.Intf,
-  App.Updater,
+  Update.Core,
   Classes,
   endpoints.Base,
   JSON,
@@ -23,49 +23,40 @@ type
 //    function BlocksCountLocal(AReqID: string; AEvent: TEvent;
 //      AComType: THTTPCommandType; AParams: TStrings; ABody: string)
 //      : TEndpointResponse;
-//    function BlocksCount(AReqID: string; AEvent: TEvent;
-//      AComType: THTTPCommandType; AParams: TStrings; ABody: string)
-//      : TEndpointResponse;
-    function Version(AReqID: string; AEvent: TEvent;
-      AComType: THTTPCommandType; AParams: TStrings; ABody: string)
-      : TEndpointResponse;
-    function DoNewKeys(AReqID: string; AEvent: TEvent;
-      AComType: THTTPCommandType; AParams: TStrings; ABody: string)
-      : TEndpointResponse;
-    function DoRecoverKeys(AReqID: string; AEvent: TEvent;
-      AComType: THTTPCommandType; AParams: TStrings; ABody: string)
-      : TEndpointResponse;
+    function BlocksCount(AEvent: TEvent; AComType: THTTPCommandType;
+      AParams: TStrings; ABody: string): TEndpointResponse;
+    function Version(AEvent: TEvent; AComType: THTTPCommandType;
+      AParams: TStrings; ABody: string): TEndpointResponse;
+    function DoNewKeys(AEvent: TEvent; AComType: THTTPCommandType;
+      AParams: TStrings; ABody: string): TEndpointResponse;
+    function DoRecoverKeys(AEvent: TEvent; AComType: THTTPCommandType;
+      AParams: TStrings; ABody: string): TEndpointResponse;
   end;
 
 implementation
 
-//function TNodeEndpoints.BlocksCount(AReqID: string; AEvent: TEvent;
-//  AComType: THTTPCommandType; AParams: TStrings; ABody: string): TEndpointResponse;
-//var
-//  JSON: TJSONObject;
-//  Response: string;
-//  BlocksNumber: Integer;
-//begin
-//  Result.ReqID := AReqID;
-//  try
-//    if AComType <> hcGET then
-//      raise ENotSupportedError.Create('');
-//
-//    JSON := TJSONObject.Create;
-//    try
-////      Response := AppCore.GetTETBlocksTotalCount(AReqID);
-//      BlocksNumber := Response.Split([' '])[2].ToInt64;
-//      JSON.AddPair('blocksCount', TJSONNumber.Create(BlocksNumber));
-//      Result.Code := HTTP_SUCCESS;
-//      Result.Response := JSON.ToString;
-//    finally
-//      JSON.Free;
-//    end;
-//  finally
-//    if Assigned(AEvent) then
-//      AEvent.SetEvent;
-//  end;
-//end;
+function TNodeEndpoints.BlocksCount(AEvent: TEvent; AComType: THTTPCommandType;
+  AParams: TStrings; ABody: string): TEndpointResponse;
+var
+  JSON: TJSONObject;
+begin
+  try
+    if AComType <> hcGET then
+      raise ENotSupportedError.Create('');
+
+    JSON := TJSONObject.Create;
+    try
+      JSON.AddPair('blocksCount', TJSONNumber.Create(AppCore.GetBlocksCount));
+      Result.Code := HTTP_SUCCESS;
+      Result.Response := JSON.ToString;
+    finally
+      JSON.Free;
+    end;
+  finally
+    if Assigned(AEvent) then
+      AEvent.SetEvent;
+  end;
+end;
 
 //function TNodeEndpoints.BlocksCountLocal(AReqID: string; AEvent: TEvent;
 //  AComType: THTTPCommandType; AParams: TStrings; ABody: string): TEndpointResponse;
@@ -102,14 +93,12 @@ begin
   inherited;
 end;
 
-function TNodeEndpoints.DoNewKeys(AReqID: string; AEvent: TEvent;
-  AComType: THTTPCommandType; AParams: TStrings;
-  ABody: string): TEndpointResponse;
+function TNodeEndpoints.DoNewKeys(AEvent: TEvent; AComType: THTTPCommandType;
+  AParams: TStrings; ABody: string): TEndpointResponse;
 var
   JSON: TJSONObject;
   SeedPhrase, PrKey, PubKey, Address: string;
 begin
-  Result.ReqID := AReqID;
   try
     if (AComType <> hcGET) and (AComType <> hcPOST) then
       raise ENotSupportedError.Create('');
@@ -132,14 +121,12 @@ begin
   end;
 end;
 
-function TNodeEndpoints.DoRecoverKeys(AReqID: string; AEvent: TEvent;
-  AComType: THTTPCommandType; AParams: TStrings;
-  ABody: string): TEndpointResponse;
+function TNodeEndpoints.DoRecoverKeys(AEvent: TEvent; AComType: THTTPCommandType;
+  AParams: TStrings; ABody: string): TEndpointResponse;
 var
   JSON: TJSONObject;
   PubKey, PrKey, Seed, Address, Response: string;
 begin
-  Result.ReqID := '';
   try
     if AComType <> hcPOST then
       raise ENotSupportedError.Create('');
@@ -169,20 +156,18 @@ begin
   end;
 end;
 
-function TNodeEndpoints.Version(AReqID: string; AEvent: TEvent;
-  AComType: THTTPCommandType; AParams: TStrings;
-  ABody: string): TEndpointResponse;
+function TNodeEndpoints.Version(AEvent: TEvent; AComType: THTTPCommandType;
+  AParams: TStrings; ABody: string): TEndpointResponse;
 var
   JSON: TJSONObject;
 begin
-  Result.ReqID := AReqID;
   try
     if AComType <> hcGET then
       raise ENotSupportedError.Create('');
 
     JSON := TJSONObject.Create;
     try
-      JSON.AddPair('version', Updater.CurVersion);
+      JSON.AddPair('version', AppCore.GetAppVersionText);
       Result.Code := HTTP_SUCCESS;
       Result.Response := JSON.ToString;
     finally

@@ -32,6 +32,9 @@ type
     procedure GenerateNew();
   end;
 
+function AddressToStr(const Address: T20Bytes): string;
+function RestoreAddressAsStr(const PubKeyStr: string): string;
+
 implementation
 
 uses
@@ -56,7 +59,7 @@ begin
 
   LastPrivKey := PrivKeyStr;
   var PubKeyStr: string;
-  Assert(RestorePublicKey(PrivKeyStr, PubKeyStr));
+  Assert(RestorePublicKey(PrivKeyStr, PubKeyStr), 'Error restoring pubkey from privkey when generate new account');
   LastPubKey := PubKeyStr;
 
   // классовые переменные заполнили, теперь заполняем поля текущей записи
@@ -107,22 +110,35 @@ end;
 { TPubKeyToAddress }
 function TPubKeyToAddress.Address: T20Bytes;
 begin
-  // последние 20 байт публичного ключа, 45..64
-  move(Self.Data[45], Result, 20);
+  var AddrStr:string;
+  Assert(RestoreAddress(Self, AddrStr));
+  Result := AddrStr;
 end;
 
+function AddressToStr(const Address: T20Bytes): string;
+begin
+  Result:=('0x'+Address).ToLower;
+end;
 
+function RestoreAddressAsStr(const PubKeyStr: string): string;
+begin
+  const pubKey:T65Bytes = PubKeyStr;
+  Result := AddressToStr(pubKey.address);
+end;
 
 initialization
 
 const ProgramPath = ExtractFilePath(ParamStr(0));
 
-const AddressPath = TPath.Combine(ProgramPath, 'address.db');
+const ChainsDirPath = TPath.Combine(ProgramPath, 'chains');
+if not DirectoryExists(ChainsDirPath) then
+  TDirectory.CreateDirectory(ChainsDirPath);
+
+const AddressPath = TPath.Combine(ChainsDirPath, 'address.db');
 if not TFile.Exists(AddressPath) then
   TFile.WriteAllText(AddressPath, '');
 
 TAccount.Filename := AddressPath;
-
 
 end.
 

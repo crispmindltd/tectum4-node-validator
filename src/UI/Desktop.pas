@@ -8,6 +8,7 @@ uses
   Classes,
   FMX.Dialogs,
   FMX.Forms,
+  FMX.Platform,
   Form.Main,
   Math,
   SyncObjs,
@@ -42,6 +43,8 @@ type
     procedure ShowVersionDidNotMatch;
     procedure NotifyNewTETBlocks;
   end;
+
+procedure CopyToClipboard(const Text: string);
 
 implementation
 
@@ -133,6 +136,7 @@ end;
 
 procedure TUICore.DoTerminate;
 begin
+  Application.Terminate;
 end;
 
 procedure TUICore.NotifyNewTETBlocks;
@@ -148,6 +152,14 @@ end;
 procedure TUICore.NullForm(var Form);
 begin
   TAccessCommonCustomForm(Form) := nil;
+end;
+
+procedure CopyToClipboard(const Text: string);
+var
+  Service: IFMXClipBoardService;
+begin
+  if TPlatformServices.Current.SupportsPlatformService(IFMXClipBoardService, Service) then
+    Service.SetClipboard(Text);
 end;
 
 end.

@@ -3,9 +3,9 @@ unit Console;
 interface
 
 uses
+  App.Logs,
   App.Exceptions,
   App.Intf,
-  App.Updater,
   System.SysUtils,
   System.SyncObjs,
   Classes,
@@ -46,6 +46,7 @@ begin
       CTRL_BREAK_EVENT, //
       CTRL_CLOSE_EVENT: begin
         ExitFlag := True;
+        Logs.DoLog('Close event', DbgLvlLogs, ltNone);
         Result := True;
       end;
   else
@@ -58,6 +59,7 @@ begin
   case Sig of
     SIGINT, SIGTERM:
     begin
+      Logs.DoLog('Close event', DbgLvlLogs, ltNone);
       ExitFlag := True;
     end;
   end;
@@ -106,29 +108,16 @@ end;
 procedure TConsoleCore.Run;
 begin
   DoMessage(Format('Tectum Light Node version %s. Copyright (c) 2024 CrispMind.',
-    [Updater.CurVersion]));
+    [AppCore.GetAppVersionText]));
   AppCore.Run;
   DoMessage('Lite node is running. Press Ctrl-C to stop.');
-
-  {$IFDEF MSWINDOWS}
-  var Msg: TMsg;
-  while not ExitFlag do
-  begin
-    if PeekMessage(Msg, 0, 0, 0, PM_REMOVE) then
-    begin
-      TranslateMessage(Msg);
-      DispatchMessage(Msg);
-    end else
+  try
+    while not ExitFlag do begin
       CheckSynchronize(100);
+    end;
+  finally
+    DoMessage('Terminating node...');
   end;
-  {$ELSE}
-  while not ExitFlag do
-  begin
-    CheckSynchronize(100);
-  end;
-  {$ENDIF}
-
-  DoMessage('Terminating node...');
 end;
 
 procedure TConsoleCore.ShowMainForm;

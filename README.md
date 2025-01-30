@@ -19,10 +19,14 @@ Tectum Blockchain Node includes a local web server that processes requests. It p
 
 Tectum Blockchain Node supports the following types of requests:
 
-### Token operations: ###
+### Coin operations: ###
 
--   **[POST /tokens/transfer](docs/tokens_transfer_request.md)**: To transfer tokens between two addresses
--   **[POST /tokens/stake](docs/tokens_stake_request.md)**: Staking tokens to become a network validator
+-   **[POST /coins/transfer](docs/tokens_transfer_request.md)**: To transfer TET between two addresses
+-   **[POST /coins/stake](docs/tokens_stake_request.md)**: Staking TET to become a network validator
+-   **POST /coins/migrate**: Migrate TET to new address
+-   **[GET /coins/transfers](docs/token_transfer_history.md)**: Retrieve the transfer history for the TET
+-   **[GET /coins/balance/byaddress](docs/token_balance_request.md)**: Retrieve TET balance by address
+-   **[GET /coins/transfers/user](docs/tet_transfer_history_user.md)**: Retrieve the TET transfer history for a specific user
 
 ### Key management: ###
 
@@ -32,3 +36,7 @@ Tectum Blockchain Node supports the following types of requests:
 ### Settings: ###
 
 -   **[GET /version](docs/version_request.md)**: View node version
+
+### Blocks: ###
+
+-   **[GET /blockscount](docs/block_count.md)**: Retrieve the total count of blocks in the blockchain

@@ -22,7 +22,7 @@ uses
   endpoints.Base in 'Web\endpoints\endpoints.Base.pas',
   endpoints.Account in 'Web\endpoints\endpoints.Account.pas',
   App.Exceptions in 'Core\App.Exceptions.pas',
-  endpoints.Token in 'Web\endpoints\endpoints.Token.pas',
+  endpoints.Coin in 'Web\endpoints\endpoints.Coin.pas',
   Form.Main in 'UI\Forms\Form.Main.pas' {MainForm},
   Styles in 'UI\Forms\Styles.pas' {StylesForm},
   WordsPool in 'Crypto\SeedPhrase\WordsPool.pas',
@@ -33,7 +33,6 @@ uses
   App.Constants in 'Core\App.Constants.pas',
   OpenURL in 'UI\OpenURL.pas',
   Frame.PageNum in 'UI\Forms\Frame.PageNum.pas' {PageNumFrame: TFrame},
-  App.Updater in 'Core\App.Updater.pas',
   Blockchain.Address in 'Blockchain\Blockchain.Address.pas',
   Blockchain.Data in 'Blockchain\Blockchain.Data.pas',
   Blockchain.Txn in 'Blockchain\Blockchain.Txn.pas',
@@ -46,7 +45,15 @@ uses
   Net.Connection in 'Net\Net.Connection.pas',
   Net.Data in 'Net\Net.Data.pas',
   Net.Server in 'Net\Net.Server.pas',
-  Net.ServerConnection in 'Net\Net.ServerConnection.pas';
+  Net.ServerConnection in 'Net\Net.ServerConnection.pas',
+  Update.Core in 'Update\Update.Core.pas',
+  App.Types in 'Core\App.Types.pas',
+  Update.Utils in 'Update\Update.Utils.pas',
+  Desktop.Controls in 'UI\Desktop.Controls.pas',
+  Frame.Reward in 'UI\Forms\Frame.Reward.pas' {RewardFrame: TFrame},
+  Frame.Transaction in 'UI\Forms\Frame.Transaction.pas' {TransactionFrame: TFrame},
+  Frame.StakingTransaction in 'UI\Forms\Frame.StakingTransaction.pas' {StakingTransactionFrame: TFrame},
+  Frame.Navigation in 'UI\Forms\Frame.Navigation.pas' {NavigationFrame: TFrame};
 
 {$R *.res}
 
@@ -59,7 +66,7 @@ begin
 
   LPidFileName := 'LNode';
   try
-    with TMutex.Create(LPidFileName) do
+//    with TMutex.Create(LPidFileName) do
     try
       UI := TUICore.Create;
       try
@@ -71,7 +78,7 @@ begin
       end;
     finally
       AppCore.Stop;
-      Free;
+//      Free;
     end;
   except
     on E:EFOpenError do

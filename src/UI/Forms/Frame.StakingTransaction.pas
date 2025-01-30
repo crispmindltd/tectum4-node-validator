@@ -1,4 +1,4 @@
-unit Frame.History;
+unit Frame.StakingTransaction;
 
 interface
 
@@ -16,7 +16,7 @@ const
   TickerLabelWidth = 80;
 
 type
-  THistoryTransactionFrame = class(TFrame)
+  TStakingTransactionFrame = class(TFrame)
     Rectangle: TRectangle;
     DateTimeLabel: TLabel;
     BlockLabel: TLabel;
@@ -25,7 +25,6 @@ type
     ValueLabel: TLabel;
     IncomRectangle: TRectangle;
     IncomText: TText;
-    AddressToLabel: TLabel;
     IncomLayout: TLayout;
     procedure FrameMouseLeave(Sender: TObject);
     procedure FrameMouseEnter(Sender: TObject);
@@ -34,7 +33,7 @@ type
     FTrx: TTransactionInfo;
   public
     procedure UpdateTransaction;
-    procedure SetData(const Trx: TTransactionInfo; Incom: Boolean);
+    procedure SetData(const Trx: TTransactionInfo);
     property Transaction: TTransactionInfo read FTrx;
   end;
 
@@ -44,7 +43,7 @@ implementation
 
 { THistoryTransactionFrame }
 
-procedure THistoryTransactionFrame.SetData(const Trx: TTransactionInfo; Incom: Boolean);
+procedure TStakingTransactionFrame.SetData(const Trx: TTransactionInfo);
 begin
 
   Name := '';
@@ -54,40 +53,39 @@ begin
   DateTimeLabel.Text := FormatDateTime('dd.mm.yyyy hh:mm:ss', Trx.DateTime);
   BlockLabel.Text := Trx.TxId.ToString;
   AddressFromLabel.Text := Trx.AddressFrom;
-  AddressToLabel.Text := Trx.AddressTo;
   HashLabel.Text := Trx.Hash;
   ValueLabel.Text := AmountToStr(Trx.Amount);
 
-  if not Incom then
+  if Trx.TxType='unstake' then
   begin
     IncomRectangle.Fill.Color := $FFE85D42;
-    IncomText.Text := 'OUT';
+    IncomText.Text := 'UNSTAKE';
   end else begin
     IncomRectangle.Fill.Color := $FF0F9A62;
-    IncomText.Text := 'IN';
+    IncomText.Text := 'STAKE';
   end;
 
   IncomText.TextSettings.FontColor := IncomRectangle.Fill.Color;
 
 end;
 
-procedure THistoryTransactionFrame.FrameMouseEnter(Sender: TObject);
+procedure TStakingTransactionFrame.FrameMouseEnter(Sender: TObject);
 begin
   Rectangle.Fill.Kind := TBrushKind.Solid;
 end;
 
-procedure THistoryTransactionFrame.FrameMouseLeave(Sender: TObject);
+procedure TStakingTransactionFrame.FrameMouseLeave(Sender: TObject);
 begin
   Rectangle.Fill.Kind := TBrushKind.None;
 end;
 
-procedure THistoryTransactionFrame.RectangleResized(Sender: TObject);
+procedure TStakingTransactionFrame.RectangleResized(Sender: TObject);
 begin
-  ControlsFlexWidth([DateTimeLabel,BlockLabel,AddressFromLabel,AddressToLabel,
-    HashLabel,ValueLabel,IncomLayout],[0.1,0.05,0.2,0.2,0.3,0.1,0.05],Self);
+  ControlsFlexWidth([DateTimeLabel,BlockLabel,AddressFromLabel,
+    HashLabel,ValueLabel,IncomLayout],[0.13,0.05,0.3,0.35,0.1,0.07],Self);
 end;
 
-procedure THistoryTransactionFrame.UpdateTransaction;
+procedure TStakingTransactionFrame.UpdateTransaction;
 begin
   if Length(FTrx.Rewards)=0 then
     FTrx.Rewards:=GetRwd(FTrx.RewardId);
