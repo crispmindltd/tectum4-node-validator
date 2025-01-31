@@ -1,4 +1,4 @@
-# Welcome to TESTNET Tectum Blockchain Node v4.0.100 beta! #
+# Welcome to MAINNET Tectum Blockchain Node v4.0 Beta! #
 
 ## Description ##
 
