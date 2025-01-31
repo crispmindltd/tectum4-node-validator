@@ -51,7 +51,7 @@ type
   end;
 
 const
-  _1_TET = UInt64(10000000);
+  _1_TET = UInt64(100000000);
   MinFee = _1_TET div 1000; // 0.001 TET
   MaxFee = _1_TET; // 1 TET
   TET_Id = 0;

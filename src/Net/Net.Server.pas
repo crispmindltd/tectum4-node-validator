@@ -81,7 +81,8 @@ begin
       begin
         Logs.DoLog('Listen socket begin accept', DbgLvlLogs, ltNone);
         FListeningSocket.BeginAccept(AcceptCallback, INFINITE)
-      end else if FStatus = ssShuttingDown then
+      end
+       else if FStatus = ssShuttingDown then
       begin
         Logs.DoLog('Listen socket closed', AdvLvlLogs, ltNone);
         TerminateAllClients;
@@ -104,6 +105,8 @@ end;
 
 destructor TNodeServer.Destroy;
 begin
+  Logs.DoLog('NodeServer.Destroy', DbgLvlLogs, ltNone);     //
+
   Stop;
   FClients.Free;
   FListLock.Free;
@@ -170,8 +173,8 @@ var
   i: Integer;
   Connect: TServerConnection;
 begin
-  Connect := Sender as TServerConnection;
   FListLock.Enter;
+  Connect := Sender as TServerConnection;
   try
     for i := 0 to FClients.Count - 1 do
       if (FClients.Items[i].PubKey = Connect.PubKey) and
@@ -206,6 +209,7 @@ end;
 
 procedure TNodeServer.Stop;
 begin
+  Logs.DoLog('NodeServer.Stop', DbgLvlLogs, ltNone);     //
   if FStatus <> ssStarted then
     exit;
 

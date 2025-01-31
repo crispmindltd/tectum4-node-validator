@@ -8,15 +8,24 @@ object NavigationFrame: TNavigationFrame
     Size.Height = 36.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 1
-    object Text1: TText
+    object PageText: TText
       Align = Left
       AutoSize = True
-      Size.Width = 13.958333015441890000
-      Size.Height = 36.000000000000000000
+      Margins.Left = 4.000000000000000000
+      Margins.Top = 2.000000000000000000
+      Margins.Right = 4.000000000000000000
+      Margins.Bottom = 4.000000000000000000
+      Position.X = 4.000000000000000000
+      Position.Y = 2.000000000000000000
+      Size.Width = 22.583333969116210000
+      Size.Height = 30.000000000000000000
       Size.PlatformDefault = False
-      Text = '2'
+      Text = '10'
       TextSettings.Font.Family = 'Inter'
       TextSettings.Font.Size = 16.000000000000000000
+      TextSettings.FontColor = xFF5A6773
+      TextSettings.WordWrap = False
+      TextSettings.HorzAlign = Leading
     end
   end
   object NextPageLayout: TLayout

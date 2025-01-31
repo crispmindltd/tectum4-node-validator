@@ -33,6 +33,7 @@ uses
   Blockchain.Validation in 'Blockchain\Blockchain.Validation.pas',
   Blockchain.Reward in 'Blockchain\Blockchain.Reward.pas',
   BlockChain.DataCache in 'Blockchain\BlockChain.DataCache.pas',
+  BlockChain.Utils in 'Blockchain\BlockChain.Utils.pas',
   Net.CommandHandler in 'Net\Net.CommandHandler.pas',
   Net.ServerConnection in 'Net\Net.ServerConnection.pas',
   Net.Connection in 'Net\Net.Connection.pas',

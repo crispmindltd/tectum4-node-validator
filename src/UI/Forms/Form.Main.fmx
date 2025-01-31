@@ -18,7 +18,7 @@ object MainForm: TMainForm
   OnShow = FormShow
   DesignerMasterStyle = 0
   object Tabs: TTabControl
-    Align = Contents
+    Align = Client
     FullSize = True
     Padding.Right = 5.000000000000000000
     Margins.Left = 53.000000000000000000
@@ -28,7 +28,7 @@ object MainForm: TMainForm
     Size.Height = 930.000000000000000000
     Size.PlatformDefault = False
     StyleLookup = 'AuthTabControlstyle'
-    TabIndex = 2
+    TabIndex = 1
     TabOrder = 0
     TabPosition = Top
     OnChange = TabsChange
@@ -62,12 +62,6 @@ object MainForm: TMainForm
       Text = 'Tectum Token'
       ExplicitSize.cx = 1.000000000000000000
       ExplicitSize.cy = 1.000000000000000000
-      object HideTETMessageTimer: TTimer
-        Enabled = False
-        Interval = 5000
-        Left = 1064
-        Top = 16
-      end
       object TETTabControl: TTabControl
         Align = Client
         Margins.Top = 55.000000000000000000
@@ -75,7 +69,7 @@ object MainForm: TMainForm
         Size.Height = 842.000000000000000000
         Size.PlatformDefault = False
         StyleLookup = 'AuthTabControlstyle'
-        TabIndex = 0
+        TabIndex = 1
         TabOrder = 1
         TabPosition = None
         Sizes = (
@@ -88,7 +82,7 @@ object MainForm: TMainForm
             item
             end>
           TextSettings.Trimming = None
-          IsSelected = True
+          IsSelected = False
           Size.Width = 8.000000000000000000
           Size.Height = 8.000000000000000000
           Size.PlatformDefault = False
@@ -101,7 +95,7 @@ object MainForm: TMainForm
             Margins.Top = 5.000000000000000000
             Position.Y = 5.000000000000000000
             Size.Width = 1089.000000000000000000
-            Size.Height = 109.000000000000000000
+            Size.Height = 113.000000000000000000
             Size.PlatformDefault = False
             TabOrder = 2
             object BalanceTETLabel: TLabel
@@ -109,10 +103,10 @@ object MainForm: TMainForm
               AutoSize = True
               StyledSettings = [Style]
               Size.Width = 1089.000000000000000000
-              Size.Height = 20.000000000000000000
+              Size.Height = 24.000000000000000000
               Size.PlatformDefault = False
               TextSettings.Font.Family = 'Inter'
-              TextSettings.Font.Size = 15.000000000000000000
+              TextSettings.Font.Size = 18.000000000000000000
               TextSettings.FontColor = xFF323130
               TextSettings.WordWrap = False
               Text = 'Balance'
@@ -123,7 +117,7 @@ object MainForm: TMainForm
               AutoSize = True
               StyledSettings = []
               Margins.Top = 2.000000000000000000
-              Position.Y = 22.000000000000000000
+              Position.Y = 26.000000000000000000
               Size.Width = 1089.000000000000000000
               Size.Height = 40.000000000000000000
               Size.PlatformDefault = False
@@ -132,12 +126,12 @@ object MainForm: TMainForm
               TextSettings.Font.StyleExt = {00070000000000000004000000}
               TextSettings.FontColor = xFF323130
               TextSettings.WordWrap = False
-              Text = 'Balance value'
+              Text = '300,00250 TET'
               TabOrder = 0
             end
-            object Layout12: TLayout
+            object AddressTETLayout: TLayout
               Align = Top
-              Position.Y = 62.000000000000000000
+              Position.Y = 66.000000000000000000
               Size.Width = 1089.000000000000000000
               Size.Height = 27.000000000000000000
               Size.PlatformDefault = False
@@ -147,14 +141,14 @@ object MainForm: TMainForm
                 AutoSize = True
                 AutoTranslate = False
                 StyledSettings = [Style]
-                Size.Width = 53.599998474121090000
+                Size.Width = 338.399993896484400000
                 Size.Height = 27.000000000000000000
                 Size.PlatformDefault = False
                 TextSettings.Font.Family = 'Inter'
                 TextSettings.Font.Size = 15.000000000000000000
                 TextSettings.FontColor = xFF323130
                 TextSettings.WordWrap = False
-                Text = 'Address'
+                Text = '0xbe07ae854e6a72bac492674a00ad6990bd228041'
                 TabOrder = 1
               end
               object TETCopyLoginLayout: TLayout
@@ -165,7 +159,7 @@ object MainForm: TMainForm
                 Margins.Left = 5.000000000000000000
                 Margins.Top = -4.000000000000000000
                 Margins.Bottom = -4.000000000000000000
-                Position.X = 58.599998474121090000
+                Position.X = 343.399993896484400000
                 Position.Y = -4.000000000000000000
                 Size.Width = 32.000000000000000000
                 Size.Height = 35.000000000000000000
@@ -205,11 +199,27 @@ object MainForm: TMainForm
                 end
               end
             end
+            object TETInfoLabel: TLabel
+              Align = Top
+              AutoTranslate = False
+              StyledSettings = [Style]
+              Opacity = 0.600000023841857900
+              Position.Y = 93.000000000000000000
+              Size.Width = 1089.000000000000000000
+              Size.Height = 20.000000000000000000
+              Size.PlatformDefault = False
+              TextSettings.Font.Family = 'Inter'
+              TextSettings.Font.Size = 14.000000000000000000
+              TextSettings.FontColor = xFF323130
+              TextSettings.WordWrap = False
+              Text = 'Noted. A 0.1% fee applies to all transactions in LNode.'
+              TabOrder = 4
+            end
           end
           object HistoryTETHeaderLayout: TLayout
             Align = Top
             Margins.Top = 20.000000000000000000
-            Position.Y = 373.600006103515600000
+            Position.Y = 377.600006103515600000
             Size.Width = 1089.000000000000000000
             Size.Height = 28.000000000000000000
             Size.PlatformDefault = False
@@ -316,7 +326,7 @@ object MainForm: TMainForm
             AutoSize = True
             StyledSettings = []
             Margins.Top = 32.000000000000000000
-            Position.Y = 320.000000000000000000
+            Position.Y = 324.000000000000000000
             Size.Width = 1089.000000000000000000
             Size.Height = 33.600006103515630000
             Size.PlatformDefault = False
@@ -333,7 +343,7 @@ object MainForm: TMainForm
             StyledSettings = []
             Opacity = 0.750000000000000000
             Size.Width = 1089.000000000000000000
-            Size.Height = 440.399993896484400000
+            Size.Height = 436.399993896484400000
             Size.PlatformDefault = False
             TextSettings.Font.Family = 'Inter'
             TextSettings.Font.Size = 32.000000000000000000
@@ -346,12 +356,12 @@ object MainForm: TMainForm
           object SendTETDataLayout: TLayout
             Align = Top
             Margins.Top = 20.000000000000000000
-            Position.Y = 134.000000000000000000
+            Position.Y = 138.000000000000000000
             Size.Width = 1089.000000000000000000
             Size.Height = 154.000000000000000000
             Size.PlatformDefault = False
             TabOrder = 3
-            object Layout1: TLayout
+            object TETSendButtonLayout: TLayout
               Align = Bottom
               Position.Y = 121.000000000000000000
               Size.Width = 1089.000000000000000000
@@ -361,7 +371,7 @@ object MainForm: TMainForm
               object SendTETButton: TButton
                 Align = Left
                 StyledSettings = []
-                Size.Width = 170.000000000000000000
+                Size.Width = 180.000000000000000000
                 Size.Height = 33.000000000000000000
                 Size.PlatformDefault = False
                 StyleLookup = 'Buttonstyle'
@@ -382,7 +392,7 @@ object MainForm: TMainForm
                 Text = 'Status'
                 TextSettings.Font.Size = 15.000000000000000000
                 Margins.Left = 20.000000000000000000
-                Size.Width = 899.000000000000000000
+                Size.Width = 889.000000000000000000
                 Size.Height = 33.000000000000000000
                 Size.PlatformDefault = False
                 StyledSettings = [Family, Style]
@@ -394,7 +404,7 @@ object MainForm: TMainForm
                 end
               end
             end
-            object Layout2: TLayout
+            object TETSendLayout: TLayout
               Align = Left
               Size.Width = 425.000000000000000000
               Size.Height = 121.000000000000000000
@@ -414,8 +424,6 @@ object MainForm: TMainForm
                 Size.PlatformDefault = False
                 TextPrompt = 'Enter the recipient address'
                 StyledSettings = [Style]
-                OnChangeTracking = AmountTETEditChangeTracking
-                OnKeyDown = SendTETToEditKeyDown
                 object ShadowEffect6: TShadowEffect
                   Distance = 3.000000000000000000
                   Direction = 70.000000000000000000
@@ -438,8 +446,6 @@ object MainForm: TMainForm
                 Size.Height = 40.000000000000000000
                 Size.PlatformDefault = False
                 TextPrompt = 'Enter TET amount'
-                OnChangeTracking = AmountTETEditChangeTracking
-                OnKeyDown = SendTETToEditKeyDown
                 object TxMaxAmountButton: TEditButton
                   Touch.InteractiveGestures = [LongTap]
                   CanFocus = False
@@ -470,12 +476,12 @@ object MainForm: TMainForm
             Margins.Top = 10.000000000000000000
             Margins.Bottom = 20.000000000000000000
             Size.Width = 1089.000000000000000000
-            Size.Height = 410.399993896484400000
+            Size.Height = 406.399993896484400000
             Size.PlatformDefault = False
             TabOrder = 7
             OnResized = HistoryTETVertScrollBoxResized
             Viewport.Width = 1089.000000000000000000
-            Viewport.Height = 410.400000000000000000
+            Viewport.Height = 406.400000000000000000
           end
         end
         object TETTransactionDataTabItem: TTabItem
@@ -483,7 +489,7 @@ object MainForm: TMainForm
             item
             end>
           TextSettings.Trimming = None
-          IsSelected = False
+          IsSelected = True
           Size.Width = 8.000000000000000000
           Size.Height = 8.000000000000000000
           Size.PlatformDefault = False
@@ -499,17 +505,21 @@ object MainForm: TMainForm
             inherited TETTransactionDetailsLayout: TLayout
               Size.Width = 1089.000000000000000000
               inherited TETTransactionDetailsLabel: TLabel
+                Size.Width = 859.000000000000000000
                 TextSettings.Font.StyleExt = {00070000000000000004000000}
               end
               inherited TETBackCircle: TCircle
                 OnClick = TransactionFrame2TETBackCircleClick
+              end
+              inherited TypeLayout: TLayout
+                Position.X = 931.000000000000000000
               end
             end
             inherited TETTransactionDetailsRectangle: TRectangle
               Size.Width = 1089.000000000000000000
               inherited TETHashDetailsLayout: TLayout
                 Size.Width = 1059.000000000000000000
-                inherited TETCopyLoginLayout: TLayout
+                inherited HashCopyLayout: TLayout
                   OnClick = TransactionFrame2TETCopyLoginLayoutClick
                 end
               end
@@ -524,7 +534,7 @@ object MainForm: TMainForm
               end
               inherited TETAddressDetailsLayout: TLayout
                 Size.Width = 1059.000000000000000000
-                inherited TETCopyAddressLayout: TLayout
+                inherited AddressFromCopyLayout: TLayout
                   OnClick = TransactionFrame2TETCopyAddressLayoutClick
                 end
               end
@@ -543,11 +553,11 @@ object MainForm: TMainForm
               inherited TETFeeDetailsLayout: TLayout
                 Size.Width = 1059.000000000000000000
               end
-              inherited Layout12: TLayout
+              inherited FeeRewardLayout: TLayout
                 Size.Width = 1059.000000000000000000
                 inherited RewardsLayout: TLayout
                   Size.Width = 859.000000000000000000
-                  inherited Label4: TLabel
+                  inherited ValidatorsLabel: TLabel
                     Size.Width = 859.000000000000000000
                   end
                   inherited RewardValidatorsLayout: TLayout
@@ -556,12 +566,12 @@ object MainForm: TMainForm
                   inherited RewardArchiverLayout: TLayout
                     Size.Width = 859.000000000000000000
                   end
-                  inherited Label5: TLabel
+                  inherited ArchiverLabel: TLabel
                     Size.Width = 859.000000000000000000
                   end
                 end
               end
-              inherited Layout1: TLayout
+              inherited AddressToLayout: TLayout
                 Size.Width = 1059.000000000000000000
               end
             end
@@ -578,7 +588,7 @@ object MainForm: TMainForm
       TextSettings.FontColor = claWhite
       TextSettings.Trimming = None
       StyledSettings = [Style, FontColor, Other]
-      IsSelected = False
+      IsSelected = True
       Margins.Left = 6.000000000000000000
       Size.Width = 267.000000000000000000
       Size.Height = 64.000000000000000000
@@ -588,7 +598,7 @@ object MainForm: TMainForm
       Text = 'Staking'
       ExplicitSize.cx = 358.000000000000000000
       ExplicitSize.cy = 64.000000000000000000
-      object TabControl1: TTabControl
+      object StakingTabControl: TTabControl
         Align = Client
         Margins.Top = 55.000000000000000000
         Size.Width = 1089.000000000000000000
@@ -603,7 +613,7 @@ object MainForm: TMainForm
           842s
           1089s
           842s)
-        object TabItem1: TTabItem
+        object StakingMainTabItem: TTabItem
           CustomIcon = <
             item
             end>
@@ -616,15 +626,15 @@ object MainForm: TMainForm
           TabOrder = 0
           ExplicitSize.cx = 8.000000000000000000
           ExplicitSize.cy = 8.000000000000000000
-          object Layout6: TLayout
+          object StakingHeaderLayout: TLayout
             Align = Top
             Margins.Top = 20.000000000000000000
-            Position.Y = 394.600006103515600000
+            Position.Y = 399.600006103515600000
             Size.Width = 1089.000000000000000000
             Size.Height = 28.000000000000000000
             Size.PlatformDefault = False
             TabOrder = 1
-            object Label6: TLabel
+            object HeaderStakingDateLabel: TLabel
               Align = Left
               StyledSettings = [Style]
               Size.Width = 150.000000000000000000
@@ -636,7 +646,7 @@ object MainForm: TMainForm
               Text = 'Date/Time'
               TabOrder = 5
             end
-            object Label10: TLabel
+            object HeaderStakingBlockLabel: TLabel
               Align = Left
               StyledSettings = [Style]
               Margins.Left = 5.000000000000000000
@@ -650,7 +660,7 @@ object MainForm: TMainForm
               Text = 'Block'
               TabOrder = 4
             end
-            object Label11: TLabel
+            object HeaderStakingAddressLabel: TLabel
               Align = Left
               StyledSettings = [Style]
               Margins.Left = 5.000000000000000000
@@ -664,7 +674,7 @@ object MainForm: TMainForm
               Text = 'Address'
               TabOrder = 3
             end
-            object Label12: TLabel
+            object HeaderStakingHashLabel: TLabel
               Align = Left
               StyledSettings = [Style]
               Margins.Left = 5.000000000000000000
@@ -678,7 +688,7 @@ object MainForm: TMainForm
               Text = 'Hash'
               TabOrder = 2
             end
-            object Label13: TLabel
+            object HeaderStakingAmountLabel: TLabel
               Align = Left
               StyledSettings = [Style]
               Margins.Left = 5.000000000000000000
@@ -692,7 +702,7 @@ object MainForm: TMainForm
               Text = 'Amount'
               TabOrder = 1
             end
-            object Label14: TLabel
+            object HeaderStakingStatusLabel: TLabel
               Align = Left
               StyledSettings = [Style]
               Margins.Left = 5.000000000000000000
@@ -707,12 +717,13 @@ object MainForm: TMainForm
               TabOrder = 0
             end
           end
-          object Label16: TLabel
+          object StakingHistoryLabel: TLabel
             Align = Top
             AutoSize = True
+            AutoTranslate = False
             StyledSettings = []
             Margins.Top = 20.000000000000000000
-            Position.Y = 341.000000000000000000
+            Position.Y = 346.000000000000000000
             Size.Width = 1089.000000000000000000
             Size.Height = 33.600006103515630000
             Size.PlatformDefault = False
@@ -724,12 +735,12 @@ object MainForm: TMainForm
             Text = 'Staking History'
             TabOrder = 0
           end
-          object Label17: TLabel
+          object NoStakingLabel: TLabel
             Align = Client
             StyledSettings = []
             Opacity = 0.750000000000000000
             Size.Width = 1089.000000000000000000
-            Size.Height = 419.399993896484400000
+            Size.Height = 414.399993896484400000
             Size.PlatformDefault = False
             TextSettings.Font.Family = 'Inter'
             TextSettings.Font.Size = 32.000000000000000000
@@ -739,32 +750,32 @@ object MainForm: TMainForm
             Text = 'No Staking yet'
             TabOrder = 4
           end
-          object VertScrollBox1: TVertScrollBox
+          object StakingScrollBox: TVertScrollBox
             Align = Client
             Padding.Top = -6.000000000000000000
             Margins.Top = 10.000000000000000000
             Margins.Bottom = 20.000000000000000000
             Size.Width = 1089.000000000000000000
-            Size.Height = 389.399993896484400000
+            Size.Height = 384.399993896484400000
             Size.PlatformDefault = False
             TabOrder = 5
-            OnResized = VertScrollBox1Resized
+            OnResized = StakingScrollBoxResized
             Viewport.Width = 1089.000000000000000000
-            Viewport.Height = 389.400000000000000000
+            Viewport.Height = 384.400000000000000000
           end
-          object Layout5: TLayout
+          object StakingLayout: TLayout
             Align = Top
             Margins.Top = 5.000000000000000000
             Position.Y = 5.000000000000000000
             Size.Width = 1089.000000000000000000
-            Size.Height = 316.000000000000000000
+            Size.Height = 321.000000000000000000
             Size.PlatformDefault = False
             TabOrder = 2
-            OnResized = Layout5Resized
-            object Layout7: TLayout
+            OnResized = StakingLayoutResized
+            object StakingLeftLayout: TLayout
               Align = Left
               Size.Width = 457.000000000000000000
-              Size.Height = 316.000000000000000000
+              Size.Height = 321.000000000000000000
               Size.PlatformDefault = False
               TabOrder = 1
               object StakeAmountEdit: TEdit
@@ -775,16 +786,14 @@ object MainForm: TMainForm
                 TextSettings.Font.Family = 'Inter'
                 TextSettings.Font.Size = 14.000000000000000000
                 TextSettings.FontColor = xFF323130
-                Position.Y = 181.000000000000000000
+                Position.Y = 185.000000000000000000
                 Margins.Top = 10.000000000000000000
                 Size.Width = 457.000000000000000000
                 Size.Height = 40.000000000000000000
                 Size.PlatformDefault = False
                 TextPrompt = 'Enter TET amount'
-                OnChangeTracking = AmountTETEditChangeTracking
-                OnKeyDown = SendTETToEditKeyDown
                 OnEnter = StakeAmountEditEnter
-                object EditButton1: TEditButton
+                object StakeMaxButton: TEditButton
                   Touch.InteractiveGestures = [LongTap]
                   CanFocus = False
                   Cursor = crArrow
@@ -796,7 +805,7 @@ object MainForm: TMainForm
                   StyleLookup = 'MaxButtonstyle'
                   TabOrder = 0
                   Text = 'Max'
-                  OnClick = EditButton1Click
+                  OnClick = StakeMaxButtonClick
                 end
                 object ShadowEffect15: TShadowEffect
                   Distance = 3.000000000000000000
@@ -814,7 +823,7 @@ object MainForm: TMainForm
                 ReadOnly = True
                 Text = 'Status'
                 TextSettings.Font.Size = 15.000000000000000000
-                Position.Y = 231.000000000000000000
+                Position.Y = 235.000000000000000000
                 Margins.Top = 10.000000000000000000
                 Size.Width = 457.000000000000000000
                 Size.Height = 25.000000000000000000
@@ -827,18 +836,18 @@ object MainForm: TMainForm
                   StopValue = 1.000000000000000000
                 end
               end
-              object Layout3: TLayout
+              object StakeButtonLayout: TLayout
                 Align = Top
                 Margins.Top = 20.000000000000000000
-                Position.Y = 276.000000000000000000
+                Position.Y = 280.000000000000000000
                 Size.Width = 457.000000000000000000
                 Size.Height = 33.000000000000000000
                 Size.PlatformDefault = False
                 TabOrder = 6
-                object StakeButton1: TButton
+                object StakeButton: TButton
                   Align = Left
                   StyledSettings = []
-                  Size.Width = 192.000000000000000000
+                  Size.Width = 180.000000000000000000
                   Size.Height = 33.000000000000000000
                   Size.PlatformDefault = False
                   StyleLookup = 'Buttonstyle'
@@ -848,18 +857,19 @@ object MainForm: TMainForm
                   TextSettings.Font.Size = 14.000000000000000000
                   TextSettings.FontColor = claWhite
                   TextSettings.Trimming = None
-                  OnClick = StakeButton1Click
+                  OnClick = StakeButtonClick
                 end
               end
-              object Label2: TLabel
+              object StakingBalanceLabel: TLabel
                 Align = MostTop
+                AutoSize = True
                 AutoTranslate = False
                 StyledSettings = [Style]
                 Size.Width = 457.000000000000000000
-                Size.Height = 20.000000000000000000
+                Size.Height = 24.000000000000000000
                 Size.PlatformDefault = False
                 TextSettings.Font.Family = 'Inter'
-                TextSettings.Font.Size = 15.000000000000000000
+                TextSettings.Font.Size = 18.000000000000000000
                 TextSettings.FontColor = xFF323130
                 TextSettings.WordWrap = False
                 Text = 'Staking Balance'
@@ -870,7 +880,7 @@ object MainForm: TMainForm
                 AutoTranslate = False
                 StyledSettings = []
                 Margins.Top = 2.000000000000000000
-                Position.Y = 22.000000000000000000
+                Position.Y = 26.000000000000000000
                 Size.Width = 457.000000000000000000
                 Size.Height = 40.000000000000000000
                 Size.PlatformDefault = False
@@ -879,16 +889,16 @@ object MainForm: TMainForm
                 TextSettings.Font.StyleExt = {00070000000000000004000000}
                 TextSettings.FontColor = xFF323130
                 TextSettings.WordWrap = False
-                Text = 'Balance value'
+                Text = '3000 TET'
                 TabOrder = 0
               end
-              object Label1: TLabel
+              object StakingInfoLabel: TLabel
                 Align = Top
                 AutoSize = True
                 AutoTranslate = False
                 StyledSettings = [Style]
                 Margins.Top = 14.000000000000000000
-                Position.Y = 76.000000000000000000
+                Position.Y = 80.000000000000000000
                 Size.Width = 457.000000000000000000
                 Size.Height = 60.000000000000000000
                 Size.PlatformDefault = False
@@ -906,7 +916,7 @@ object MainForm: TMainForm
                 AutoTranslate = False
                 StyledSettings = []
                 Margins.Top = 15.000000000000000000
-                Position.Y = 151.000000000000000000
+                Position.Y = 155.000000000000000000
                 Size.Width = 457.000000000000000000
                 Size.Height = 20.000000000000000000
                 Size.PlatformDefault = False
@@ -915,22 +925,22 @@ object MainForm: TMainForm
                 TextSettings.Font.StyleExt = {00070000000000000004000000}
                 TextSettings.FontColor = xFF323130
                 TextSettings.WordWrap = False
-                Text = 'The maximus staking amount is'
+                Text = 'The maximum staking amount is'
                 TabOrder = 1
               end
             end
-            object Layout8: TLayout
+            object StakingRightLayout: TLayout
               Align = Left
               Margins.Left = 100.000000000000000000
               Position.X = 557.000000000000000000
               Size.Width = 520.000000000000000000
-              Size.Height = 316.000000000000000000
+              Size.Height = 321.000000000000000000
               Size.PlatformDefault = False
               TabOrder = 2
-              object Layout9: TLayout
+              object UnstakeButtonLayout: TLayout
                 Align = Top
                 Margins.Top = 20.000000000000000000
-                Position.Y = 276.000000000000000000
+                Position.Y = 280.000000000000000000
                 Size.Width = 520.000000000000000000
                 Size.Height = 33.000000000000000000
                 Size.PlatformDefault = False
@@ -938,7 +948,7 @@ object MainForm: TMainForm
                 object UnstakeButton: TButton
                   Align = Left
                   StyledSettings = []
-                  Size.Width = 192.000000000000000000
+                  Size.Width = 180.000000000000000000
                   Size.Height = 33.000000000000000000
                   Size.PlatformDefault = False
                   StyleLookup = 'Buttonstyle'
@@ -959,16 +969,14 @@ object MainForm: TMainForm
                 TextSettings.Font.Family = 'Inter'
                 TextSettings.Font.Size = 14.000000000000000000
                 TextSettings.FontColor = xFF323130
-                Position.Y = 181.000000000000000000
+                Position.Y = 185.000000000000000000
                 Margins.Top = 10.000000000000000000
                 Size.Width = 520.000000000000000000
                 Size.Height = 40.000000000000000000
                 Size.PlatformDefault = False
                 TextPrompt = 'Enter TET amount'
-                OnChangeTracking = AmountTETEditChangeTracking
-                OnKeyDown = SendTETToEditKeyDown
                 OnEnter = UnstakeAmountEditEnter
-                object EditButton2: TEditButton
+                object UnstakeMaxButton: TEditButton
                   Touch.InteractiveGestures = [LongTap]
                   CanFocus = False
                   Cursor = crArrow
@@ -980,7 +988,7 @@ object MainForm: TMainForm
                   StyleLookup = 'MaxButtonstyle'
                   TabOrder = 0
                   Text = 'Max'
-                  OnClick = EditButton2Click
+                  OnClick = UnstakeMaxButtonClick
                 end
                 object ShadowEffect14: TShadowEffect
                   Distance = 3.000000000000000000
@@ -998,7 +1006,7 @@ object MainForm: TMainForm
                 ReadOnly = True
                 Text = 'Status'
                 TextSettings.Font.Size = 15.000000000000000000
-                Position.Y = 231.000000000000000000
+                Position.Y = 235.000000000000000000
                 Margins.Top = 10.000000000000000000
                 Size.Width = 520.000000000000000000
                 Size.Height = 25.000000000000000000
@@ -1011,26 +1019,27 @@ object MainForm: TMainForm
                   StopValue = 1.000000000000000000
                 end
               end
-              object Label7: TLabel
+              object StakingSummaryLabel: TLabel
                 Align = MostTop
+                AutoSize = True
                 AutoTranslate = False
                 StyledSettings = [Style]
                 Size.Width = 520.000000000000000000
-                Size.Height = 20.000000000000000000
+                Size.Height = 24.000000000000000000
                 Size.PlatformDefault = False
                 TextSettings.Font.Family = 'Inter'
-                TextSettings.Font.Size = 15.000000000000000000
+                TextSettings.Font.Size = 18.000000000000000000
                 TextSettings.FontColor = xFF323130
                 TextSettings.WordWrap = False
                 Text = 'Summary'
                 TabOrder = 6
               end
-              object Label8: TLabel
+              object StakingPeriodLabel: TLabel
                 Align = MostTop
                 AutoTranslate = False
                 StyledSettings = [Style]
                 Margins.Top = 15.000000000000000000
-                Position.Y = 35.000000000000000000
+                Position.Y = 39.000000000000000000
                 Size.Width = 520.000000000000000000
                 Size.Height = 27.000000000000000000
                 Size.PlatformDefault = False
@@ -1058,12 +1067,12 @@ object MainForm: TMainForm
                   TabOrder = 1
                 end
               end
-              object Label9: TLabel
+              object StakingRewardLabel1: TLabel
                 Align = MostTop
                 AutoTranslate = False
                 StyledSettings = [Style]
                 Margins.Top = 10.000000000000000000
-                Position.Y = 72.000000000000000000
+                Position.Y = 76.000000000000000000
                 Size.Width = 520.000000000000000000
                 Size.Height = 30.000000000000000000
                 Size.PlatformDefault = False
@@ -1073,7 +1082,7 @@ object MainForm: TMainForm
                 TextSettings.WordWrap = False
                 Text = 'Staking Reward'
                 TabOrder = 4
-                object StakingRewardLabel: TLabel
+                object StakingRewardAmountLabel: TLabel
                   Align = Right
                   AutoTranslate = False
                   StyledSettings = []
@@ -1096,7 +1105,7 @@ object MainForm: TMainForm
                 AutoTranslate = False
                 StyledSettings = []
                 Margins.Top = 49.000000000000000000
-                Position.Y = 151.000000000000000000
+                Position.Y = 155.000000000000000000
                 Size.Width = 520.000000000000000000
                 Size.Height = 20.000000000000000000
                 Size.PlatformDefault = False
@@ -1105,13 +1114,13 @@ object MainForm: TMainForm
                 TextSettings.Font.StyleExt = {00070000000000000004000000}
                 TextSettings.FontColor = xFF323130
                 TextSettings.WordWrap = False
-                Text = 'The maximus amount for unstaking is'
+                Text = 'The maximum amount for unstaking is'
                 TabOrder = 1
               end
             end
           end
         end
-        object TabItem2: TTabItem
+        object StakingDetailTabItem: TTabItem
           CustomIcon = <
             item
             end>
@@ -1132,17 +1141,19 @@ object MainForm: TMainForm
             inherited TETTransactionDetailsLayout: TLayout
               Size.Width = 1089.000000000000000000
               inherited TETTransactionDetailsLabel: TLabel
+                Size.Width = 859.000000000000000000
                 TextSettings.Font.StyleExt = {00070000000000000004000000}
               end
               inherited TETBackCircle: TCircle
                 OnClick = TransactionFrame3TETBackCircleClick
               end
-              inherited Layout6: TLayout
+              inherited TypeLayout: TLayout
+                Position.X = 931.000000000000000000
                 Size.Width = 78.000000000000000000
-                inherited IncomRectangle: TRectangle
+                inherited TypeRectangle: TRectangle
                   Size.Width = 78.000000000000000000
                 end
-                inherited IncomText: TText
+                inherited TypeText: TText
                   Size.Width = 78.000000000000000000
                 end
               end
@@ -1151,7 +1162,7 @@ object MainForm: TMainForm
               Size.Width = 1089.000000000000000000
               inherited TETHashDetailsLayout: TLayout
                 Size.Width = 1059.000000000000000000
-                inherited TETCopyLoginLayout: TLayout
+                inherited HashCopyLayout: TLayout
                   OnClick = TransactionFrame3TETCopyLoginLayoutClick
                 end
               end
@@ -1166,7 +1177,7 @@ object MainForm: TMainForm
               end
               inherited TETAddressDetailsLayout: TLayout
                 Size.Width = 1059.000000000000000000
-                inherited TETCopyAddressLayout: TLayout
+                inherited AddressFromCopyLayout: TLayout
                   OnClick = TransactionFrame3TETCopyAddressLayoutClick
                 end
               end
@@ -1185,11 +1196,11 @@ object MainForm: TMainForm
               inherited TETFeeDetailsLayout: TLayout
                 Size.Width = 1059.000000000000000000
               end
-              inherited Layout12: TLayout
+              inherited FeeRewardLayout: TLayout
                 Size.Width = 1059.000000000000000000
                 inherited RewardsLayout: TLayout
                   Size.Width = 859.000000000000000000
-                  inherited Label4: TLabel
+                  inherited ValidatorsLabel: TLabel
                     Size.Width = 859.000000000000000000
                   end
                   inherited RewardValidatorsLayout: TLayout
@@ -1198,12 +1209,12 @@ object MainForm: TMainForm
                   inherited RewardArchiverLayout: TLayout
                     Size.Width = 859.000000000000000000
                   end
-                  inherited Label5: TLabel
+                  inherited ArchiverLabel: TLabel
                     Size.Width = 859.000000000000000000
                   end
                 end
               end
-              inherited Layout1: TLayout
+              inherited AddressToLayout: TLayout
                 Size.Width = 1059.000000000000000000
               end
             end
@@ -1219,7 +1230,7 @@ object MainForm: TMainForm
       TextSettings.Font.Size = 14.000000000000000000
       TextSettings.Trimming = None
       StyledSettings = [Style, FontColor, Other]
-      IsSelected = True
+      IsSelected = False
       Margins.Left = 6.000000000000000000
       Size.Width = 267.000000000000000000
       Size.Height = 64.000000000000000000
@@ -1282,9 +1293,9 @@ object MainForm: TMainForm
               Margins.Top = 5.000000000000000000
               Margins.Right = 5.000000000000000000
               Margins.Bottom = 5.000000000000000000
-              Position.X = 924.000000000000000000
+              Position.X = 964.000000000000000000
               Position.Y = 5.000000000000000000
-              Size.Width = 160.000000000000000000
+              Size.Width = 120.000000000000000000
               Size.Height = 30.000000000000000000
               Size.PlatformDefault = False
               StyleLookup = 'Buttonstyle'
@@ -1311,7 +1322,7 @@ object MainForm: TMainForm
               StyledSettings = [Style]
               Opacity = 0.000000000000000000
               Margins.Right = 10.000000000000000000
-              Position.X = 764.400024414062500000
+              Position.X = 804.400024414062500000
               Size.Width = 149.599975585937500000
               Size.Height = 40.000000000000000000
               Size.PlatformDefault = False
@@ -1441,7 +1452,7 @@ object MainForm: TMainForm
               Visible = False
               TabOrder = 2
             end
-            object Label15: TLabel
+            object StatusExplorerHeaderLabel: TLabel
               Align = Left
               StyledSettings = [Style]
               Margins.Left = 5.000000000000000000
@@ -1495,7 +1506,7 @@ object MainForm: TMainForm
             Size.Height = 28.000000000000000000
             Size.PlatformDefault = False
             TabOrder = 11
-            inline NavigationFrame1: TNavigationFrame
+            inline NavigationFrame: TNavigationFrame
               Align = HorzCenter
               Position.X = 294.000000000000000000
               Size.Width = 501.000000000000000000
@@ -1504,9 +1515,6 @@ object MainForm: TMainForm
               inherited PagesPanelLayout: TLayout
                 Size.Width = 453.000000000000000000
                 Size.Height = 28.000000000000000000
-                inherited Text1: TText
-                  Size.Height = 28.000000000000000000
-                end
               end
               inherited NextPageLayout: TLayout
                 Position.X = 477.000000000000000000
@@ -1522,12 +1530,6 @@ object MainForm: TMainForm
                 end
               end
             end
-          end
-          object HideTransactionNotFoundTimer: TTimer
-            Enabled = False
-            Interval = 3000
-            Left = 1064
-            Top = 168
           end
         end
         object ExplorerTransactionDataTabItem: TTabItem
@@ -1551,17 +1553,19 @@ object MainForm: TMainForm
             inherited TETTransactionDetailsLayout: TLayout
               Size.Width = 1089.000000000000000000
               inherited TETTransactionDetailsLabel: TLabel
+                Size.Width = 859.000000000000000000
                 TextSettings.Font.StyleExt = {00070000000000000004000000}
               end
               inherited TETBackCircle: TCircle
                 OnMouseDown = TransactionFrame1TETBackCircleMouseDown
               end
-              inherited Layout6: TLayout
+              inherited TypeLayout: TLayout
+                Position.X = 931.000000000000000000
                 Size.Width = 94.000000000000000000
-                inherited IncomRectangle: TRectangle
+                inherited TypeRectangle: TRectangle
                   Size.Width = 94.000000000000000000
                 end
-                inherited IncomText: TText
+                inherited TypeText: TText
                   Size.Width = 94.000000000000000000
                 end
               end
@@ -1570,7 +1574,7 @@ object MainForm: TMainForm
               Size.Width = 1089.000000000000000000
               inherited TETHashDetailsLayout: TLayout
                 Size.Width = 1059.000000000000000000
-                inherited TETCopyLoginLayout: TLayout
+                inherited HashCopyLayout: TLayout
                   OnClick = TransactionFrame1TETCopyLoginLayoutClick
                 end
               end
@@ -1585,7 +1589,7 @@ object MainForm: TMainForm
               end
               inherited TETAddressDetailsLayout: TLayout
                 Size.Width = 1059.000000000000000000
-                inherited TETCopyAddressLayout: TLayout
+                inherited AddressFromCopyLayout: TLayout
                   OnClick = TransactionFrame1TETCopyAddressLayoutClick
                 end
               end
@@ -1603,15 +1607,12 @@ object MainForm: TMainForm
               end
               inherited TETFeeDetailsLayout: TLayout
                 Size.Width = 1059.000000000000000000
-                inherited Layout11: TLayout
-                  OnClick = nil
-                end
               end
-              inherited Layout12: TLayout
+              inherited FeeRewardLayout: TLayout
                 Size.Width = 1059.000000000000000000
                 inherited RewardsLayout: TLayout
                   Size.Width = 859.000000000000000000
-                  inherited Label4: TLabel
+                  inherited ValidatorsLabel: TLabel
                     Size.Width = 859.000000000000000000
                   end
                   inherited RewardValidatorsLayout: TLayout
@@ -1620,14 +1621,14 @@ object MainForm: TMainForm
                   inherited RewardArchiverLayout: TLayout
                     Size.Width = 859.000000000000000000
                   end
-                  inherited Label5: TLabel
+                  inherited ArchiverLabel: TLabel
                     Size.Width = 859.000000000000000000
                   end
                 end
               end
-              inherited Layout1: TLayout
+              inherited AddressToLayout: TLayout
                 Size.Width = 1059.000000000000000000
-                inherited Layout2: TLayout
+                inherited AddressToCopyLayout: TLayout
                   OnClick = TransactionFrame1Layout2Click
                 end
               end
@@ -1655,7 +1656,7 @@ object MainForm: TMainForm
       Text = 'Settings'
       ExplicitSize.cx = 275.000000000000000000
       ExplicitSize.cy = 64.000000000000000000
-      object Layout11: TLayout
+      object SettingsLayout: TLayout
         Align = Top
         ClipChildren = True
         ClipParent = True
@@ -1665,7 +1666,7 @@ object MainForm: TMainForm
         Size.Height = 391.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 2
-        object Label3: TLabel
+        object SettingsLabel: TLabel
           Align = Top
           AutoSize = True
           AutoTranslate = False
@@ -1682,7 +1683,7 @@ object MainForm: TMainForm
           Text = 'Settings'
           TabOrder = 0
         end
-        object Label4: TLabel
+        object PrivateKeyLabel: TLabel
           Align = Top
           AutoTranslate = False
           StyledSettings = []
@@ -1696,10 +1697,10 @@ object MainForm: TMainForm
           TextSettings.Font.StyleExt = {00070000000000000004000000}
           TextSettings.FontColor = xFF323130
           TextSettings.WordWrap = False
-          Text = 'Want to change your Private key?'
+          Text = 'Private key'
           TabOrder = 2
         end
-        object Edit1: TEdit
+        object PrivateKeyEdit: TEdit
           Touch.InteractiveGestures = [LongTap, DoubleTap]
           Align = Top
           StyleLookup = 'EditStyle'
@@ -1715,8 +1716,7 @@ object MainForm: TMainForm
           Size.PlatformDefault = False
           TextPrompt = 'Enter private key'
           StyledSettings = [Style]
-          OnKeyDown = SendTETToEditKeyDown
-          OnEnter = Edit1Enter
+          OnEnter = PrivateKeyEditEnter
           object ShadowEffect13: TShadowEffect
             Distance = 3.000000000000000000
             Direction = 70.000000000000000000
@@ -1725,7 +1725,7 @@ object MainForm: TMainForm
             ShadowColor = claBlack
           end
         end
-        object Layout10: TLayout
+        object PrivateKeyMessageLayout: TLayout
           Align = Top
           Margins.Top = 11.000000000000000000
           Position.Y = 216.000000000000000000
@@ -1733,7 +1733,7 @@ object MainForm: TMainForm
           Size.Height = 60.000000000000000000
           Size.PlatformDefault = False
           TabOrder = 6
-          object Rectangle1: TRectangle
+          object PrivateKeyMessageBackground: TRectangle
             Align = Contents
             Fill.Color = xFFFF6900
             Locked = True
@@ -1744,7 +1744,7 @@ object MainForm: TMainForm
             Stroke.Kind = None
             Stroke.Thickness = 0.000000000000000000
           end
-          object Label5: TLabel
+          object PrivateKeyMessageLabel: TLabel
             Align = Top
             StyledSettings = [Style, FontColor]
             Margins.Left = 7.000000000000000000
@@ -1759,10 +1759,10 @@ object MainForm: TMainForm
             TextSettings.Font.Size = 14.000000000000000000
             Text = 'Enter the private key you received in the wallet into the field.'
             TabOrder = 2
-            OnResize = Label5Resize
+            OnResize = PrivateKeyMessageLabelResize
           end
         end
-        object Layout4: TLayout
+        object PrivateKeyButtonLayout: TLayout
           Align = Top
           ClipChildren = True
           Margins.Top = 10.000000000000000000
@@ -1771,10 +1771,10 @@ object MainForm: TMainForm
           Size.Height = 33.000000000000000000
           Size.PlatformDefault = False
           TabOrder = 7
-          object Button1: TButton
+          object ChangeKeyButton: TButton
             Align = Left
             StyledSettings = []
-            Size.Width = 192.000000000000000000
+            Size.Width = 180.000000000000000000
             Size.Height = 33.000000000000000000
             Size.PlatformDefault = False
             StyleLookup = 'Buttonstyle'
@@ -1784,10 +1784,10 @@ object MainForm: TMainForm
             TextSettings.Font.Size = 14.000000000000000000
             TextSettings.FontColor = claWhite
             TextSettings.Trimming = None
-            OnClick = Button1Click
+            OnClick = ChangeKeyButtonClick
           end
         end
-        object Edit2: TEdit
+        object PrivateKeyStatusEdit: TEdit
           Touch.InteractiveGestures = [LongTap, DoubleTap]
           Align = Top
           StyleLookup = 'transparentedit'
@@ -2460,12 +2460,6 @@ object MainForm: TMainForm
           end
         end
       end
-      object HideCreatingMessageTimer: TTimer
-        Enabled = False
-        Interval = 5000
-        Left = 1064
-        Top = 120
-      end
     end
     object TokensTabItem: TTabItem
       CustomIcon = <
@@ -2488,12 +2482,6 @@ object MainForm: TMainForm
       Visible = False
       ExplicitSize.cx = 270.000000000000000000
       ExplicitSize.cy = 57.000000000000000000
-      object HideTokenMessageTimer: TTimer
-        Enabled = False
-        Interval = 5000
-        Left = 1064
-        Top = 72
-      end
       object TokenTabControl: TTabControl
         Align = Client
         Margins.Top = 55.000000000000000000
@@ -2781,7 +2769,6 @@ object MainForm: TMainForm
               TextSettings.Font.Size = 14.000000000000000000
               TextSettings.FontColor = claWhite
               TextSettings.Trimming = None
-              OnClick = SendTokenButtonClick
               object TransTokenAniIndicator: TAniIndicator
                 Align = Right
                 Margins.Right = -40.000000000000000000
@@ -2971,8 +2958,6 @@ object MainForm: TMainForm
               Size.Height = 37.000000000000000000
               Size.PlatformDefault = False
               Stroke.Kind = None
-              OnMouseEnter = ExplorerBackCircleMouseEnter
-              OnMouseLeave = ExplorerBackCircleMouseLeave
               object TokenBackArrowPath: TPath
                 Align = Center
                 Data.Path = {
@@ -3401,77 +3386,6 @@ object MainForm: TMainForm
       end
     end
   end
-  object MainRectangle: TRectangle
-    Align = Contents
-    Fill.Kind = None
-    Size.Width = 1200.000000000000000000
-    Size.Height = 960.000000000000000000
-    Size.PlatformDefault = False
-    Stroke.Kind = None
-    Visible = False
-    object PopupRectangle: TRectangle
-      Fill.Color = xFFFCFCFC
-      Padding.Left = 12.000000000000000000
-      Padding.Top = 12.000000000000000000
-      Padding.Right = 15.000000000000000000
-      Padding.Bottom = 10.000000000000000000
-      Position.X = 53.000000000000000000
-      Position.Y = 300.000000000000000000
-      Size.Width = 406.000000000000000000
-      Size.Height = 60.000000000000000000
-      Size.PlatformDefault = False
-      Stroke.Kind = None
-      XRadius = 5.000000000000000000
-      YRadius = 5.000000000000000000
-      object ShadowEffect2: TShadowEffect
-        Distance = 3.000000000000000000
-        Direction = 70.000000000000000000
-        Softness = 0.300000011920929000
-        Opacity = 0.200000002980232200
-        ShadowColor = claBlack
-      end
-      object SearchTokenEdit: TEdit
-        Touch.InteractiveGestures = [LongTap, DoubleTap]
-        Align = Top
-        TabOrder = 0
-        FilterChar = 'qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM0123456789'
-        TextSettings.Font.Family = 'Inter'
-        TextSettings.FontColor = xFF323130
-        Position.X = 12.000000000000000000
-        Position.Y = 12.000000000000000000
-        Size.Width = 379.000000000000000000
-        Size.Height = 38.000000000000000000
-        Size.PlatformDefault = False
-        TextPrompt = 'Search token'
-        CharCase = ecUpperCase
-        OnChangeTracking = SearchTokenEditChangeTracking
-        object ShadowEffect3: TShadowEffect
-          Distance = 3.000000000000000000
-          Direction = 50.000000000000000000
-          Softness = 0.200000002980232200
-          Opacity = 0.200000002980232200
-          ShadowColor = claBlack
-        end
-      end
-      object TokensListBox: TListBox
-        Align = Client
-        Padding.Top = -5.000000000000000000
-        Margins.Top = 10.000000000000000000
-        Size.Width = 379.000000000000000000
-        Size.Height = 0.000000000000000000
-        Size.PlatformDefault = False
-        StyleLookup = 'LBListBoxstyle123'
-        TabOrder = 1
-        DisableFocusEffect = True
-        ItemHeight = 35.000000000000000000
-        DefaultItemStyles.ItemStyle = ''
-        DefaultItemStyles.GroupHeaderStyle = ''
-        DefaultItemStyles.GroupFooterStyle = ''
-        Viewport.Width = 375.000000000000000000
-        Viewport.Height = 0.000000000000000000
-      end
-    end
-  end
   object CopiedRectangle: TRectangle
     Fill.Color = claBlack
     HitTest = False
@@ -3484,7 +3398,7 @@ object MainForm: TMainForm
     Visible = False
     XRadius = 4.000000000000000000
     YRadius = 4.000000000000000000
-    object Text1: TText
+    object CopiedText: TText
       Align = Client
       Locked = True
       HitTest = False

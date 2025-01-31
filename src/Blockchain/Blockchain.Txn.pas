@@ -84,9 +84,6 @@ procedure SaveValidatedBlock(var ATxn: TMemBlock<TTxn>; var AArchiver: TMemBlock
 function CreateTx(const [Ref] ASenderAddr, AReceiverAddr: T20Bytes; AValue, AFee: UInt64; ATxnType: TTxnType; ATokenId: Integer;
   const [Ref] ASenderPrivKey: T32Bytes; isNeedSign: Boolean = True): TMemBlock<TTxn>;
 
-function AmountToStr(const Amount: Int64; WithName: Boolean=False): string;
-function StrToAmount(S: string; Digits: Byte=8): UInt64;
-function NowUTC: TDateTime;
 function GetAccountTxns(const [Ref] AAddress:T20Bytes; Skip,Count: Int64): TArray<TTransactionInfo>;
 function GetTxns(Skip,Count: Int64): TArray<TTransactionInfo>;
 procedure EnumTxns(Filter: TFilterPredicate);
@@ -94,33 +91,8 @@ procedure EnumTxns(Filter: TFilterPredicate);
 implementation
 
 uses
-  Blockchain.DataCache;
-
-function AmountToStr(const Amount: Int64; WithName: Boolean=False): string;
-const Name: array[Boolean] of string = ('',' TET');
-begin
-  Result := FormatFloat('0.########'+Name[WithName],Amount/100000000);
-end;
-
-function StrToAmount(S: string; Digits: Byte=8): UInt64;
-begin
-  var I:=S.IndexOfAny(['.',',']);
-  if I=-1 then
-    I:=S.Length
-  else
-    S:=S.Remove(I,1);
-  Result:=(S+''.Create('0',Digits)).Substring(0,I+Digits).ToInt64;
-end;
-
-function DateTimeUTC(DateTime: TDateTime): TDateTime;
-begin
-  Result:=TTimeZone.Local.ToUniversalTime(DateTime);
-end;
-
-function NowUTC: TDateTime;
-begin
-  Result:=DateTimeUTC(Now);
-end;
+  Blockchain.DataCache,
+  Blockchain.Utils;
 
 function GetAccountTxns(const [Ref] AAddress:T20Bytes; Skip,Count: Int64): TArray<TTransactionInfo>;
 begin
@@ -185,26 +157,37 @@ begin
 
 end;
 
-function SafeSub(V,S: UInt64): UInt64;
-begin
-  if V>S then Result:=V-S else V:=0;
-end;
-
 procedure EnumTxns(Filter: TFilterPredicate);
-const ReadCount = 100;
+const ReadCount = 200;
 begin
 
   const RecordCount = TMemBlock<TTxn>.RecordsCount(TTxn.Filename);
-  var I := SafeSub(RecordCount,1);
+  var StartIndex := SafeSub(RecordCount,1);
 
-  while I>0 do
+  while StartIndex>=0 do
   begin
 
-//    I :=Safe
-//
-//    const Blocks = TMemBlock<TTxn>.ByteArrayFromFile(TTxn.Filename,I,Min(Count));
-//
-//    I := SafeSub
+    var EndIndex := StartIndex;
+
+    StartIndex := SafeSub(StartIndex, ReadCount);
+
+    const Blocks = TMemBlock<TTxn>.ByteArrayFromFile(TTxn.Filename, StartIndex, EndIndex - StartIndex + 1);
+
+    for var I := 0 to EndIndex - StartIndex do
+    begin
+
+      const Block: TMemBlock<TTxn> = Copy(Blocks, I*SizeOf(TTxn), SizeOf(TTxn));
+
+      var Tx: TTransactionInfo := Block;
+
+      Tx.TxId:=StartIndex+I;
+
+      Filter(Tx);
+
+    end;
+
+    if StartIndex=0 then Break;
+
   end;
 
 end;
@@ -302,10 +285,10 @@ begin
   // check before unstake
   if ATxn.Data.TxnType = TTxnType.txUnStake then begin
     const Stake = DataCache.GetStakeBalance(ATxn.Data.Sender.Address);
-    Assert(Stake > ATxn.Data.Amount, '(a13) not enough staked to unstake');
+    Assert(Stake >= ATxn.Data.Amount, '(a13) not enough staked to unstake');
 
     const Balance = DataCache.GetTokenBalance(ATxn.Data.Sender.Address, ATxn.Data.TokenId);
-    Assert(Balance > ATxn.Data.Fee.Fee1, '(a13) insufficient funds for unstake fee');
+    Assert(Balance + ATxn.Data.Amount >= ATxn.Data.Fee.Fee1, '(a13) insufficient funds for unstake fee');
   end;
 
   // check if the NEW address exists already
@@ -327,7 +310,7 @@ begin
 
     ATxn.Data.RewardId := INVALID;
 
-    if ATxn.Data.TxnType in [TTxnType.txSend, TTxnType.txStake] then begin
+    if ATxn.Data.TxnType <> TTxnType.txMigrate then begin
 
       for var I := 0 to high(AValidators) do begin
         SaveValidator(AValidators[I]);

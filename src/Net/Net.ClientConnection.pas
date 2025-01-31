@@ -257,6 +257,7 @@ begin
         SuccessCode:
           begin
             FConnectionChecked := True;
+            WaitForReceive;
             if not FIsShuttingDown and FRemoteIsAvailable then
             begin
               Logs.DoLog(Format('Connection to %s checked', [Address]), CmnLvlLogs, ltNone);
@@ -266,8 +267,6 @@ begin
               else
                 BeginSyncChains;
             end;
-
-            WaitForReceive;
           end;
 
         InitConnectErrorCode:
@@ -304,8 +303,8 @@ begin
               ResponseCode:
                 WriteResponseData(IncomData)
               else begin
-                AddIncomRequest(IncomData);
                 WaitForReceive;
+                AddIncomRequest(IncomData);
               end;
             end;
           end;
@@ -317,6 +316,8 @@ begin
       DoDisconnect(E.Message);
     on E:ESocketError do
       DoDisconnect('timeout data receiving');
+    on E:Exception do
+      DoDisconnect('Client receiveCallBack disconnect: ' + E.Message);
   end;
 end;
 

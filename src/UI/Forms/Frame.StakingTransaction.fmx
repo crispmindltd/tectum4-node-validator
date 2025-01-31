@@ -4,7 +4,7 @@ object StakingTransactionFrame: TStakingTransactionFrame
   Margins.Top = 5.000000000000000000
   Margins.Right = 5.000000000000000000
   Position.Y = 5.000000000000000000
-  Size.Width = 1047.000000000000000000
+  Size.Width = 935.000000000000000000
   Size.Height = 28.000000000000000000
   Size.PlatformDefault = False
   OnMouseEnter = FrameMouseEnter
@@ -13,7 +13,7 @@ object StakingTransactionFrame: TStakingTransactionFrame
     Align = Contents
     Fill.Kind = None
     HitTest = False
-    Size.Width = 1047.000000000000000000
+    Size.Width = 935.000000000000000000
     Size.Height = 28.000000000000000000
     Size.PlatformDefault = False
     Stroke.Kind = None

@@ -4,8 +4,9 @@ interface
 
 uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
+  System.Math,
   FMX.Types, FMX.Graphics, FMX.Controls, FMX.Forms, FMX.Dialogs, FMX.StdCtrls,
-  FMX.Objects, FMX.Layouts, Desktop.Controls, System.Math;
+  FMX.Objects, FMX.Layouts, Desktop.Controls, Blockchain.Utils;
 
 type
   TNavigationFrame = class(TFrame)
@@ -14,21 +15,22 @@ type
     NextPagePath: TPath;
     PrevPageLayout: TLayout;
     PrevPagePath: TPath;
-    Text1: TText;
+    PageText: TText;
     procedure PrevPageLayoutClick(Sender: TObject);
     procedure NextPageLayoutClick(Sender: TObject);
   private
-    FCount, FPageNum: Int64;
+    FCount, FPageNum: UInt64;
     FOnChange: TNotifyEvent;
-    procedure SetPageNum(Value: Int64);
-    procedure SetPagesCount(Value: Int64);
+    procedure SetPageNum(Value: UInt64);
+    procedure SetPagesCount(Value: UInt64);
     procedure CreateControls;
-    function CreateLabel(const Text: string; Page: Int64): TControl;
+    function CreateLabel(const Text: string; Page: UInt64): TControl;
     procedure OnPageClick(Sender: TObject);
+    procedure DoChange;
   public
-    procedure SetParams(PagesCount, PageNum: Int64);
-    property PageNum: Int64 read FPageNum write SetPageNum;
-    property PagesCount: Int64 read FCount write SetPagesCount;
+    constructor Create(AOwner: TComponent); override;
+    property PageNum: UInt64 read FPageNum write SetPageNum;
+    property PagesCount: UInt64 read FCount write SetPagesCount;
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
   end;
 
@@ -36,9 +38,15 @@ implementation
 
 {$R *.fmx}
 
-procedure TNavigationFrame.SetPageNum(Value: Int64);
+constructor TNavigationFrame.Create(AOwner: TComponent);
 begin
-  Value := EnsureRange(Value,1,FCount);
+  inherited;
+  PageText.Parent:=nil;
+end;
+
+procedure TNavigationFrame.SetPageNum(Value: UInt64);
+begin
+  Value := EnsureRange(Value,1,Max(FCount,1));
   if Value <> FPageNum then
   begin
     FPageNum := Value;
@@ -46,22 +54,15 @@ begin
   end;
 end;
 
-procedure TNavigationFrame.SetPagesCount(Value: Int64);
+procedure TNavigationFrame.SetPagesCount(Value: UInt64);
 begin
   Value := EnsureRange(Value,0,Value.MaxValue);
   if Value <> FCount then
   begin
     FCount := Value;
-    FPageNum := EnsureRange(FPageNum,1,FCount);
+    FPageNum := EnsureRange(FPageNum,1,Max(FCount,1));
     CreateControls;
   end;
-end;
-
-procedure TNavigationFrame.SetParams(PagesCount, PageNum: Int64);
-begin
-  FCount := PagesCount;
-  FPageNum := PageNum;
-  CreateControls;
 end;
 
 procedure TNavigationFrame.CreateControls;
@@ -76,14 +77,14 @@ begin
   for var I := 1 to FCount do
   begin
 
-    if (I=1) or (I=FCount) or InRange(I,FPageNum-2,FPageNum+2) then
+    if (I=1) or (I=FCount) or InRange(I, SafeSub(FPageNum, 2), FPageNum+2) then
     begin
-      CreateLabel(I.ToString,I);
+      CreateLabel(I.ToString, I);
       SkipPage := True;
     end
     else if SkipPage then
     begin
-      CreateLabel('...',0);
+      CreateLabel('...', 0);
       SkipPage := False;
     end;
 
@@ -91,32 +92,24 @@ begin
 
   PagesPanelLayout.EndUpdate;
 
-  Width := GetContentRect(PagesPanelLayout).Width + PrevPageLayout.Width + NextPageLayout.Width+8;
+  Width := GetContentRect(PagesPanelLayout).Width + PrevPageLayout.Width + NextPageLayout.Width + 6;
 
   PrevPageLayout.Enabled := FPageNum > 1;
   NextPageLayout.Enabled := FPageNum < FCount;
 
 end;
 
-function TNavigationFrame.CreateLabel(const Text: string; Page: Int64): TControl;
+function TNavigationFrame.CreateLabel(const Text: string; Page: UInt64): TControl;
 begin
 
-  var L := TText.Create(Self);
+  var L := PageText.Clone(Self) as TText;
 
   L.Text := Text;
   L.Tag := Page;
-  L.WordWrap := False;
-  L.TextSettings.Font.Family := 'Inter';
-  L.TextSettings.Font.Size := 16;
   L.Position.Point := Point(200,0);
-  L.Align := TAlignLayout.Left;
-  L.AutoSize := True;
-  L.Margins.Rect := Rect(4,2,4,4);
 
   if Page = FPageNum then
-    L.TextSettings.FontColor := $FF4285F4
-  else
-    L.TextSettings.FontColor := $FF5A6773;
+    L.TextSettings.FontColor := $FF4285F4;
 
   if (Page <> FPageNum) and (Page <> 0) then
   begin
@@ -130,23 +123,30 @@ begin
 
 end;
 
+procedure TNavigationFrame.DoChange;
+begin
+  if Assigned(FOnChange) then FOnChange(Self);
+end;
+
 procedure TNavigationFrame.PrevPageLayoutClick(Sender: TObject);
 begin
   PageNum := PageNum - 1;
-  FOnChange(Self);
+  DoChange;
 end;
 
 procedure TNavigationFrame.NextPageLayoutClick(Sender: TObject);
 begin
   PageNum := PageNum + 1;
-  FOnChange(Self);
+  DoChange;
 end;
 
 procedure TNavigationFrame.OnPageClick(Sender: TObject);
 begin
-  FPageNum:=TControl(Sender).Tag;
-  CreateControls;
-  FOnChange(Self);
+  TThread.ForceQueue(nil, procedure
+  begin
+    PageNum := TControl(Sender).Tag;
+    DoChange;
+  end);
 end;
 
 end.
