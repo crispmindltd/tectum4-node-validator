@@ -9,6 +9,7 @@ uses
   Blockchain.Validation,
   Blockchain.Address,
   Blockchain.Reward,
+  Blockchain.Utils,
   App.Constants,
   App.Exceptions,
   App.Intf,
@@ -23,6 +24,7 @@ uses
   Crypto,
   IOUtils,
   Math,
+  DateUtils,
   Net.Client,
   Net.Data,
   Net.Server,
@@ -47,6 +49,9 @@ type
     FNodeClient: TNodeClient;
     FHTTPServer: THTTPServer;
     FUpdate: TUpdateCore;
+
+ private
+    FRewardTotal: TRewardTotalInfo;
 
     function CheckTickerName(const ATicker: string): Boolean;
     function CheckShortName(const AShortName: string): Boolean;
@@ -81,7 +86,7 @@ type
     function DoTokenUnstake(AAddr: string; AAmount: UInt64; APrKey: string): string;
     function GetTokenBalance(AAddress: string): UInt64;
     function GetStakingBalance(AAddress: string): UInt64;
-    function GetStakingReward(StartIndex: UInt64; AAddress: string): TRewardTotalInfo;
+    function GetStakingReward(AAddress: string): TRewardTotalInfo;
     function GetUserLastTransactions(AAddress: string; Skip,Count: Int64): TArray<TTransactionInfo>;
     function GetLastTransactions(Skip,Count: Int64): TArray<TTransactionInfo>;
     function TrySaveKeysToFile(APrivateKey: string): Boolean;
@@ -183,6 +188,8 @@ end;
 
 destructor TAppCore.Destroy;
 begin
+  Logs.DoLog('Appcore.Destroy', DbgLvlLogs, ltNone);     //
+
   FUpdate.Free;
   FNodeServer.Free;
   FHTTPServer.Free;
@@ -335,9 +342,26 @@ begin
   Result := DataCache.GetStakeBalance(AAddress);
 end;
 
-function TAppCore.GetStakingReward(StartIndex: UInt64; AAddress: string): TRewardTotalInfo;
+function TAppCore.GetStakingReward(AAddress: string): TRewardTotalInfo;
 begin
-  Result:=GetRewardTotalInfo(StartIndex, TAccount.GetAddressId(FAddress));
+
+  var R:=GetRewardTotalInfo(FRewardTotal.EndBlockIndex, TAccount.GetAddressId(AAddress));
+
+  Inc(FRewardTotal.Amount, R.Amount);
+
+  if FRewardTotal.FirstTxnId = 0 then FRewardTotal.FirstTxnId := R.FirstTxnId;
+
+  FRewardTotal.EndBlockIndex := R.EndBlockIndex;
+
+  var D := NowUTC;
+
+  if FRewardTotal.FirstTxnId > 0 then
+    D := TMemBlock<TTxn>.ReadFromFile(TTxn.Filename, FRewardTotal.FirstTxnId).Data.CreatedAt;
+
+  FRewardTotal.Days := DaysBetween(D, NowUTC);
+
+  Result := FRewardTotal;
+
 end;
 
 procedure TAppCore.InitBCFiles;
@@ -561,6 +585,7 @@ begin
   try
     DataCache.Init;
     FSettings.Init;
+    FRewardTotal := Default(TRewardTotalInfo);
     if not InitKeys then
       raise Exception.Create('Failed to read keys from file or it is invalid');
     splt := ListenTo.Split([':']);
@@ -630,6 +655,8 @@ end;
 
 procedure TAppCore.Stop;
 begin
+  Logs.DoLog('AppCore.Stop', DbgLvlLogs, ltNone);
+
   if Assigned(FHTTPServer) then
     FHTTPServer.Stop;
   FNodeClient.Stop;

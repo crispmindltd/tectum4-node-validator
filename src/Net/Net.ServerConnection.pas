@@ -62,10 +62,7 @@ begin
   FOnConnectionChecked := AOnConnectionChecked;
   FRemoteIsAvailable := True;
 
-  Randomize;
-  FBytesToSign := TEncoding.ANSI.GetBytes(THash.GetRandomString(32));
-  SendRequest(InitConnectCode, FBytesToSign, '[bytes for signing]');
-//  SendRequest(CheckVersionCommandCode, TEncoding.ANSI.GetBytes(AppCore.GetAppVersion));
+  SendRequest(CheckVersionCommandCode, TEncoding.ANSI.GetBytes(AppCore.GetAppVersion));
   WaitForReceive(True);
 end;
 
@@ -125,7 +122,7 @@ begin
 
     CheckVersionCommandCode:
       begin
-        if AResponse.Data[0] = SuccessCode then
+        if (Length(AResponse.Data) > 0) and (AResponse.Data[0] = SuccessCode) then
         begin
           Randomize;
           FBytesToSign := TEncoding.ANSI.GetBytes(THash.GetRandomString(32));
@@ -151,7 +148,6 @@ begin
       if not (IncomData.RequestData.Code in CommandsCodes) then
       begin
         FIsShuttingDown := True;
-        FStatus := UnknownCommandErrorCode;
         raise EConnectionClosed.CreateFmt('unknown command(code %d) received',
           [IncomData.RequestData.Code]);
       end;
@@ -159,7 +155,6 @@ begin
       if not (FConnectionChecked or (IncomData.RequestData.Code = ResponseCode)) then
       begin
         FIsShuttingDown := True;
-        FStatus := InitConnectCode;
         raise EConnectionClosed.Create('identification error');
       end;
 
@@ -184,10 +179,10 @@ begin
 
             case IncomData.RequestData.Code of
               ResponseCode:
-                WriteResponseData(IncomData);
+                WriteResponseData(IncomData)
               else begin
-                AddIncomRequest(IncomData);
                 WaitForReceive;
+                AddIncomRequest(IncomData);
               end;
             end;
           end;
@@ -199,6 +194,8 @@ begin
       DoDisconnect(E.Message);
     on E:ESocketError do
       DoDisconnect('timeout data receiving');
+    on E:Exception do
+      DoDisconnect('Server receiveCallBack disconnect: ' + E.Message);
   end;
 end;
 

@@ -6,7 +6,7 @@ uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
   FMX.Types, FMX.Graphics, FMX.Controls, FMX.Forms, FMX.Dialogs, FMX.StdCtrls,
   FMX.Ani, FMX.Objects, FMX.Controls.Presentation, FMX.Layouts,
-  Blockchain.Txn, App.Intf, Frame.Reward, Desktop.Controls;
+  App.Intf, Frame.Reward, Desktop.Controls, Blockchain.Txn, Blockchain.Utils;
 
 type
   TTransactionFrame = class(TFrame)
@@ -14,14 +14,14 @@ type
     TETTransactionDetailsLabel: TLabel;
     TETBackCircle: TCircle;
     TETBackArrowPath: TPath;
-    Layout6: TLayout;
-    IncomRectangle: TRectangle;
-    IncomText: TText;
+    TypeLayout: TLayout;
+    TypeRectangle: TRectangle;
+    TypeText: TText;
     TETTransactionDetailsRectangle: TRectangle;
     TETHashDetailsLayout: TLayout;
     TETHashDetailsLabel: TLabel;
     TETHashDetailsText: TText;
-    TETCopyLoginLayout: TLayout;
+    HashCopyLayout: TLayout;
     TETCopyHashSvg: TPath;
     TETBlockDetailsLayout: TLayout;
     TETBlockDetailsLabel: TLabel;
@@ -33,7 +33,7 @@ type
     TETAddressDetailsLayout: TLayout;
     AddressFromLabel: TLabel;
     AddressFromText: TText;
-    TETCopyAddressLayout: TLayout;
+    AddressFromCopyLayout: TLayout;
     TETCopyAddressSvg: TPath;
     Line4: TLine;
     TETAmountDetailsLayout: TLayout;
@@ -48,28 +48,29 @@ type
     TETFeeDetailsLayout: TLayout;
     TETFeeDetailsLabel: TLabel;
     TETFeeDetailsText: TText;
-    Layout11: TLayout;
+    RewardDetailLayout: TLayout;
     pthArrowDown: TPath;
     FloatAnimation7: TFloatAnimation;
-    Layout12: TLayout;
-    Layout13: TLayout;
+    FeeRewardLayout: TLayout;
+    RewardLeftLayout: TLayout;
     RewardsLayout: TLayout;
-    Label4: TLabel;
+    ValidatorsLabel: TLabel;
     RewardValidatorsLayout: TLayout;
     RewardArchiverLayout: TLayout;
-    Label5: TLabel;
-    Layout1: TLayout;
+    ArchiverLabel: TLabel;
+    AddressToLayout: TLayout;
     AddressToLabel: TLabel;
     AddressToText: TText;
-    Layout2: TLayout;
-    Path1: TPath;
+    AddressToCopyLayout: TLayout;
+    AddressToCopyPath: TPath;
     procedure TETBackCircleMouseEnter(Sender: TObject);
     procedure TETBackCircleMouseLeave(Sender: TObject);
     procedure FloatAnimation7Process(Sender: TObject);
-    procedure Layout11Click(Sender: TObject);
+    procedure RewardDetailLayoutClick(Sender: TObject);
   private
     procedure InitTrxDetailControls;
     procedure SetRewards(const Transaction: TTransactionInfo);
+    procedure SetType(const Text: string; Color: TAlphaColor);
   public
     constructor Create(AOwner: TComponent); override;
     procedure SetTrxAsUser(const Transaction: TTransactionInfo);
@@ -91,7 +92,7 @@ end;
 
 procedure TTransactionFrame.FloatAnimation7Process(Sender: TObject);
 begin
-  Layout12.Height:=Layout12.TagFloat*(1-FloatAnimation7.NormalizedTime);
+  FeeRewardLayout.Height:=FeeRewardLayout.TagFloat*(1-FloatAnimation7.NormalizedTime);
 end;
 
 procedure TTransactionFrame.TETBackCircleMouseEnter(Sender: TObject);
@@ -104,7 +105,7 @@ begin
   (Sender as TCircle).Fill.Kind := TBrushKind.None;
 end;
 
-procedure TTransactionFrame.Layout11Click(Sender: TObject);
+procedure TTransactionFrame.RewardDetailLayoutClick(Sender: TObject);
 begin
   if not FloatAnimation7.Running then
   begin
@@ -121,14 +122,12 @@ begin
   RewardValidatorsLayout.Height:=GetContentRect(RewardValidatorsLayout).Bottom;
   RewardArchiverLayout.Height:=GetContentRect(RewardArchiverLayout).Bottom;
 
-  Layout12.TagFloat:=GetContentRect(RewardsLayout).Bottom;
+  FeeRewardLayout.TagFloat:=GetContentRect(RewardsLayout).Bottom;
 
   if FloatAnimation7.Inverse then
-    Layout12.Height:=Layout12.TagFloat
+    FeeRewardLayout.Height:=FeeRewardLayout.TagFloat
   else
-    Layout12.Height:=0;
-
-  Layout11.OnClick:=Layout11Click;
+    FeeRewardLayout.Height:=0;
 
 end;
 
@@ -149,6 +148,13 @@ begin
 
 end;
 
+procedure TTransactionFrame.SetType(const Text: string; Color: TAlphaColor);
+begin
+  TypeText.Text:=Text;
+  TypeText.TextSettings.FontColor:=Color;
+  TypeRectangle.Fill.Color:=Color;
+end;
+
 procedure TTransactionFrame.SetTrxAsUser(const Transaction: TTransactionInfo);
 begin
 
@@ -156,32 +162,27 @@ begin
   TETBlockDetailsText.Text:=Transaction.TxId.ToString;
   TETDateTimeDetailsText.Text:=Transaction.DateTime.ToString;
 
-  Layout1.Visible:=False;
+  AddressToLayout.Visible:=False;
 
   AddressFromLabel.Text:='Address';
 
   if Transaction.AddressTo=AppCore.Address then
   begin
-    IncomText.Text:='IN';
-    IncomText.TextSettings.FontColor:=$FF0F9A62;
+    SetType('IN', $FF0F9A62);
     AddressFromText.Text:=Transaction.AddressFrom;
   end else begin
-    IncomText.Text:='OUT';
-    IncomText.TextSettings.FontColor:=$FFE85D42;
+    SetType('OUT', $FFE85D42);
     AddressFromText.Text:=Transaction.AddressTo;
   end;
 
   AddressToText.Text:=Transaction.AddressTo;
 
-  IncomRectangle.Fill.Color:=IncomText.TextSettings.FontColor;
   TETAmountDetailsText.Text:=AmountToStr(Transaction.Amount, True);
   TETFeeDetailsText.Text:=AmountToStr(Transaction.Fee, True);
 
   SetRewards(Transaction);
 
   InitTrxDetailControls;
-
-  Layout11.OnClick:=Layout11Click;
 
 end;
 
@@ -192,30 +193,25 @@ begin
   TETBlockDetailsText.Text:=Transaction.TxId.ToString;
   TETDateTimeDetailsText.Text:=Transaction.DateTime.ToString;
 
-  Layout1.Visible:=False;
+  AddressToLayout.Visible:=False;
 
   AddressFromLabel.Text:='Address';
 
   if Transaction.TxType='stake' then
   begin
-    IncomText.Text:='STAKE';
-    IncomText.TextSettings.FontColor:=$FF0F9A62;
+    SetType('STAKE', $FF0F9A62);
     AddressFromText.Text:=Transaction.AddressFrom;
   end else begin
-    IncomText.Text:='UNSTAKE';
-    IncomText.TextSettings.FontColor:=$FFE85D42;
+    SetType('UNSTAKE', $FFE85D42);
     AddressFromText.Text:=Transaction.AddressFrom;
   end;
 
-  IncomRectangle.Fill.Color:=IncomText.TextSettings.FontColor;
   TETAmountDetailsText.Text:=AmountToStr(Transaction.Amount, True);
   TETFeeDetailsText.Text:=AmountToStr(Transaction.Fee, True);
 
   SetRewards(Transaction);
 
   InitTrxDetailControls;
-
-  Layout11.OnClick:=Layout11Click;
 
 end;
 
@@ -226,33 +222,24 @@ begin
   TETBlockDetailsText.Text:=Transaction.TxId.ToString;
   TETDateTimeDetailsText.Text:=Transaction.DateTime.ToString;
 
-  Layout1.Visible:=True;
+  AddressToLayout.Visible:=True;
 
   AddressFromLabel.Text:='Address From';
 
   if Transaction.TxType='stake' then
-  begin
-    IncomText.Text:='STAKE';
-    IncomText.TextSettings.FontColor:=$FF0F9A62;
-  end else
+    SetType('STAKE', $FF0F9A62)
+  else
   if Transaction.TxType='unstake' then
-  begin
-    IncomText.Text:='UNSTAKE';
-    IncomText.TextSettings.FontColor:=$FFE85D42;
-  end else
+    SetType('UNSTAKE', $FFE85D42)
+  else
   if Transaction.TxType='migrate' then
-  begin
-    IncomText.Text:='MIGRATE';
-    IncomText.TextSettings.FontColor:=$FFFF6900;
-  end else begin
-    IncomText.Text:='TRANSFER';
-    IncomText.TextSettings.FontColor:=$FF0F9A62;
-  end;
+    SetType('MIGRATE', $FFFF6900)
+  else
+    SetType('TRANSFER', $FF0F9A62);
 
   AddressFromText.Text:=Transaction.AddressFrom;
   AddressToText.Text:=Transaction.AddressTo;
 
-  IncomRectangle.Fill.Color:=IncomText.TextSettings.FontColor;
   TETAmountDetailsText.Text:=AmountToStr(Transaction.Amount, True);
   TETFeeDetailsText.Text:=AmountToStr(Transaction.Fee, True);
 

@@ -78,15 +78,21 @@ procedure TDataCahe.Init;
 begin
   Clear;
   // прочитаем балансы напрямую из блокчейна.
-  const BlocksAmount = TMemBlock<TTxn>.RecordsCount(TTxn.FileName); // еще не определено
-  begin
-  end;
-  if BlocksAmount = 0 then
-    Exit;
+  const TxnsAmount = TMemBlock<TTxn>.RecordsCount(TTxn.FileName);
 
-  for var txnId := 0 to BlocksAmount - 1 do begin
-    const Txn = TMemBlock<TTxn>.ReadFromFile(TTxn.FileName, txnId);
-    UpdateCache(Txn, txnId);
+  if TxnsAmount > 0 then begin
+    for var txnId := 0 to TxnsAmount - 1 do begin
+      const Txn = TMemBlock<TTxn>.ReadFromFile(TTxn.FileName, txnId);
+      UpdateCache(Txn, txnId);
+    end;
+  end;
+
+  const RewardsAmount = TMemBlock<TReward>.RecordsCount(TReward.FileName);
+  if RewardsAmount > 0 then begin
+    for var RwdId := 0 to RewardsAmount - 1 do begin
+      const Rwd = TMemBlock<TReward>.ReadFromFile(TReward.FileName, RwdId);
+      UpdateCache(Rwd);
+    end;
   end;
 end;
 

@@ -41,7 +41,7 @@ type
     function DoTokenUnstake(AAddr: string; AAmount: UInt64; APrKey: string): string;
     function GetTokenBalance(AAddress: string): UInt64;
     function GetStakingBalance(AAddress: string): UInt64;
-    function GetStakingReward(StartIndex: UInt64; AAddress: string): TRewardTotalInfo;
+    function GetStakingReward(AAddress: string): TRewardTotalInfo;
     function GetUserLastTransactions(AAddress: string; Skip,Count: Int64): TArray<TTransactionInfo>;
     function GetLastTransactions(Skip,Count: Int64): TArray<TTransactionInfo>;
     function TrySaveKeysToFile(APrivateKey: string): Boolean;

@@ -114,9 +114,15 @@ begin
   try
     while not ExitFlag do begin
       CheckSynchronize(100);
+
+      if not Assigned(AppCore) then begin
+        Logs.DoLog('AppCore = nil. Exiting.', DbgLvlLogs, ltNone);
+        Break;
+      end;
+
     end;
   finally
-    DoMessage('Terminating node...');
+    Logs.DoLog('Terminating node... Exit flag = ' + ExitFlag.ToString(True), DbgLvlLogs, ltNone);
   end;
 end;
 

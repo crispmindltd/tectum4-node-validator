@@ -4,7 +4,7 @@ object HistoryTransactionFrame: THistoryTransactionFrame
   Margins.Top = 5.000000000000000000
   Margins.Right = 5.000000000000000000
   Position.Y = 5.000000000000000000
-  Size.Width = 927.000000000000000000
+  Size.Width = 803.000000000000000000
   Size.Height = 28.000000000000000000
   Size.PlatformDefault = False
   OnMouseEnter = FrameMouseEnter
@@ -13,7 +13,7 @@ object HistoryTransactionFrame: THistoryTransactionFrame
     Align = Contents
     Fill.Kind = None
     HitTest = False
-    Size.Width = 927.000000000000000000
+    Size.Width = 803.000000000000000000
     Size.Height = 28.000000000000000000
     Size.PlatformDefault = False
     Stroke.Kind = None

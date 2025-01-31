@@ -4,7 +4,7 @@ object ExplorerTransactionFrame: TExplorerTransactionFrame
   Margins.Top = 6.000000000000000000
   Margins.Right = 6.000000000000000000
   Position.Y = 6.000000000000000000
-  Size.Width = 798.000000000000000000
+  Size.Width = 534.000000000000000000
   Size.Height = 28.000000000000000000
   Size.PlatformDefault = False
   OnMouseEnter = FrameMouseEnter
@@ -14,7 +14,7 @@ object ExplorerTransactionFrame: TExplorerTransactionFrame
     Align = Contents
     Fill.Kind = None
     HitTest = False
-    Size.Width = 798.000000000000000000
+    Size.Width = 534.000000000000000000
     Size.Height = 28.000000000000000000
     Size.PlatformDefault = False
     Stroke.Kind = None

@@ -51,7 +51,7 @@ object TransactionFrame: TTransactionFrame
         Stroke.Thickness = 2.000000000000000000
       end
     end
-    object Layout6: TLayout
+    object TypeLayout: TLayout
       Align = Left
       Margins.Left = 20.000000000000000000
       Margins.Top = 4.000000000000000000
@@ -62,7 +62,7 @@ object TransactionFrame: TTransactionFrame
       Size.Height = 29.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 1
-      object IncomRectangle: TRectangle
+      object TypeRectangle: TRectangle
         Align = Contents
         Fill.Color = xFF0F9A62
         HitTest = False
@@ -74,7 +74,7 @@ object TransactionFrame: TTransactionFrame
         XRadius = 5.000000000000000000
         YRadius = 5.000000000000000000
       end
-      object IncomText: TText
+      object TypeText: TText
         Align = Contents
         HitTest = False
         Size.Width = 73.000000000000000000
@@ -134,7 +134,7 @@ object TransactionFrame: TTransactionFrame
         TextSettings.WordWrap = False
         TextSettings.HorzAlign = Leading
       end
-      object TETCopyLoginLayout: TLayout
+      object HashCopyLayout: TLayout
         Align = Left
         Cursor = crHandPoint
         Hint = 'Copy hash'
@@ -297,7 +297,7 @@ object TransactionFrame: TTransactionFrame
         TextSettings.WordWrap = False
         TextSettings.HorzAlign = Leading
       end
-      object TETCopyAddressLayout: TLayout
+      object AddressFromCopyLayout: TLayout
         Align = Left
         Cursor = crHandPoint
         Hint = 'Copy address'
@@ -497,7 +497,7 @@ object TransactionFrame: TTransactionFrame
         TextSettings.WordWrap = False
         TextSettings.HorzAlign = Leading
       end
-      object Layout11: TLayout
+      object RewardDetailLayout: TLayout
         Align = Left
         HitTest = True
         Margins.Left = 20.000000000000000000
@@ -506,7 +506,7 @@ object TransactionFrame: TTransactionFrame
         Size.Height = 23.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 1
-        OnClick = Layout11Click
+        OnClick = RewardDetailLayoutClick
         object pthArrowDown: TPath
           Align = Client
           Data.Path = {
@@ -542,7 +542,7 @@ object TransactionFrame: TTransactionFrame
         end
       end
     end
-    object Layout12: TLayout
+    object FeeRewardLayout: TLayout
       Align = Top
       ClipChildren = True
       Position.X = 15.000000000000000000
@@ -551,7 +551,7 @@ object TransactionFrame: TTransactionFrame
       Size.Height = 177.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 20
-      object Layout13: TLayout
+      object RewardLeftLayout: TLayout
         Align = Left
         Size.Width = 200.000000000000000000
         Size.Height = 177.000000000000000000
@@ -564,7 +564,7 @@ object TransactionFrame: TTransactionFrame
         Size.Height = 177.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 1
-        object Label4: TLabel
+        object ValidatorsLabel: TLabel
           Align = Top
           AutoSize = True
           StyledSettings = []
@@ -595,7 +595,7 @@ object TransactionFrame: TTransactionFrame
           Size.PlatformDefault = False
           TabOrder = 2
         end
-        object Label5: TLabel
+        object ArchiverLabel: TLabel
           Align = Top
           AutoSize = True
           StyledSettings = []
@@ -612,7 +612,7 @@ object TransactionFrame: TTransactionFrame
         end
       end
     end
-    object Layout1: TLayout
+    object AddressToLayout: TLayout
       Align = Top
       Margins.Top = 20.000000000000000000
       Position.X = 15.000000000000000000
@@ -647,7 +647,7 @@ object TransactionFrame: TTransactionFrame
         TextSettings.WordWrap = False
         TextSettings.HorzAlign = Leading
       end
-      object Layout2: TLayout
+      object AddressToCopyLayout: TLayout
         Align = Left
         Cursor = crHandPoint
         Hint = 'Copy address'
@@ -661,7 +661,7 @@ object TransactionFrame: TTransactionFrame
         Size.Height = 31.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 4
-        object Path1: TPath
+        object AddressToCopyPath: TPath
           Align = Center
           Cursor = crHandPoint
           Data.Path = {

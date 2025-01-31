@@ -359,17 +359,13 @@
         </DCCReference>
         <DCCReference Include="Core\App.Constants.pas"/>
         <DCCReference Include="UI\OpenURL.pas"/>
-        <DCCReference Include="UI\Forms\Frame.PageNum.pas">
-            <Form>PageNumFrame</Form>
-            <FormType>fmx</FormType>
-            <DesignClass>TFrame</DesignClass>
-        </DCCReference>
         <DCCReference Include="Blockchain\Blockchain.Address.pas"/>
         <DCCReference Include="Blockchain\Blockchain.Data.pas"/>
         <DCCReference Include="Blockchain\Blockchain.Txn.pas"/>
         <DCCReference Include="Blockchain\Blockchain.Validation.pas"/>
         <DCCReference Include="Blockchain\BlockChain.DataCache.pas"/>
         <DCCReference Include="Blockchain\Blockchain.Reward.pas"/>
+        <DCCReference Include="Blockchain\Blockchain.Utils.pas"/>
         <DCCReference Include="Net\Net.Client.pas"/>
         <DCCReference Include="Net\Net.ClientConnection.pas"/>
         <DCCReference Include="Net\Net.CommandHandler.pas"/>
@@ -383,22 +379,18 @@
         <DCCReference Include="UI\Desktop.Controls.pas"/>
         <DCCReference Include="UI\Forms\Frame.Reward.pas">
             <Form>RewardFrame</Form>
-            <FormType>fmx</FormType>
             <DesignClass>TFrame</DesignClass>
         </DCCReference>
         <DCCReference Include="UI\Forms\Frame.Transaction.pas">
             <Form>TransactionFrame</Form>
-            <FormType>fmx</FormType>
             <DesignClass>TFrame</DesignClass>
         </DCCReference>
         <DCCReference Include="UI\Forms\Frame.StakingTransaction.pas">
             <Form>StakingTransactionFrame</Form>
-            <FormType>fmx</FormType>
             <DesignClass>TFrame</DesignClass>
         </DCCReference>
         <DCCReference Include="UI\Forms\Frame.Navigation.pas">
             <Form>NavigationFrame</Form>
-            <FormType>fmx</FormType>
             <DesignClass>TFrame</DesignClass>
         </DCCReference>
         <BuildConfiguration Include="Base">
@@ -514,6 +506,12 @@
                 <DeployFile LocalName="Win64\Debug\LNode.exe" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win64">
                         <RemoteName>LNode.exe</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="Win64\Debug\LNode.rsm" Configuration="Debug" Class="DebugSymbols">
+                    <Platform Name="Win64">
+                        <RemoteName>LNode.rsm</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

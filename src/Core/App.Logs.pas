@@ -166,7 +166,7 @@ begin
     end;
     ToLog.Append(CutLogString(AText));
 
-    UI.DoMessage(ToLog.ToString);
+    if Assigned(UI) then UI.DoMessage(ToLog.ToString);
     TFile.AppendAllText(FileName, ToLog.ToString + sLineBreak, TEncoding.ANSI);
     Inc(FLogNum);
   finally

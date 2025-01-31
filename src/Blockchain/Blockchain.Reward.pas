@@ -39,31 +39,30 @@ type
     Amount: UInt64;
     FirstTxnId: UInt64;
     EndBlockIndex: UInt64;
+    Days: Integer;
   end;
 
-function GetRwd(LastBlock: UInt64): TArray<TRewardInfo>;
+function GetRwd(FirstBlock: UInt64): TArray<TRewardInfo>;
 function GetRewardTotalInfo(StartIndex: UInt64; AddressId: UInt64): TRewardTotalInfo;
 
 implementation
 
-function GetRwd(LastBlock: UInt64): TArray<TRewardInfo>;
+function GetRwd(FirstBlock: UInt64): TArray<TRewardInfo>;
 begin
 
   Result:=[];
 
-  if LastBlock=0 then Exit;
-  if LastBlock=INVALID then Exit;
+  if FirstBlock=0 then Exit;
+  if FirstBlock=INVALID then Exit;
 
-  var FirstBlock:=LastBlock;
-
-  if LastBlock>10 then FirstBlock:=LastBlock-10 else FirstBlock:=0;
+  var LastBlock := FirstBlock + 4;
 
   var B:=TMemBlock<TReward>.ByteArrayFromFile(TReward.FileName,FirstBlock,LastBlock-FirstBlock);
 
   var BlockSize:=SizeOf(TReward);
   var TxnId: UInt64:=0;
 
-  for var I:=(Length(B) div BlockSize)-1 downto 0  do
+  for var I:=0 to (Length(B) div BlockSize)-1 do
   begin
     var V: TMemBlock<TReward> := Copy(B,I*BlockSize,BlockSize);
     if TxnId=0 then TxnId:=V.Data.TxnId;
