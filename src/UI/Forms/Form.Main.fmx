@@ -59,7 +59,7 @@ object MainForm: TMainForm
       Size.PlatformDefault = False
       StyleLookup = 'AuthTabItemstyle'
       TabOrder = 0
-      Text = 'Tectum Token'
+      Text = 'Tectum Coin'
       ExplicitSize.cx = 1.000000000000000000
       ExplicitSize.cy = 1.000000000000000000
       object TETTabControl: TTabControl
@@ -69,7 +69,7 @@ object MainForm: TMainForm
         Size.Height = 842.000000000000000000
         Size.PlatformDefault = False
         StyleLookup = 'AuthTabControlstyle'
-        TabIndex = 1
+        TabIndex = 0
         TabOrder = 1
         TabPosition = None
         Sizes = (
@@ -82,7 +82,7 @@ object MainForm: TMainForm
             item
             end>
           TextSettings.Trimming = None
-          IsSelected = False
+          IsSelected = True
           Size.Width = 8.000000000000000000
           Size.Height = 8.000000000000000000
           Size.PlatformDefault = False
@@ -489,7 +489,7 @@ object MainForm: TMainForm
             item
             end>
           TextSettings.Trimming = None
-          IsSelected = True
+          IsSelected = False
           Size.Width = 8.000000000000000000
           Size.Height = 8.000000000000000000
           Size.PlatformDefault = False
@@ -505,14 +505,10 @@ object MainForm: TMainForm
             inherited TETTransactionDetailsLayout: TLayout
               Size.Width = 1089.000000000000000000
               inherited TETTransactionDetailsLabel: TLabel
-                Size.Width = 859.000000000000000000
                 TextSettings.Font.StyleExt = {00070000000000000004000000}
               end
               inherited TETBackCircle: TCircle
                 OnClick = TransactionFrame2TETBackCircleClick
-              end
-              inherited TypeLayout: TLayout
-                Position.X = 931.000000000000000000
               end
             end
             inherited TETTransactionDetailsRectangle: TRectangle
@@ -906,9 +902,9 @@ object MainForm: TMainForm
                 TextSettings.Font.Size = 15.000000000000000000
                 TextSettings.FontColor = xFF323130
                 Text = 
-                  'Stake your Tectum tokens for any duration with the ability to wi' +
-                  'thdraw at any time. You can also increase your staking volume wi' +
-                  'thout any restrictions.'
+                  'Stake your Tectum coins for any duration with the ability to wit' +
+                  'hdraw at any time. You can also increase your staking volume wit' +
+                  'hout any restrictions.'
                 TabOrder = 2
               end
               object StakingMaxAmountLabel: TLabel

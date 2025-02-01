@@ -61,8 +61,8 @@ const
 var CSMap: TCSMap;
 
 function CalculateFee(ASendValue: UInt64): UInt64;
+function CalculateMaxSendValue(AFullValue:uint64):uint64;
 
-// возвращает массив сумм вознаграждений соответственно застейканным суммам
 function GetRewards(AFee: UInt64; const AStakes: TArray<UInt64>): TArray<UInt64>;
 
 implementation
@@ -74,6 +74,20 @@ begin
     Result := MinFee
   else if Result > MaxFee then
     Result := MaxFee;
+end;
+
+function CalculateMaxSendValue(AFullValue:uint64):uint64;
+begin
+  if AFullValue <= 100000 then
+    Exit(0)
+  else if AFullValue <= 100100000 then
+    Exit(AFullValue - 100000)
+  else if AFullValue <= 100100000000 then
+    Result := 1 + (AFullValue * 1000) div 1001
+  else
+    Result := AFullValue - _1_TET;
+  if Result + CalculateFee(Result) <> AFullValue then
+    Inc(Result);
 end;
 
 function GetRewards(AFee: UInt64; const AStakes: TArray<UInt64>): TArray<UInt64>;
@@ -229,7 +243,7 @@ begin
         FreeAndNil(fs);
         SaveToFile(AFilename);
       end;
-      Assert(fs.Size > AId * SizeOf(T), 'Incorrect block size on file read');
+      Assert(fs.Size > AId * SizeOf(T), 'Incorrect block size on file save');
       fs.Position := AId * SizeOf(T);
       fs.Write(Data, SizeOf(T));
     finally
