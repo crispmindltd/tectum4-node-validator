@@ -370,7 +370,7 @@ end;
 
 procedure TMainForm.StakeMaxButtonClick(Sender: TObject);
 begin
-  StakeAmountEdit.Text := AmountToStr(FBalance);
+  StakeAmountEdit.Text := AmountToStr(CalculateMaxSendValue(FBalance));
 end;
 
 procedure TMainForm.UnstakeMaxButtonClick(Sender: TObject);
@@ -501,7 +501,7 @@ end;
 
 procedure TMainForm.TxMaxAmountButtonClick(Sender: TObject);
 begin
-  AmountTETEdit.Text := AmountToStr(FBalance);
+  AmountTETEdit.Text := AmountToStr(CalculateMaxSendValue(FBalance));
 end;
 
 procedure TMainForm.NewTETChainBlocksEvent;

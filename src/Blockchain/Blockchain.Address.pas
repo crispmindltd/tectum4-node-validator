@@ -20,7 +20,7 @@ type
   TAccount = record
   class var
     Filename: string;
-    LastPrivKey: T32Bytes; // поля для получения ключей, после генерации очередного адреса
+    LastPrivKey: T32Bytes;
     LastPubKey: T65Bytes;
     class function NextId: UInt64; static;
     class function GetAddressId(const AAddress: T20Bytes): UInt64; static;
@@ -48,9 +48,6 @@ uses
 
 procedure TAccount.GenerateNew;
 begin
-  // пока так, потом можно сделать более непредсказуемую генерацию
-  // например FRandom := TSecureRandom.Create();
-  // или через THash от нескольких GUID
 
   Randomize;
   var PrivKeyStr: string := StringOfChar('0', 64);
@@ -62,8 +59,6 @@ begin
   Assert(RestorePublicKey(PrivKeyStr, PubKeyStr), 'Error restoring pubkey from privkey when generate new account');
   LastPubKey := PubKeyStr;
 
-  // классовые переменные заполнили, теперь заполняем поля текущей записи
-  // CreatedAt := Now();
   TxId := INVALID;
   Address := LastPubKey.Address;
 
@@ -76,11 +71,8 @@ begin
     end;
 
   except
-    // на случай, если это нулевой адрес
     PreviousHash := string.create('0', 64);
   end;
-  // пока не сохраняем в файл.
-  // на клиентах адрес генерируется, но не пишется же
 end;
 
 class function TAccount.GetAddressId(const AAddress: T20Bytes): UInt64;

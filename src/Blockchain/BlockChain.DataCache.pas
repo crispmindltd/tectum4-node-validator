@@ -77,7 +77,6 @@ end;
 procedure TDataCahe.Init;
 begin
   Clear;
-  // прочитаем балансы напрямую из блокчейна.
   const TxnsAmount = TMemBlock<TTxn>.RecordsCount(TTxn.FileName);
 
   if TxnsAmount > 0 then begin
