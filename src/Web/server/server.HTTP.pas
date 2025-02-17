@@ -165,6 +165,7 @@ begin
   finally
     AResponseInfo.ResponseNo := EndpointResponse.Code;
     AResponseInfo.ContentText := EndpointResponse.Response;
+    AResponseInfo.ContentType := 'application/json';
     Logs.DoLog(Format('<%d> [%d] %s', [ThreadID,
       AResponseInfo.ResponseNo, AResponseInfo.ContentText]), CmnLvlLogs, ltOutgo);
   end;

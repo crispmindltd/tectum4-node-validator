@@ -5,9 +5,9 @@ uses
   SysUtils,
   Classes,
   IOUtils,
-  FMX.Dialogs,
-  FMX.Forms,
-  FMX.Types,
+//  FMX.Dialogs,
+//  FMX.Forms,
+//  FMX.Types,
   Types,
   App.Intf in 'Core\App.Intf.pas',
   App.Core in 'Core\App.Core.pas',
@@ -53,35 +53,31 @@ uses
   Frame.Reward in 'UI\Forms\Frame.Reward.pas' {RewardFrame: TFrame},
   Frame.Transaction in 'UI\Forms\Frame.Transaction.pas' {TransactionFrame: TFrame},
   Frame.StakingTransaction in 'UI\Forms\Frame.StakingTransaction.pas' {StakingTransactionFrame: TFrame},
-  Frame.Navigation in 'UI\Forms\Frame.Navigation.pas' {NavigationFrame: TFrame};
+  Frame.Navigation in 'UI\Forms\Frame.Navigation.pas' {NavigationFrame: TFrame},
+  EthereumSigner in 'Crypto\EthereumSigner.pas';
 
 {$R *.res}
 
-var
-  LPidFileName: string;
 begin
+
   {$IFDEF DEBUG}
   ReportMemoryLeaksOnShutdown:=True;
   {$ENDIF}
 
-  LPidFileName := 'LNode';
+  if TUpdateCore.RunAsUpdater then Exit;
+
+  UI := TUICore.Create;
+  AppCore := TAppCore.Create;
+  AppCore.Run;
+
   try
-//    with TMutex.Create(LPidFileName) do
-    try
-      UI := TUICore.Create;
-      try
-        AppCore := TAppCore.Create;
-        AppCore.Run;
-        UI.Run;
-      except
-        on Exception do exit;
-      end;
-    finally
-      AppCore.Stop;
-//      Free;
-    end;
-  except
-    on E:EFOpenError do
-      ShowMessage('LNode is already started');
+    UI.Run;
+
+//  except on E:Exception do
+//    ShowMessage(E.Message);
+//  end;
+  finally
+    AppCore.Stop;
   end;
+
 end.

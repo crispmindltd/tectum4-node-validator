@@ -15,20 +15,15 @@ uses
   System.SysUtils;
 
 type
-  TCommonRequestData = record
-    Code: Byte;
-    ID: Int64;
-  end;
-
   TOutgoRequestData = record
-    RequestData: TCommonRequestData;
+    Code: Byte;
     DoneEvent: TEvent;
     Data: TBytes;
   end;
 
   TResponseData = record
-    RequestData: TCommonRequestData;
-//    _PubKey: T65Bytes;
+    Code: Byte;
+    ID: UInt64;
     Data: TBytes;
   end;
 
@@ -39,6 +34,14 @@ type
       class function DoSign(const AToSign: TBytes): TBytes;
       class function GetBlocks<T>(const AFileName: string;
         const AData: TBytes): TBytes;
+
+      class function DoInitConnect(const AIncomData: TResponseData): TBytes;
+      class function GetRewardsBlocks(const AIncomData: TResponseData): TBytes;
+      class function GetTxnsBlocks(const AIncomData: TResponseData): TBytes;
+      class function GetAddressesBlocks(const AIncomData: TResponseData): TBytes;
+      class function GetValidationsBlocks(const AIncomData: TResponseData): TBytes;
+      class function DoValidation(const AIncomData: TResponseData): TBytes;
+      class procedure DoCheckVersion(const AIncomData: TResponseData);
     public
       class var FCustomCommandProcessor:TProcessCommand;
       class function ProcessCommand(const AIncomData: TResponseData; AConnection:TObject): TBytes;
@@ -51,9 +54,35 @@ uses
 
 { TCommandHandler }
 
+class procedure TCommandHandler.DoCheckVersion(const AIncomData: TResponseData);
+begin
+  if AppCore.GetAppVersion <> TEncoding.ANSI.GetString(AIncomData.Data) then
+    AppCore.StartUpdate;
+end;
+
+class function TCommandHandler.DoInitConnect(const AIncomData: TResponseData): TBytes;
+begin
+  Result := HexToBytes(AppCore.PubKey) +
+    ECDSASignBytes(AIncomData.Data, HexToBytes(AppCore.PrKey));
+end;
+
 class function TCommandHandler.DoSign(const AToSign: TBytes): TBytes;
 begin
   Result := ECDSASignBytes(AToSign, HexToBytes(AppCore.PrKey));
+end;
+
+class function TCommandHandler.DoValidation(const AIncomData: TResponseData): TBytes;
+begin
+  const Tx = AIncomData.Data;
+  var Validation: TMemBlock<TValidation>;
+  Assert(AppCore.DoValidation(Tx, Validation), 'can not do validation');
+  Result := Validation;
+end;
+
+class function TCommandHandler.GetAddressesBlocks(
+  const AIncomData: TResponseData): TBytes;
+begin
+  Result := GetBlocks<TAccount>(TAccount.Filename, AIncomData.Data);
 end;
 
 class function TCommandHandler.GetBlocks<T>(const AFileName: string;
@@ -71,40 +100,48 @@ begin
   Result := TMemBlock<T>.ByteArrayFromFile(AFilename, BlocksFrom, MaxBlocks);
 end;
 
-class function TCommandHandler.ProcessCommand(const AIncomData: TResponseData; AConnection:TObject): TBytes;
+class function TCommandHandler.GetRewardsBlocks(
+  const AIncomData: TResponseData): TBytes;
+begin
+  Result := GetBlocks<TReward>(TReward.Filename, AIncomData.Data);
+end;
+
+class function TCommandHandler.GetTxnsBlocks(const AIncomData: TResponseData): TBytes;
+begin
+  Result := GetBlocks<TTxn>(TTxn.Filename, AIncomData.Data);
+end;
+
+class function TCommandHandler.GetValidationsBlocks(
+  const AIncomData: TResponseData): TBytes;
+begin
+  Result := GetBlocks<TValidation>(TValidation.FileName, AIncomData.Data);
+end;
+
+class function TCommandHandler.ProcessCommand(const AIncomData: TResponseData;
+  AConnection: TObject): TBytes;
 begin
   try
-    case AIncomData.RequestData.Code of
+    case AIncomData.Code of
       InitConnectCode:
-        Result := HexToBytes(AppCore.PubKey) +
-          ECDSASignBytes(AIncomData.Data, HexToBytes(AppCore.PrKey));
+        Result := DoInitConnect(AIncomData);
 
       GetRewardsCommandCode:
-        Result := GetBlocks<TReward>(TReward.Filename, AIncomData.Data);
+        Result := GetRewardsBlocks(AIncomData);
 
       GetTxnsCommandCode:
-        Result := GetBlocks<TTxn>(TTxn.Filename, AIncomData.Data);
+        Result := GetTxnsBlocks(AIncomData);
 
       GetAddressesCommandCode:
-        Result := GetBlocks<TAccount>(TAccount.Filename, AIncomData.Data);
+        Result := GetAddressesBlocks(AIncomData);
 
       GetValidationsCommandCode:
-        Result := GetBlocks<TValidation>(TValidation.FileName, AIncomData.Data);
+        Result := GetValidationsBlocks(AIncomData);
 
       ValidateCommandCode:
-        begin
-          const Tx = AIncomData.Data;
-          var Validation: TMemBlock<TValidation>;
-          Assert(AppCore.DoValidation(Tx, Validation), 'can not do validation');
-          Result := Validation;
-        end;
+        Result := DoValidation(AIncomData);
 
       CheckVersionCommandCode:
-        begin
-          if AppCore.GetAppVersion <> TEncoding.ANSI.GetString(AIncomData.Data) then
-            AppCore.StartUpdate;
-          Result := [SuccessCode];
-        end
+        DoCheckVersion(AIncomData);
     else
       if Assigned(FCustomCommandProcessor) then
         Result := FCustomCommandProcessor(AIncomData, AConnection);

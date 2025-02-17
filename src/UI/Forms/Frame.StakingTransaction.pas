@@ -56,6 +56,11 @@ begin
   HashLabel.Text := Trx.Hash;
   ValueLabel.Text := AmountToStr(Trx.Amount);
 
+  if Trx.TxType='reward' then
+  begin
+    IncomRectangle.Fill.Color := $FFFF6900;
+    IncomText.Text := 'REWARD';
+  end else
   if Trx.TxType='unstake' then
   begin
     IncomRectangle.Fill.Color := $FFE85D42;

@@ -27,6 +27,12 @@ uses
   Frame.Navigation;
 
 type
+  TLayout = class(FMX.Layouts.TLayout, IContent)
+  private
+    FOnChanged: TNotifyEvent;
+    procedure Changed;
+  end;
+
   TMainForm = class(TForm)
     Tabs: TTabControl;
     TokensTabItem: TTabItem;
@@ -179,7 +185,7 @@ type
     TokenFeeDetailsLabel: TLabel;
     TokenFeeDetailsText: TText;
     InputPrKeyButton: TButton;
-    PaginationBottomLayout: TLayout;
+    ExplorerNavigationLayout: TLayout;
     SearchEdit: TEdit;
     SearchButton: TButton;
     TransactionNotFoundLabel: TLabel;
@@ -199,11 +205,11 @@ type
     StakeButton: TButton;
     StakingStatusText: TEdit;
     FloatAnimation5: TFloatAnimation;
-    StakingLeftLayout: TLayout;
+    StakeLayout: TLayout;
     StakeAmountEdit: TEdit;
     StakeMaxButton: TEditButton;
     ShadowEffect15: TShadowEffect;
-    StakingRightLayout: TLayout;
+    UnstakeLayout: TLayout;
     UnstakeButtonLayout: TLayout;
     UnstakeButton: TButton;
     StakingInfoLabel: TLabel;
@@ -225,7 +231,7 @@ type
     CopiedRectangle: TRectangle;
     CopiedText: TText;
     FloatAnimation8: TFloatAnimation;
-    FloatAnimation9: TFloatAnimation;
+    CopiedAnimation: TFloatAnimation;
     TransactionFrame1: TTransactionFrame;
     TransactionFrame2: TTransactionFrame;
     StakingTabControl: TTabControl;
@@ -259,8 +265,14 @@ type
     PrivateKeyStatusEdit: TEdit;
     FloatAnimation7: TFloatAnimation;
     PrivateKeyMessageLabel: TLabel;
-    NavigationFrame: TNavigationFrame;
+    ExplorerNavigation: TNavigationFrame;
     TETInfoLabel: TLabel;
+    StakingNavigationLayout: TLayout;
+    StakingNavigation: TNavigationFrame;
+    TransactionNavigationLayout: TLayout;
+    TransactionNavigation: TNavigationFrame;
+    WaitDataLayout: TRectangle;
+    WaitDataLabel: TLabel;
     procedure FormShow(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure SendTETButtonClick(Sender: TObject);
@@ -274,7 +286,7 @@ type
     procedure UnstakeButtonClick(Sender: TObject);
     procedure StakeButtonClick(Sender: TObject);
     procedure StakingLayoutResized(Sender: TObject);
-    procedure FloatAnimation9Finish(Sender: TObject);
+    procedure CopiedAnimationFinish(Sender: TObject);
     procedure StakeAmountEditEnter(Sender: TObject);
     procedure UnstakeAmountEditEnter(Sender: TObject);
     procedure StakeMaxButtonClick(Sender: TObject);
@@ -303,7 +315,8 @@ type
     FUnstakingMaxAmountText: string;
     procedure CopyTextToClipboard(const Text: string; Control: TControl);
     procedure RefreshBalances;
-    procedure RefreshUserHistory;
+    procedure RefreshUserTransactions;
+    procedure RefreshUserStaking;
     procedure RefreshExplorer;
     procedure RefreshExplorerRaw;
     procedure RefreshExplorerText(const Text: string);
@@ -314,7 +327,10 @@ type
     procedure onTETHistoryFrameClick(Sender: TObject);
     procedure onStakingHistoryFrameClick(Sender: TObject);
     procedure onExplorerFrameClick(Sender: TObject);
+    procedure OnTransactionPageChange(Sender: TObject);
     procedure OnExplorerPageChange(Sender: TObject);
+    procedure OnStakingPageChange(Sender: TObject);
+    procedure StakingContentChanged(Sender: TObject);
   public
     procedure NewTETChainBlocksEvent;
   end;
@@ -329,15 +345,33 @@ implementation
 uses
   Desktop;
 
+procedure TLayout.Changed;
+begin
+  if Assigned(FOnChanged) then FOnChanged(Self);
+end;
+
 procedure TMainForm.FormCreate(Sender: TObject);
 begin
 
-  Caption := 'LNode ' + AppCore.GetAppVersionText;
+  Caption := 'Tectum Node ' + AppCore.GetAppVersionText;
 
   FStakingMaxAmountText := StakingMaxAmountLabel.Text;
   FUnstakingMaxAmountText := UnstakingMaxAmountLabel.Text;
 
   CopiedRectangle.Visible := False;
+
+  StakeLayout.FOnChanged := StakingContentChanged;
+  UnstakeLayout.FOnChanged := StakingContentChanged;
+
+  WaitDataLayout.Visible := True;
+  HistoryTETHeaderLayout.Visible := False;
+  StakingHeaderLayout.Visible := False;
+
+  BalanceTETValueLabel.Text:=AmountToStr(0,True);
+  StakeBalanceLabel.Text:=AmountToStr(0,True);
+  AddressTETLabel.Text := AppCore.Address;
+  StakingRewardAmountLabel.Text := AmountToStr(0, True);
+  RewardDaysLabel.Text := '0 Days';
 
 end;
 
@@ -354,12 +388,17 @@ begin
   ShowUnstakeStatus('', False);
   ShowKeyStatus('', False);
 
-  NavigationFrame.OnChange := OnExplorerPageChange;
+  ExplorerNavigation.OnChange := OnExplorerPageChange;
+  ExplorerNavigation.PagesCount := 0;
+  ExplorerNavigation.PageNum := 1;
 
-  NavigationFrame.PagesCount := 1;
-  NavigationFrame.PageNum := 1;
+  StakingNavigation.OnChange := OnStakingPageChange;
+  StakingNavigation.PagesCount := 0;
+  StakingNavigation.PageNum := 1;
 
-  NewTETChainBlocksEvent;
+  TransactionNavigation.OnChange := OnTransactionPageChange;
+  TransactionNavigation.PagesCount := 0;
+  TransactionNavigation.PageNum := 1;
 
 end;
 
@@ -400,12 +439,6 @@ end;
 procedure TMainForm.PrivateKeyMessageLabelResize(Sender: TObject);
 begin
   PrivateKeyMessageLayout.Height := PrivateKeyMessageLabel.BoundsRect.Bottom+7;
-end;
-
-procedure TMainForm.StakingLayoutResized(Sender: TObject);
-begin
-  ControlsFlexWidth([StakingLeftLayout,StakingRightLayout], [0.45,0.45], StakingLayout);
-  UnstakingMaxAmountLabel.Margins.Top := StakingMaxAmountLabel.Position.Y-StakingRewardLabel1.BoundsRect.Bottom;
 end;
 
 procedure TMainForm.ChangeKeyButtonClick(Sender: TObject);
@@ -506,10 +539,14 @@ end;
 
 procedure TMainForm.NewTETChainBlocksEvent;
 begin
+  WaitDataLayout.Visible := False;
   AddressTETLabel.Text := AppCore.Address;
   RefreshBalances;
-  RefreshUserHistory;
-  if NavigationFrame.PageNum = 1 then
+  if TransactionNavigation.PageNum = 1 then
+    RefreshUserTransactions;
+  if StakingNavigation.PageNum = 1 then
+    RefreshUserStaking;
+  if ExplorerNavigation.PageNum = 1 then
     RefreshExplorer;
 end;
 
@@ -537,7 +574,7 @@ begin
   StakingTabControl.Next;
 end;
 
-procedure TMainForm.FloatAnimation9Finish(Sender: TObject);
+procedure TMainForm.CopiedAnimationFinish(Sender: TObject);
 begin
   CopiedRectangle.Visible := False;
 end;
@@ -561,12 +598,13 @@ begin
 
 end;
 
-procedure TMainForm.RefreshUserHistory;
+procedure TMainForm.RefreshUserTransactions;
 const
   MaxTransactionsNumber = 20;
 begin
 
-  var Transactions := AppCore.GetUserLastTransactions(AppCore.Address, 0, MaxTransactionsNumber);
+  var Transactions := AppCore.GetUserLastTransactions(AppCore.Address, 0, Int64.MaxValue);
+  var RecordCount: UInt64 := 0;
 
   HistoryTETVertScrollBox.BeginUpdate;
   try
@@ -576,11 +614,18 @@ begin
     for var Trx in Transactions do
     if Trx.TxType = 'transfer' then
     begin
-      var F := THistoryTransactionFrame.Create(HistoryTETVertScrollBox);
-      F.SetData(Trx, Trx.AddressTo=AppCore.Address);
-      F.OnClick := onTETHistoryFrameClick;
-      F.Parent := HistoryTETVertScrollBox;
+      Inc(RecordCount);
+      if InRange(RecordCount, (TransactionNavigation.PageNum-1)*MaxTransactionsNumber+1,
+                (TransactionNavigation.PageNum)*MaxTransactionsNumber-1) then
+      begin
+        var F := THistoryTransactionFrame.Create(HistoryTETVertScrollBox);
+        F.SetData(Trx, Trx.AddressTo=AppCore.Address);
+        F.OnClick := onTETHistoryFrameClick;
+        F.Parent := HistoryTETVertScrollBox;
+      end;
     end;
+
+    TransactionNavigation.PagesCount := Ceil(RecordCount/MaxTransactionsNumber);
 
   finally
     HistoryTETVertScrollBox.EndUpdate;
@@ -592,13 +637,37 @@ begin
   HistoryTETHeaderLayout.Visible := not NoTETHistoryLabel.Visible;
   HistoryTETVertScrollBox.Visible := not NoTETHistoryLabel.Visible;
 
+end;
+
+procedure TMainForm.RefreshUserStaking;
+const
+  MaxTransactionsNumber = 20;
+begin
+
+  var RecordCount: UInt64 := 0;
+  var Transactions: TArray<TTransactionInfo>;
+
+  EnumUserTxns(AppCore.Address,procedure (const Txn: TTransactionInfo)
+  begin
+    if InArray(Txn.TxType,['stake','unstake','reward']) then
+    begin
+      Inc(RecordCount);
+      if InRange(RecordCount, (StakingNavigation.PageNum-1)*MaxTransactionsNumber+1,
+                (StakingNavigation.PageNum)*MaxTransactionsNumber) then
+        Transactions := Transactions+[Txn];
+    end;
+  end);
+
+  var PagesCount := Ceil(RecordCount/MaxTransactionsNumber);
+
+  StakingNavigation.PagesCount := PagesCount;
+
   StakingScrollBox.BeginUpdate;
   try
 
     StakingScrollBox.Content.DeleteChildren;
 
     for var Trx in Transactions do
-    if (Trx.TxType = 'stake') or (Trx.TxType = 'unstake') then
     begin
       var F := TStakingTransactionFrame.Create(StakingScrollBox);
       F.SetData(Trx);
@@ -634,9 +703,9 @@ begin
   var RecordCount := TMemBlock<TTxn>.RecordsCount(TTxn.Filename);
   var PagesCount := Ceil(RecordCount/MaxTransactionsNumber);
 
-  NavigationFrame.PagesCount:=PagesCount;
+  ExplorerNavigation.PagesCount:=PagesCount;
 
-  var Transactions := AppCore.GetLastTransactions((NavigationFrame.PageNum-1)*MaxTransactionsNumber, MaxTransactionsNumber);
+  var Transactions := AppCore.GetLastTransactions((ExplorerNavigation.PageNum-1)*MaxTransactionsNumber, MaxTransactionsNumber);
 
   ExplorerVertScrollBox.BeginUpdate;
   try
@@ -674,7 +743,8 @@ begin
        Txn.Hash.Contains(Text) then
     begin
       Inc(RecordCount);
-      if InRange(RecordCount, (NavigationFrame.PageNum-1)*MaxTransactionsNumber, (NavigationFrame.PageNum)*MaxTransactionsNumber) then
+      if InRange(RecordCount, (ExplorerNavigation.PageNum-1)*MaxTransactionsNumber+1,
+                (ExplorerNavigation.PageNum)*MaxTransactionsNumber) then
         Transactions := Transactions+[Txn];
     end;
 
@@ -682,7 +752,7 @@ begin
 
   var PagesCount := Ceil(RecordCount/MaxTransactionsNumber);
 
-  NavigationFrame.PagesCount := PagesCount;
+  ExplorerNavigation.PagesCount := PagesCount;
 
   ExplorerVertScrollBox.BeginUpdate;
   try
@@ -707,9 +777,10 @@ end;
 
 procedure TMainForm.SearchButtonClick(Sender: TObject);
 begin
-  NavigationFrame.PageNum := 1;
+  ExplorerNavigation.PageNum := 1;
   SearchEdit.TagString := SearchEdit.Text;
   RefreshExplorer;
+  SearchEdit.SetFocus;
 end;
 
 procedure TMainForm.SearchEditChangeTracking(Sender: TObject);
@@ -718,7 +789,7 @@ begin
   if SearchEdit.Text.IsEmpty then
   begin
     SearchEdit.TagString := '';
-    NavigationFrame.PageNum := 1;
+    ExplorerNavigation.PageNum := 1;
     RefreshExplorer;
   end;
 end;
@@ -729,7 +800,7 @@ begin
   if not SearchEdit.Text.IsEmpty and (Key = vkReturn) then
   begin
     SearchEdit.TagString := SearchEdit.Text;
-    NavigationFrame.PageNum := 1;
+    ExplorerNavigation.PageNum := 1;
     RefreshExplorer;
   end;
 end;
@@ -834,9 +905,36 @@ begin
     [0.13,0.05,0.3,0.35,0.1,0.07], StakingScrollBox.Content);
 end;
 
+procedure TMainForm.OnTransactionPageChange(Sender: TObject);
+begin
+  RefreshUserTransactions;
+end;
+
 procedure TMainForm.OnExplorerPageChange(Sender: TObject);
 begin
   RefreshExplorer;
+end;
+
+procedure TMainForm.OnStakingPageChange(Sender: TObject);
+begin
+  RefreshUserStaking;
+end;
+
+procedure TMainForm.StakingLayoutResized(Sender: TObject);
+begin
+  ControlsFlexWidth([StakeLayout,UnstakeLayout], [0.45,0.45], StakingLayout);
+  UnstakingMaxAmountLabel.Margins.Top := StakingMaxAmountLabel.Position.Y-StakingRewardLabel1.BoundsRect.Bottom;
+  StakeLayout.Realign;
+end;
+
+procedure TMainForm.StakingContentChanged(Sender: TObject);
+begin
+  StakingLayout.Height := Max(StakeButtonLayout.BoundsRect.Bottom, UnstakeButtonLayout.BoundsRect.Bottom);
+  UnstakingMaxAmountLabel.Margins.Top := StakingMaxAmountLabel.Position.Y-StakingRewardLabel1.BoundsRect.Bottom;
+  if not StakingStatusText.Visible then
+    StakingStatusText.Position.Point:=StakeAmountEdit.BoundsRect.TopLeft+Point(0,10);
+  if not UnstakingStatusText.Visible then
+    UnstakingStatusText.Position.Point:=UnstakeAmountEdit.BoundsRect.TopLeft+Point(0,10);
 end;
 
 end.

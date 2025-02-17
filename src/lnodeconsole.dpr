@@ -37,10 +37,10 @@ uses
   Net.CommandHandler in 'Net\Net.CommandHandler.pas',
   Net.ServerConnection in 'Net\Net.ServerConnection.pas',
   Net.Connection in 'Net\Net.Connection.pas',
-  Net.ClientConnection in 'Net\Net.ClientConnection.pas';
+  Net.ClientConnection in 'Net\Net.ClientConnection.pas',
+  Update.Utils in 'Update\Update.Utils.pas',
+  EthereumSigner in 'Crypto\EthereumSigner.pas';
 
-var
-  LPidFileName: string;
 begin
 
   {$IFDEF DEBUG}
@@ -49,30 +49,17 @@ begin
 
   if TUpdateCore.RunAsUpdater then Exit;
 
-  LPidFileName := 'LNode';
   try
-//    with TMutex.Create(LPidFileName) do
-    try
-      AppCore := TAppCore.Create;
-      UI := TConsoleCore.Create;
-      try
-        UI.Run;
-        Logs.DoLog('UI Run exit', DbgLvlLogs, ltNone);
-      except
-        on E:Exception do
-        begin
-          UI.DoMessage(E.Message);
-          UI.DoMessage('Press Enter to exit');
-          Readln;
-          exit;
-        end;
-      end;
-    finally
-      AppCore.Stop;
-//      Free;
-    end;
-  except
-    on E:EFOpenError do
-      Writeln('LNode is already started');
+
+    AppCore := TAppCore.Create;
+    UI := TConsoleCore.Create;
+
+    UI.Run;
+
+  except on E:Exception do
+    UI.DoMessage(E.Message);
   end;
+
+  AppCore.Stop;
+
 end.

@@ -46,7 +46,7 @@ begin
       CTRL_BREAK_EVENT, //
       CTRL_CLOSE_EVENT: begin
         ExitFlag := True;
-        Logs.DoLog('Close event', DbgLvlLogs, ltNone);
+//        Logs.DoLog('Close event', DbgLvlLogs, ltNone);
         Result := True;
       end;
   else
@@ -59,7 +59,7 @@ begin
   case Sig of
     SIGINT, SIGTERM:
     begin
-      Logs.DoLog('Close event', DbgLvlLogs, ltNone);
+//      Logs.DoLog('Close event', DbgLvlLogs, ltNone);
       ExitFlag := True;
     end;
   end;
@@ -107,10 +107,10 @@ end;
 
 procedure TConsoleCore.Run;
 begin
-  DoMessage(Format('Tectum Light Node version %s. Copyright (c) 2024 CrispMind.',
+  DoMessage(Format('Tectum Node %s. Copyright (c) 2024 CrispMind.',
     [AppCore.GetAppVersionText]));
   AppCore.Run;
-  DoMessage('Lite node is running. Press Ctrl-C to stop.');
+  DoMessage('Node is running. Press Ctrl-C to stop.');
   try
     while not ExitFlag do begin
       CheckSynchronize(100);
@@ -122,7 +122,7 @@ begin
 
     end;
   finally
-    Logs.DoLog('Terminating node... Exit flag = ' + ExitFlag.ToString(True), DbgLvlLogs, ltNone);
+    Logs.DoLog('Terminating node...', DbgLvlLogs, ltNone);
   end;
 end;
 

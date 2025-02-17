@@ -16,20 +16,15 @@ const
   DefaultTCPListenTo = '0.0.0.0:50000';
   DefaultPortHTTP = 8917;
 
-  ImShuttingDownCode = 0;
   ResponseCode = 1;
-  DisconnectWithErrorCode = 2;
-  SuccessCode = 3;
-  ErrorCode = 4;
+  SuccessCode = 2;
+  ErrorCode = 3;
+  CheckVersionCommandCode = 4;
   InitConnectCode = 5;
-  UnknownCommandErrorCode = 6;
-  CheckVersionCommandCode = 99;
 
   NewTransactionCommandCode = 100;
-
   ValidateCommandCode = 101;
   ValidationDoneCode = 102;
-
   NewValidatedTransactionCommandCode = 103;
 
   GetTxnsCommandCode = 104;
@@ -40,11 +35,14 @@ const
   InitConnectErrorCode = 200;
   KeyAlreadyUsesErrorCode = 201;
 
-  CommandsCodes = [ImShuttingDownCode..InitConnectCode,
+  CommandsCodes = [ResponseCode..InitConnectCode,
     CheckVersionCommandCode, NewTransactionCommandCode, ValidateCommandCode,
     ValidationDoneCode, NewValidatedTransactionCommandCode,
-    GetTxnsCommandCode..GetRewardsCommandCode, InitConnectErrorCode,
-    KeyAlreadyUsesErrorCode];
+    GetTxnsCommandCode..GetRewardsCommandCode,
+    InitConnectErrorCode, KeyAlreadyUsesErrorCode];
+
+  NoAnswerNeedCodes = [CheckVersionCommandCode, InitConnectErrorCode,
+    KeyAlreadyUsesErrorCode, SuccessCode];
 
 type
   TNodesConnectManager = class

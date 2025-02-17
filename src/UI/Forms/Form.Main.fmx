@@ -9,7 +9,7 @@ object MainForm: TMainForm
   Position = ScreenCenter
   StyleBook = StylesForm.LNodeStyleBook
   Constraints.MinHeight = 610.000000000000000000
-  Constraints.MinWidth = 650.000000000000000000
+  Constraints.MinWidth = 720.000000000000000000
   FormFactor.Width = 320
   FormFactor.Height = 480
   FormFactor.Devices = [Desktop]
@@ -28,7 +28,7 @@ object MainForm: TMainForm
     Size.Height = 930.000000000000000000
     Size.PlatformDefault = False
     StyleLookup = 'AuthTabControlstyle'
-    TabIndex = 1
+    TabIndex = 0
     TabOrder = 0
     TabPosition = Top
     OnChange = TabsChange
@@ -53,7 +53,7 @@ object MainForm: TMainForm
       TextSettings.Font.Size = 14.000000000000000000
       TextSettings.Trimming = None
       StyledSettings = [Style, FontColor, Other]
-      IsSelected = False
+      IsSelected = True
       Size.Width = 273.000000000000000000
       Size.Height = 64.000000000000000000
       Size.PlatformDefault = False
@@ -212,14 +212,14 @@ object MainForm: TMainForm
               TextSettings.Font.Size = 14.000000000000000000
               TextSettings.FontColor = xFF323130
               TextSettings.WordWrap = False
-              Text = 'Noted. A 0.1% fee applies to all transactions in LNode.'
+              Text = 'Noted. A 0.1% fee applies to all transactions in Tectum Node.'
               TabOrder = 4
             end
           end
           object HistoryTETHeaderLayout: TLayout
             Align = Top
             Margins.Top = 20.000000000000000000
-            Position.Y = 377.600006103515600000
+            Position.Y = 369.600006103515600000
             Size.Width = 1089.000000000000000000
             Size.Height = 28.000000000000000000
             Size.PlatformDefault = False
@@ -325,8 +325,8 @@ object MainForm: TMainForm
             Align = Top
             AutoSize = True
             StyledSettings = []
-            Margins.Top = 32.000000000000000000
-            Position.Y = 324.000000000000000000
+            Margins.Top = 25.000000000000000000
+            Position.Y = 316.000000000000000000
             Size.Width = 1089.000000000000000000
             Size.Height = 33.600006103515630000
             Size.PlatformDefault = False
@@ -343,7 +343,7 @@ object MainForm: TMainForm
             StyledSettings = []
             Opacity = 0.750000000000000000
             Size.Width = 1089.000000000000000000
-            Size.Height = 436.399993896484400000
+            Size.Height = 401.399993896484400000
             Size.PlatformDefault = False
             TextSettings.Font.Family = 'Inter'
             TextSettings.Font.Size = 32.000000000000000000
@@ -358,12 +358,12 @@ object MainForm: TMainForm
             Margins.Top = 20.000000000000000000
             Position.Y = 138.000000000000000000
             Size.Width = 1089.000000000000000000
-            Size.Height = 154.000000000000000000
+            Size.Height = 153.000000000000000000
             Size.PlatformDefault = False
             TabOrder = 3
             object TETSendButtonLayout: TLayout
               Align = Bottom
-              Position.Y = 121.000000000000000000
+              Position.Y = 120.000000000000000000
               Size.Width = 1089.000000000000000000
               Size.Height = 33.000000000000000000
               Size.PlatformDefault = False
@@ -407,7 +407,7 @@ object MainForm: TMainForm
             object TETSendLayout: TLayout
               Align = Left
               Size.Width = 425.000000000000000000
-              Size.Height = 121.000000000000000000
+              Size.Height = 120.000000000000000000
               Size.PlatformDefault = False
               TabOrder = 2
               object SendTETToEdit: TEdit
@@ -476,12 +476,45 @@ object MainForm: TMainForm
             Margins.Top = 10.000000000000000000
             Margins.Bottom = 20.000000000000000000
             Size.Width = 1089.000000000000000000
-            Size.Height = 406.399993896484400000
+            Size.Height = 371.399993896484400000
             Size.PlatformDefault = False
             TabOrder = 7
             OnResized = HistoryTETVertScrollBoxResized
             Viewport.Width = 1089.000000000000000000
-            Viewport.Height = 406.400000000000000000
+            Viewport.Height = 371.400000000000000000
+          end
+          object TransactionNavigationLayout: TLayout
+            Align = Bottom
+            Margins.Bottom = 15.000000000000000000
+            Position.Y = 799.000000000000000000
+            Size.Width = 1089.000000000000000000
+            Size.Height = 28.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 11
+            inline TransactionNavigation: TNavigationFrame
+              Align = HorzCenter
+              Position.X = 294.000000000000000000
+              Size.Width = 501.000000000000000000
+              Size.Height = 28.000000000000000000
+              Size.PlatformDefault = False
+              inherited PagesPanelLayout: TLayout
+                Size.Width = 453.000000000000000000
+                Size.Height = 28.000000000000000000
+              end
+              inherited NextPageLayout: TLayout
+                Position.X = 477.000000000000000000
+                Size.Height = 28.000000000000000000
+                inherited NextPagePath: TPath
+                  Margins.Left = 4.000000000000000000
+                end
+              end
+              inherited PrevPageLayout: TLayout
+                Size.Height = 28.000000000000000000
+                inherited PrevPagePath: TPath
+                  Margins.Right = 4.000000000000000000
+                end
+              end
+            end
           end
         end
         object TETTransactionDataTabItem: TTabItem
@@ -584,7 +617,7 @@ object MainForm: TMainForm
       TextSettings.FontColor = claWhite
       TextSettings.Trimming = None
       StyledSettings = [Style, FontColor, Other]
-      IsSelected = True
+      IsSelected = False
       Margins.Left = 6.000000000000000000
       Size.Width = 267.000000000000000000
       Size.Height = 64.000000000000000000
@@ -736,7 +769,7 @@ object MainForm: TMainForm
             StyledSettings = []
             Opacity = 0.750000000000000000
             Size.Width = 1089.000000000000000000
-            Size.Height = 414.399993896484400000
+            Size.Height = 371.399993896484400000
             Size.PlatformDefault = False
             TextSettings.Font.Family = 'Inter'
             TextSettings.Font.Size = 32.000000000000000000
@@ -752,12 +785,12 @@ object MainForm: TMainForm
             Margins.Top = 10.000000000000000000
             Margins.Bottom = 20.000000000000000000
             Size.Width = 1089.000000000000000000
-            Size.Height = 384.399993896484400000
+            Size.Height = 341.399993896484400000
             Size.PlatformDefault = False
             TabOrder = 5
             OnResized = StakingScrollBoxResized
             Viewport.Width = 1089.000000000000000000
-            Viewport.Height = 384.400000000000000000
+            Viewport.Height = 341.400000000000000000
           end
           object StakingLayout: TLayout
             Align = Top
@@ -768,7 +801,7 @@ object MainForm: TMainForm
             Size.PlatformDefault = False
             TabOrder = 2
             OnResized = StakingLayoutResized
-            object StakingLeftLayout: TLayout
+            object StakeLayout: TLayout
               Align = Left
               Size.Width = 457.000000000000000000
               Size.Height = 321.000000000000000000
@@ -925,7 +958,7 @@ object MainForm: TMainForm
                 TabOrder = 1
               end
             end
-            object StakingRightLayout: TLayout
+            object UnstakeLayout: TLayout
               Align = Left
               Margins.Left = 100.000000000000000000
               Position.X = 557.000000000000000000
@@ -1112,6 +1145,39 @@ object MainForm: TMainForm
                 TextSettings.WordWrap = False
                 Text = 'The maximum amount for unstaking is'
                 TabOrder = 1
+              end
+            end
+          end
+          object StakingNavigationLayout: TLayout
+            Align = Bottom
+            Margins.Bottom = 15.000000000000000000
+            Position.Y = 799.000000000000000000
+            Size.Width = 1089.000000000000000000
+            Size.Height = 28.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 11
+            inline StakingNavigation: TNavigationFrame
+              Align = HorzCenter
+              Position.X = 294.000000000000000000
+              Size.Width = 501.000000000000000000
+              Size.Height = 28.000000000000000000
+              Size.PlatformDefault = False
+              inherited PagesPanelLayout: TLayout
+                Size.Width = 453.000000000000000000
+                Size.Height = 28.000000000000000000
+              end
+              inherited NextPageLayout: TLayout
+                Position.X = 477.000000000000000000
+                Size.Height = 28.000000000000000000
+                inherited NextPagePath: TPath
+                  Margins.Left = 4.000000000000000000
+                end
+              end
+              inherited PrevPageLayout: TLayout
+                Size.Height = 28.000000000000000000
+                inherited PrevPagePath: TPath
+                  Margins.Right = 4.000000000000000000
+                end
               end
             end
           end
@@ -1494,7 +1560,7 @@ object MainForm: TMainForm
               StopValue = 0.000000000000000000
             end
           end
-          object PaginationBottomLayout: TLayout
+          object ExplorerNavigationLayout: TLayout
             Align = Bottom
             Margins.Bottom = 15.000000000000000000
             Position.Y = 799.000000000000000000
@@ -1502,7 +1568,7 @@ object MainForm: TMainForm
             Size.Height = 28.000000000000000000
             Size.PlatformDefault = False
             TabOrder = 11
-            inline NavigationFrame: TNavigationFrame
+            inline ExplorerNavigation: TNavigationFrame
               Align = HorzCenter
               Position.X = 294.000000000000000000
               Size.Width = 501.000000000000000000
@@ -2037,8 +2103,8 @@ object MainForm: TMainForm
           Size.PlatformDefault = False
           StyleLookup = 'TokenInfoMemostyle'
           TabOrder = 4
-          Viewport.Width = 382.000000000000000000
-          Viewport.Height = 126.000000000000000000
+          Viewport.Width = 410.000000000000000000
+          Viewport.Height = 152.000000000000000000
           object ShadowEffect12: TShadowEffect
             Distance = 3.000000000000000000
             Direction = 70.000000000000000000
@@ -2904,8 +2970,8 @@ object MainForm: TMainForm
               Size.PlatformDefault = False
               StyleLookup = 'PathMemostyle'
               TabOrder = 12
-              Viewport.Width = 564.000000000000000000
-              Viewport.Height = 181.000000000000000000
+              Viewport.Width = 568.000000000000000000
+              Viewport.Height = 185.000000000000000000
             end
           end
         end
@@ -3404,14 +3470,39 @@ object MainForm: TMainForm
       Text = 'Copied'
       TextSettings.FontColor = claWhite
     end
-    object FloatAnimation9: TFloatAnimation
+    object CopiedAnimation: TFloatAnimation
       Delay = 2.000000000000000000
       Duration = 0.200000002980232200
-      OnFinish = FloatAnimation9Finish
+      OnFinish = CopiedAnimationFinish
       PropertyName = 'Opacity'
       StartValue = 1.000000000000000000
       StopValue = 0.000000000000000000
       Trigger = 'IsVisible=true'
+    end
+  end
+  object WaitDataLayout: TRectangle
+    Align = Contents
+    Fill.Color = x90000000
+    Size.Width = 1200.000000000000000000
+    Size.Height = 960.000000000000000000
+    Size.PlatformDefault = False
+    Stroke.Color = claNull
+    Stroke.Thickness = 0.000000000000000000
+    Visible = False
+    object WaitDataLabel: TLabel
+      Align = Center
+      AutoSize = True
+      AutoTranslate = False
+      StyledSettings = [Style]
+      Size.Width = 144.000000000000000000
+      Size.Height = 27.200012207031250000
+      Size.PlatformDefault = False
+      TextSettings.Font.Family = 'Inter'
+      TextSettings.Font.Size = 20.000000000000000000
+      TextSettings.FontColor = claWhite
+      TextSettings.WordWrap = False
+      Text = 'Receiving Data...'
+      TabOrder = 0
     end
   end
 end

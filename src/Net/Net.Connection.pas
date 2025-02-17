@@ -5,6 +5,8 @@ interface
 uses
   App.Exceptions,
   App.Logs,
+  Crypto,
+  DateUtils,
   System.Classes,
   Generics.Collections,
   Net.CommandHandler,
@@ -16,19 +18,21 @@ uses
   System.Threading;
 
 type
-  TConnection = class
+  TConnection = class abstract
     const
-      DebugMultiplier = 5;
-      ReceiveTimeout = 3000;
-      CommandExecTimeout = 2000 * DebugMultiplier;
-      ResponseWaitingTimeout = 5000 * DebugMultiplier;
-      ShutDownTimeout = 2000 * DebugMultiplier;
+      DebugMultiplier = 2;
+      ReceiveTimeout = 1000 * DebugMultiplier;
+      ResponseWaitingTimeout = 1000 * DebugMultiplier;
+      ShutDownTimeout = 1200 * DebugMultiplier;
     private
-      FOutgoRequests: TThreadList<TOutgoRequestData>;
+      FOutgoRequests: TDictionary<UInt64, TOutgoRequestData>;
       FIncomRequestsCount: Integer;
       FCommandHandler: TCommandHandler;
-      FRequestID: UInt64;
+      FOutgoReqListLock: TCriticalSection;
       FReadyToStopEvent: TEvent;
+      FRequestID: UInt64;
+      FBufferBytes: TBytes;
+      FLeftToReceive: Integer;
 
       procedure SendResponse(const AReqID: UInt64; const ACommandCode: Byte;
         const ABytes: TBytes; ALogLvl: Byte; const AToLog: string);
@@ -36,23 +40,26 @@ type
       function IsSocketConnected: Boolean;
     protected
       FSocket: TSocket;
-      FConnectionChecked: Boolean;
       FIsShuttingDown: Boolean;
-      FRemoteIsAvailable: Boolean;
+      FIsChecked: Boolean;
       FStatus: Byte;
+      FDiscMsg: string;
       FOnDisconnected: TNotifyEvent;
 
       procedure WaitForReceive(const ANeedTimeOut: Boolean = False); inline;
-      procedure Disconnect; virtual;
-      procedure DoDisconnect(const AErrorMsg: string = ''); virtual; abstract;
-      procedure ReceiveCallBack(const ASyncResult: IAsyncResult); virtual; abstract;
-      procedure SendRequest(const ACommandByte: Byte; const ABytes: TBytes;
-        const AToLog: string = ''); virtual;
-      procedure ProcessCommand(const AResponse: TResponseData); virtual; abstract;
-      procedure AddIncomRequest(const ARequest: TResponseData);
-      procedure WriteResponseData(const AResponse: TResponseData); virtual;
+      procedure ReceiveCallBack(const ASyncResult: IAsyncResult);
+      procedure SendRequest(const ACommandByte: Byte; const AReqBytes: TBytes;
+        const AToLog: string = '');
+      procedure ProcessIncomRequest(const ARequest: TResponseData);
+      procedure WriteResponseData(AResponse: TResponseData);
       procedure CheckForStop;
+      procedure Disconnect;
+
+      procedure DoDisconnect(const AReason: string = ''); virtual;
       function GetRemoteAddress: string; virtual; abstract;
+      procedure ProcessCommand(const AIncomData: TResponseData); virtual; abstract;
+      procedure ProcessResponse(const AResponse: TResponseData); virtual; abstract;
+      function GetDisconnectMessage: string; virtual; abstract;
     public
       constructor Create(ASocket: TSocket; ACommandHandler: TCommandHandler;
         AOnDisconnected: TNotifyEvent);
@@ -62,8 +69,8 @@ type
         const AReqBytes: TBytes): TBytes;
       procedure Stop;
 
-      property isChecked:Boolean read FConnectionChecked;
       property IsConnected: Boolean read IsSocketConnected;
+      property IsChecked: Boolean read FIsChecked;
   end;
 
 implementation
@@ -76,13 +83,17 @@ begin
   FSocket := ASocket;
   FCommandHandler := ACommandHandler;
   FOnDisconnected := AOnDisconnected;
-  FConnectionChecked := False;
   FIsShuttingDown := False;
-  FRemoteIsAvailable := False;
+  FOutgoReqListLock := TCriticalSection.Create;
+  FReadyToStopEvent := TEvent.Create;
+  FReadyToStopEvent.ResetEvent;
+  FDiscMsg := '';
   FStatus := 0;
-  FOutgoRequests := TThreadList<TOutgoRequestData>.Create;
+  FOutgoRequests := TDictionary<UInt64, TOutgoRequestData>.Create(50);
   FIncomRequestsCount := 0;
   FRequestID := 0;
+  FBufferBytes := [];
+  FLeftToReceive := -1;
 end;
 
 destructor TConnection.Destroy;
@@ -90,6 +101,8 @@ begin
   Disconnect;
   FOutgoRequests.Free;
   FSocket.Free;
+  FReadyToStopEvent.Free;
+  FOutgoReqListLock.Free;
 
   inherited;
 end;
@@ -100,268 +113,249 @@ begin
   begin
     if FStatus <> 0 then
     begin
-      FSocket.Send([FStatus]);
-      Sleep(50);
+      SendRequest(FStatus, []);
+      Sleep(100);
     end;
+
+    FOutgoReqListLock.Enter;
+    try
+      FOutgoRequests.Clear;
+    finally
+      FOutgoReqListLock.Leave;
+    end;
+
+    FIncomRequestsCount := 0;
+    FIsChecked := False;
+    FStatus := 0;
+    FDiscMsg := '';
+    FBufferBytes := [];
+    FLeftToReceive := -1;
+
+    Logs.DoLog(GetDisconnectMessage, CmnLvlLogs, ltNone);
 
     {$IFDEF MSWINDOWS}
       FSocket.Close(True);
     {$ELSE IFDEF POSIX}
       FSocket.Close;
     {$ENDIF}
-
-    FConnectionChecked := False;
-    FOutgoRequests.Clear;
-    FIncomRequestsCount := 0;
   end;
+end;
+
+procedure TConnection.DoDisconnect(const AReason: string);
+begin
+  if not AReason.IsEmpty then
+    FDiscMsg := AReason;
 end;
 
 function TConnection.DoRequest(const ACommandByte: Byte;
   const AReqBytes: TBytes): TBytes;
 var
+  RequestData: TOutgoRequestData;
+  NewRequestID: UInt64;
   DoneEvent: TEvent;
-  Request: TOutgoRequestData;
 begin
-  if FIsShuttingDown or not FRemoteIsAvailable then
-    // do logs
+  if FIsShuttingDown then
     exit;
 
   DoneEvent := TEvent.Create;
   try
     TMonitor.Enter(FSocket);
     try
-      Request.RequestData.Code := ACommandByte;
+      RequestData.Code := ACommandByte;
       AtomicIncrement(FRequestID);
-      Request.RequestData.ID := FRequestID;
+      NewRequestID := FRequestID;
       Logs.DoLog(Format('<%s>[my][%d ID %d]: %s', [GetRemoteAddress, ACommandByte,
-        Request.RequestData.ID, 'AReqBytes']), CmnLvlLogs, ltOutgo);
+        NewRequestID, BytesToHex(AReqBytes)]), CmnLvlLogs, ltOutgo);
+      RequestData.DoneEvent := DoneEvent;
 
-      Request.DoneEvent := DoneEvent;
-      FOutgoRequests.Add(Request);
-      const Len = Length(AReqBytes);
+      FOutgoReqListLock.Enter;
+      try
+        FOutgoRequests.Add(NewRequestID, RequestData);
+      finally
+        FOutgoReqListLock.Leave;
+      end;
 
-      FSocket.Send([ACommandByte] + BytesOf(@Request.RequestData.ID, 8) +
-        BytesOf(@Len, 4) + AReqBytes);
+      const Len = Length(AReqBytes) + 9;
+      FSocket.Send(BytesOf(@Len, 4) + BytesOf(@NewRequestID, 8) +
+        [ACommandByte] + AReqBytes);
     finally
       TMonitor.Exit(FSocket);
     end;
 
     if DoneEvent.WaitFor(ResponseWaitingTimeout) = wrSignaled then
-      Result := GetResponse(Request.RequestData.ID)
+      Result := GetResponse(NewRequestID)
     else begin
-      GetResponse(Request.RequestData.ID);
+      GetResponse(NewRequestID);
       raise ERequestTimeout.Create('');
     end;
   finally
     DoneEvent.Free;
-    CheckForStop;
   end;
 end;
 
-procedure TConnection.SendRequest(const ACommandByte: Byte; const ABytes: TBytes;
-  const AToLog: string = '');
+procedure TConnection.SendRequest(const ACommandByte: Byte; const AReqBytes: TBytes;
+  const AToLog: string);
 var
   RequestData: TOutgoRequestData;
+  NewRequestID: UInt64;
   LogLvl: Byte;
 begin
-  if FIsShuttingDown or not FRemoteIsAvailable then
-    exit;
-
   TMonitor.Enter(FSocket);
   try
-    RequestData.RequestData.Code := ACommandByte;
+    RequestData.Code := ACommandByte;
     AtomicIncrement(FRequestID);
-    RequestData.RequestData.ID := FRequestID;
+    NewRequestID := FRequestID;
     RequestData.DoneEvent := nil;
-    const Len = Length(ABytes);
-    FOutgoRequests.Add(RequestData);
 
-    FSocket.Send([ACommandByte] + BytesOf(@RequestData.RequestData.ID, 8) +
-      BytesOf(@Len, 4) + ABytes);
+    if not ((ACommandByte in NoAnswerNeedCodes) or FIsShuttingDown) then
+    begin
+      FOutgoReqListLock.Enter;
+      try
+        FOutgoRequests.Add(NewRequestID, RequestData);
+      finally
+        FOutgoReqListLock.Leave;
+      end;
+    end;
+
+    const Len = Length(AReqBytes) + 9;
+    FSocket.Send(BytesOf(@Len, 4) + BytesOf(@NewRequestID, 8) +
+      [ACommandByte] + AReqBytes);
   finally
     TMonitor.Exit(FSocket);
   end;
 
   if (ACommandByte in [GetTxnsCommandCode..GetRewardsCommandCode]) then
     LogLvl := NoneLvlLogs
-  else if ACommandByte = InitConnectCode then
+  else if ACommandByte in NoAnswerNeedCodes then
     LogLvl := AdvLvlLogs
   else
     LogLvl := CmnLvlLogs;
 
   if AToLog.IsEmpty then
     Logs.DoLog(Format('<%s>[%d ID %d]', [GetRemoteAddress, ACommandByte,
-      RequestData.RequestData.ID]), LogLvl, ltOutgo)
+      NewRequestID]), LogLvl, ltOutgo)
   else
     Logs.DoLog(Format('<%s>[%d ID %d]: %s', [GetRemoteAddress, ACommandByte,
-      RequestData.RequestData.ID, AToLog]), LogLvl, ltOutgo);
+      NewRequestID, AToLog]), LogLvl, ltOutgo);
 end;
 
 procedure TConnection.SendResponse(const AReqID: UInt64; const ACommandCode: Byte;
   const ABytes: TBytes; ALogLvl: Byte; const AToLog: string);
 begin
+  TMonitor.Enter(FSocket);
   try
-    const Len = Length(ABytes);
-    TMonitor.Enter(FSocket);
-    try
-      FSocket.Send([ResponseCode] + BytesOf(@AReqID, 8) + BytesOf(@Len, 4) + ABytes);
-    finally
-      AtomicDecrement(FIncomRequestsCount);
-      TMonitor.Exit(FSocket);
-    end;
-
-    if ACommandCode in [GetTxnsCommandCode..GetRewardsCommandCode] then
-      Logs.DoSyncLog(GetRemoteAddress, ACommandCode, ABytes, DbgLvlLogs, ltOutgo)
-    else
-      Logs.DoLog(Format('<%s>[ID %d]: %s', [GetRemoteAddress, AReqID, AToLog]),
-        ALogLvl, ltOutgo);
+    const Len = Length(ABytes) + 9;
+    FSocket.Send(BytesOf(@Len, 4) + BytesOf(@AReqID, 8) + [ResponseCode] + ABytes);
   finally
-    CheckForStop;
+    TMonitor.Exit(FSocket);
   end;
+
+  if ACommandCode in [GetTxnsCommandCode..GetRewardsCommandCode] then
+    Logs.DoSyncLog(GetRemoteAddress, ACommandCode, ABytes, DbgLvlLogs, ltOutgo)
+  else
+    Logs.DoLog(Format('<%s>[ID %d]: %s', [GetRemoteAddress, AReqID, AToLog]),
+      ALogLvl, ltOutgo);
 end;
 
 procedure TConnection.Stop;
-begin       
-  FReadyToStopEvent := TEvent.Create;
-  FReadyToStopEvent.ResetEvent;   
-      
-  FIsShuttingDown := True;      
-  FSocket.Send([ImShuttingDownCode]); 
+begin
+  FIsShuttingDown := True;
   try
     CheckForStop;
-    if (FReadyToStopEvent.WaitFor(ShutDownTimeout) <> wrSignaled) then
-      Logs.DoLog('timeout connection terminating', CmnLvlLogs, ltError)
+    if FReadyToStopEvent.WaitFor(ShutDownTimeout) <> wrSignaled then
+      Logs.DoLog('timeout connection terminating', CmnLvlLogs, ltError);
   finally
-    FreeAndNil(FReadyToStopEvent);
-    Disconnect;        
+    Sleep(500);
+    Disconnect;
   end;
 end;
 
-procedure TConnection.AddIncomRequest(const ARequest: TResponseData);
+procedure TConnection.ProcessIncomRequest(const ARequest: TResponseData);
 var
   LogLvl: Byte;
-  FutureObj: IFuture<TBytes>;
-  ToLog: string;
 begin
-  if FIsShuttingDown then 
+  if FIsShuttingDown then
     exit;
 
-  if ARequest.RequestData.Code = InitConnectCode then
-  begin
-    LogLvl := AdvLvlLogs;
-    ToLog := '[bytes for signing]';
-  end else
-  if (ARequest.RequestData.Code in [GetTxnsCommandCode..GetRewardsCommandCode]) then
+  if ARequest.Code in NoAnswerNeedCodes then
+    LogLvl := AdvLvlLogs
+  else if (ARequest.Code in [GetTxnsCommandCode..GetRewardsCommandCode]) then
     LogLvl := NoneLvlLogs
-  else begin
+  else
     LogLvl := CmnLvlLogs;
-    ToLog := 'ReqData';
-  end;
 
   Logs.DoLog(Format('<%s>[%d ID:%d]: %s', [GetRemoteAddress,
-    ARequest.RequestData.Code, ARequest.RequestData.ID, ToLog]), LogLvl);
-    
+    ARequest.Code, ARequest.ID, BytesToHex(ARequest.Data)]), LogLvl);
+
   AtomicIncrement(FIncomRequestsCount);
-  FutureObj := TTask.Future<TBytes>(function: TBytes
-    begin
-      Result := FCommandHandler.ProcessCommand(ARequest, Self);
-    end);
+  try
+    if (ARequest.Code in NoAnswerNeedCodes) and (ARequest.Code <> CheckVersionCommandCode) then
+      ProcessCommand(ARequest)
+    else begin
+      const ResBytes = FCommandHandler.ProcessCommand(ARequest, Self);
 
-  if FutureObj.Wait(CommandExecTimeout) then
-  begin
-    if ARequest.RequestData.Code = InitConnectCode then
-      ToLog := '[signed bytes]'
-    else
-      ToLog := 'ReqData';
-
-    SendResponse(ARequest.RequestData.ID, ARequest.RequestData.Code,
-      FutureObj.Value, LogLvl, ToLog);
-  end else
-  begin
-    ToLog := TEncoding.ANSI.GetString(FutureObj.Value);
-    SendResponse(ARequest.RequestData.ID, ARequest.RequestData.Code,
-      [ErrorCode], CmnLvlLogs, ToLog);
+      if ARequest.Code <> CheckVersionCommandCode then
+        SendResponse(ARequest.ID, ARequest.Code, ResBytes, LogLvl, BytesToHex(ResBytes));
+    end;
+  finally
+    AtomicDecrement(FIncomRequestsCount);
   end;
 end;
 
-procedure TConnection.WriteResponseData(const AResponse: TResponseData);
+procedure TConnection.WriteResponseData(AResponse: TResponseData);
 var
-  InternalList: TList<TOutgoRequestData>;
-  ToProcess: TResponseData;
-  NeedProcess: Boolean;
-  Found: Boolean;
-  i: Integer;
+  ReqData: TOutgoRequestData;
+  Found, NeedProcess: Boolean;
 begin
+  FOutgoReqListLock.Enter;
   try
-    InternalList := FOutgoRequests.LockList;
-    try       
-      Found := False;
-      NeedProcess := False;
-      for i := 0 to InternalList.Count - 1 do
+    Found := FOutgoRequests.TryGetValue(AResponse.ID, ReqData);
+    if Found then
+    begin
+      if (ReqData.Code in [GetTxnsCommandCode..GetRewardsCommandCode]) then
+        Logs.DoSyncLog(GetRemoteAddress, ReqData.Code, AResponse.Data,
+          DbgLvlLogs)
+      else if ReqData.Code in NoAnswerNeedCodes then
+        Logs.DoLog(Format('<%s>[ID %d]: %s', [GetRemoteAddress,
+          AResponse.ID, BytesToHex(AResponse.Data)]), AdvLvlLogs)
+      else
+        Logs.DoLog(Format('<%s>[ID %d]: %s', [GetRemoteAddress,
+          AResponse.ID, BytesToHex(AResponse.Data)]), CmnLvlLogs);
+
+      ReqData.Data := AResponse.Data;
+      NeedProcess := not Assigned(ReqData.DoneEvent);
+      if not NeedProcess then
       begin
-        if InternalList.Items[i].RequestData.ID = AResponse.RequestData.ID then
-        begin
-          Found := True;
-          if (InternalList.Items[i].RequestData.Code in [GetTxnsCommandCode..GetRewardsCommandCode]) then
-            Logs.DoSyncLog(GetRemoteAddress, InternalList.Items[i].RequestData.Code, AResponse.Data,
-              DbgLvlLogs)
-          else if InternalList.Items[i].RequestData.Code = InitConnectCode then
-            Logs.DoLog(Format('<%s>[ID %d]: %s', [GetRemoteAddress,
-              AResponse.RequestData.ID, '[signed bytes]']), AdvLvlLogs)
-          else
-            Logs.DoLog(Format('<%s>[ID %d]', [GetRemoteAddress,
-              AResponse.RequestData.ID]), CmnLvlLogs);
-
-          InternalList.List[i].Data := AResponse.Data;
-          NeedProcess := not Assigned(InternalList.Items[i].DoneEvent);
-          if not NeedProcess then
-            InternalList.Items[i].DoneEvent.SetEvent
-          else begin
-            ToProcess.RequestData := InternalList.Items[i].RequestData;
-            ToProcess.Data := InternalList.Items[i].Data;
-            InternalList.Delete(i);
-          end;
-          break;
-        end;
+        FOutgoRequests[AResponse.ID] := ReqData;
+        ReqData.DoneEvent.SetEvent;
+      end else
+      begin
+        FOutgoRequests.Remove(AResponse.ID);
+        AResponse.Code := ReqData.Code;
       end;
-    finally
-      FOutgoRequests.UnlockList;
-
-      if Found and NeedProcess then
-        ProcessCommand(ToProcess)
-      else begin        
-        if not Found then
-          Logs.DoLog('Unknown response received from ' + GetRemoteAddress, AdvLvlLogs, ltError);
-        WaitForReceive;
-      end;
-
-      if FIsShuttingDown then
-        Sleep(500);
-      CheckForStop;
     end;
-  except
-    on E: Exception do
-      Logs.DoLog('WriteResponseData error: ' + E.Message, AdvLvlLogs, ltError);
+  finally
+    FOutgoReqListLock.Leave;
+
+    if Found and NeedProcess then
+      ProcessResponse(AResponse);
   end;
 end;
 
 function TConnection.GetResponse(const AReqID: UInt64): TBytes;
 var
-  InternalList: TList<TOutgoRequestData>;
-  i: Integer;
+  ReqData: TOutgoRequestData;
 begin
-  InternalList := FOutgoRequests.LockList;
+  FOutgoReqListLock.Enter;
   try
-    for i := 0 to InternalList.Count - 1 do
-      if InternalList.Items[i].RequestData.ID = AReqID then
-      begin
-        Result := InternalList.Items[i].Data;
-
-        InternalList.Delete(i);
-        break;
-      end;
+    if FOutgoRequests.TryGetValue(AReqID, ReqData) then
+    begin
+      Result := ReqData.Data;
+      FOutgoRequests.Remove(AReqID);
+    end else
+      Result := [];
   finally
-    FOutgoRequests.UnlockList;
+    FOutgoReqListLock.Leave;
   end;
 end;
 
@@ -370,21 +364,68 @@ begin
   Result := TSocketState.Connected in FSocket.State;
 end;
 
-procedure TConnection.CheckForStop;
+procedure TConnection.ReceiveCallBack(const ASyncResult: IAsyncResult);
 var
-  InternalList: TList<TOutgoRequestData>;
+  DataToProcess: TResponseData;
+  ToProcess: TArray<TResponseData>;
 begin
-  if not (FIsShuttingDown) then
-    exit;
-  if not (Assigned(FReadyToStopEvent)) then
-    exit;
-    
-  InternalList := FOutgoRequests.LockList;
   try
-    if InternalList.IsEmpty and (FIncomRequestsCount = 0) then
+    const IncomBytes = FSocket.EndReceiveBytes(ASyncResult);
+
+    if Assigned(IncomBytes) then
+    begin
+      WaitForReceive;
+
+      TMonitor.Enter(Self);
+      try
+        ToProcess := [];
+        FBufferBytes := FBufferBytes + IncomBytes;
+        while Length(FBufferBytes) >= 4 do
+        begin
+          FLeftToReceive := PInteger(@FBufferBytes[0])^;
+          if Length(FBufferBytes) - 4 >= FLeftToReceive then
+          begin
+            DataToProcess.ID := PUInt64(@FBufferBytes[4])^;
+            DataToProcess.Code := FBufferBytes[12];
+            DataToProcess.Data := Copy(FBufferBytes, 13, FLeftToReceive - 9);
+            FBufferBytes := Copy(FBufferBytes, FLeftToReceive + 4, Length(FBufferBytes));
+            ToProcess := ToProcess + [DataToProcess];
+          end else
+            break;
+        end;
+      finally
+        TMonitor.Exit(Self);
+      end;
+
+      for DataToProcess in ToProcess do
+      begin
+        if DataToProcess.Code = ResponseCode then
+          WriteResponseData(DataToProcess)
+        else
+          ProcessIncomRequest(DataToProcess);
+      end;
+
+      CheckForStop;
+    end else
+      raise EConnectionClosed.Create('');
+  except
+    on E:EConnectionClosed do
+      DoDisconnect(E.Message);
+    on E:ESocketError do
+      DoDisconnect;
+    on E:Exception do
+      DoDisconnect('ReceiveCallBack disconnect: ' + E.Message);
+  end;
+end;
+
+procedure TConnection.CheckForStop;
+begin
+  if FIsShuttingDown and FOutgoReqListLock.TryEnter then
+  try
+    if FOutgoRequests.IsEmpty and (FIncomRequestsCount = 0) then
       FReadyToStopEvent.SetEvent;
   finally
-    FOutgoRequests.UnlockList;
+    FOutgoReqListLock.Leave;
   end;
 end;
 
@@ -397,7 +438,7 @@ begin
     else
       FSocket.ReceiveTimeout := ReceiveTimeout;
 
-    FSocket.BeginReceive(ReceiveCallBack, -1, [TSocketFlag.PEEK]);
+    FSocket.BeginReceive(ReceiveCallBack, -1);
   end;
 end;
 

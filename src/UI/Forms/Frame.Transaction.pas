@@ -197,6 +197,11 @@ begin
 
   AddressFromLabel.Text:='Address';
 
+  if Transaction.TxType='reward' then
+  begin
+    SetType('REWARD', $FFFF6900);
+    AddressFromText.Text:=Transaction.AddressFrom;
+  end else
   if Transaction.TxType='stake' then
   begin
     SetType('STAKE', $FF0F9A62);

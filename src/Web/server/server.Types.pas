@@ -69,7 +69,7 @@ begin
   try
     JSON.AddPair('error',GetStringErrorByCode(ACode));
     JSON.AddPair('message',AReason);
-    Result := JSON.ToString;
+    Result := JSON.ToJSON;
   finally
     JSON.Free;
   end;

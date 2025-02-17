@@ -188,7 +188,7 @@ end;
 
 destructor TAppCore.Destroy;
 begin
-  Logs.DoLog('Appcore.Destroy', DbgLvlLogs, ltNone);     //
+//  Logs.DoLog('Appcore.Destroy', DbgLvlLogs, ltNone);     //
 
   FUpdate.Free;
   FNodeServer.Free;
@@ -438,37 +438,7 @@ begin
     UI.DoMessage(Format('Keys from the file "%s" successfully read',[TPath.GetFileName(Path)]));
   end;
 
-//  FAddress := '0xE38465D9EA628BBE533067E0395F66212B723873';
-//  FPrKey := '5f6843e1a0da7c4507adb2cfc1451a11c4ab400b4acd3acbe1e548e015caeb16';
-//  FPubKey := '048cc86cc39867c02e975d482e9e7a82e409a30a1f433b41e23279a58832b86af45a65a59d65d70178fea5164f5a51fca4498a2c79ae26084c7f581ac8aa504c6e';
-
 end;
-
-//procedure TAppCore.ChangePrivateKey(const PrKey: string);
-//begin
-//
-//  var PubKeyStr: string;
-//
-//  if not RestorePublicKey(PrKey, PubKeyStr) then
-//    raise Exception.Create('Restorte error');
-//
-//  const pubKey:T65Bytes = PubKeyStr;
-//
-//  const Address = AddressToStr(pubKey.address);
-//
-//  var KeyFile:=TPath.Combine(TPath.Combine(ExtractFilePath(ParamStr(0)), 'keys'),Address+'.txt');
-//
-//  if TFile.Exists(KeyFile) then
-//    raise Exception.Create('Key file already exists');
-//
-//  TFile.WriteAllText(KeyFile, 'seed phrase:'+sLineBreak+
-//    'public key:' + PubKey + sLineBreak+
-//    'private key:' + PrKey + sLineBreak+
-//    'address:' + Address);
-//
-//   FSettings.SetKeyFile(Address);
-//
-//end;
 
 function TAppCore.IsURKError(const AText: string): Boolean;
 begin
@@ -478,25 +448,20 @@ end;
 function TAppCore.DoRecoverKeys(ASeed: string; out APubKey: string;
   out APrKey: string; out AAddress: string): string;
 var
-  FKeys: IAsymmetricCipherKeyPair;
+  Keys: IAsymmetricCipherKeyPair;
   BytesArray: TCryptoLibByteArray;
 begin
   if (Length(ASeed.Split([' '])) <> 12) then
     raise EValidError.Create('incorrect seed phrase');
 
-  GenECDSAKeysOnPhrase(ASeed, FKeys);
-  BytesArray := (FKeys.Public as IECPublicKeyParameters).Q.GetEncoded;
-  SetLength(APubKey, Length(BytesArray) * 2);
-  BinToHex(BytesArray, PChar(APubKey), Length(BytesArray));
-  APubKey := PubKey.ToLower;
-  AAddress := RestoreAddressAsStr(APubKey);
+  GenECDSAKeysOnPhrase(ASeed, Keys);
 
   SetLength(BytesArray, 0);
-  APrKey := '';
-  BytesArray := (FKeys.Private as IECPrivateKeyParameters).D.ToByteArrayUnsigned;
-  SetLength(APrKey, Length(BytesArray) * 2);
-  BinToHex(BytesArray, PChar(APrKey), Length(BytesArray));
-  APrKey := APrKey.ToLower;
+  BytesArray := (Keys.Private as IECPrivateKeyParameters).D.ToByteArrayUnsigned;
+  APrKey := BytesToHex(BytesArray).ToLower;
+  BytesArray := (Keys.Public as IECPublicKeyParameters).Q.GetEncoded;
+  APubKey := BytesToHex(BytesArray).ToLower;
+  AAddress := RestoreAddressAsStr(APubKey);
 end;
 
 function TAppCore.DoRequestToArchivator(const ACommandCode: Byte;
@@ -645,7 +610,10 @@ end;
 
 function TAppCore.GetAppVersionText: string;
 begin
-  Result:='v'+GetAppVersion+' beta';
+  Result := GetAppVersion;
+  var S := Result.Split(['.']);
+  if Length(S)>2 then Result := ''.Join('.',S,0,3);
+  Result := Result + ' Beta';
 end;
 
 procedure TAppCore.StartUpdate;
@@ -655,7 +623,7 @@ end;
 
 procedure TAppCore.Stop;
 begin
-  Logs.DoLog('AppCore.Stop', DbgLvlLogs, ltNone);
+//  Logs.DoLog('AppCore.Stop', DbgLvlLogs, ltNone);
 
   if Assigned(FHTTPServer) then
     FHTTPServer.Stop;
