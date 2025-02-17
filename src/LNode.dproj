@@ -242,7 +242,7 @@
         <DCC_Namespace>Winapi;System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;$(DCC_Namespace)</DCC_Namespace>
         <BT_BuildType>Debug</BT_BuildType>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
-        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=4.0.101.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=4.0.102.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
         <UWP_DelphiLogo44>..\icon\Windows\Uwp_44.png</UWP_DelphiLogo44>
@@ -251,7 +251,7 @@
         <Icns_MainIcns>..\icon\Windows\AppIcon.icns</Icns_MainIcns>
         <AppDPIAwarenessMode>none</AppDPIAwarenessMode>
         <VerInfo_MajorVer>4</VerInfo_MajorVer>
-        <VerInfo_Release>101</VerInfo_Release>
+        <VerInfo_Release>102</VerInfo_Release>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1)'!=''">
         <DCC_Define>DEBUG;$(DCC_Define)</DCC_Define>
@@ -283,7 +283,7 @@
         <Icon_MainIcon>..\icon\Windows\AppIcon.ico</Icon_MainIcon>
         <Icns_MainIcns>..\icon\Windows\AppIcon.icns</Icns_MainIcns>
         <VerInfo_MajorVer>4</VerInfo_MajorVer>
-        <VerInfo_Release>101</VerInfo_Release>
+        <VerInfo_Release>102</VerInfo_Release>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
@@ -304,13 +304,13 @@
         <AppDPIAwarenessMode>PerMonitorV2</AppDPIAwarenessMode>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Locale>1033</VerInfo_Locale>
-        <VerInfo_Keys>CompanyName=Crispmind Ltd;FileDescription=$(MSBuildProjectName);FileVersion=4.0.101.0;InternalName=Light node for tectum blockchain;LegalCopyright=2024 Crispmind;LegalTrademarks=;OriginalFilename=Light node;ProgramID=light.node.tectum;ProductName=Light node for tectum blockchain;ProductVersion=1.0.0.0;Comments=https://tectum.io/</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=Crispmind Ltd;FileDescription=$(MSBuildProjectName);FileVersion=4.0.102.0;InternalName=Light node for tectum blockchain;LegalCopyright=2024 Crispmind;LegalTrademarks=;OriginalFilename=Light node;ProgramID=light.node.tectum;ProductName=Light node for tectum blockchain;ProductVersion=1.0.0.0;Comments=https://tectum.io/</VerInfo_Keys>
         <Icon_MainIcon>..\icon\Windows\AppIcon.ico</Icon_MainIcon>
         <Icns_MainIcns>..\icon\Windows\AppIcon.icns</Icns_MainIcns>
         <UWP_DelphiLogo44>..\icon\Windows\Uwp_44.png</UWP_DelphiLogo44>
         <UWP_DelphiLogo150>..\icon\Windows\Uwp_150.png</UWP_DelphiLogo150>
         <VerInfo_MajorVer>4</VerInfo_MajorVer>
-        <VerInfo_Release>101</VerInfo_Release>
+        <VerInfo_Release>102</VerInfo_Release>
     </PropertyGroup>
     <ItemGroup>
         <DelphiCompile Include="$(MainSource)">
@@ -332,26 +332,21 @@
         <DCCReference Include="Web\endpoints\endpoints.Coin.pas"/>
         <DCCReference Include="UI\Forms\Form.Main.pas">
             <Form>MainForm</Form>
-            <FormType>fmx</FormType>
         </DCCReference>
         <DCCReference Include="UI\Forms\Styles.pas">
             <Form>StylesForm</Form>
-            <FormType>fmx</FormType>
         </DCCReference>
         <DCCReference Include="Crypto\SeedPhrase\WordsPool.pas"/>
         <DCCReference Include="UI\Forms\Frame.Ticker.pas">
             <Form>TickerFrame</Form>
-            <FormType>fmx</FormType>
             <DesignClass>TFrame</DesignClass>
         </DCCReference>
         <DCCReference Include="UI\Forms\Frame.Explorer.pas">
             <Form>ExplorerTransactionFrame</Form>
-            <FormType>fmx</FormType>
             <DesignClass>TFrame</DesignClass>
         </DCCReference>
         <DCCReference Include="UI\Forms\Frame.History.pas">
             <Form>HistoryTransactionFrame</Form>
-            <FormType>fmx</FormType>
             <DesignClass>TFrame</DesignClass>
         </DCCReference>
         <DCCReference Include="UI\Forms\Form.EnterKey.pas">
@@ -393,6 +388,7 @@
             <Form>NavigationFrame</Form>
             <DesignClass>TFrame</DesignClass>
         </DCCReference>
+        <DCCReference Include="Crypto\EthereumSigner.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
@@ -418,7 +414,7 @@
                     <Excluded_Packages Name="$(BDSBIN)\dclofficexp290.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
                 </Excluded_Packages>
             </Delphi.Personality>
-            <Deployment Version="5">
+            <Deployment Version="4">
                 <DeployFile LocalName="$(BDS)\Redist\iossimulator\libcgunwind.1.0.dylib" Class="DependencyModule">
                     <Platform Name="iOSSimulator">
                         <Overwrite>true</Overwrite>
@@ -534,6 +530,16 @@
                     </Platform>
                     <Platform Name="Win32">
                         <Operation>0</Operation>
+                    </Platform>
+                </DeployClass>
+                <DeployClass Name="AndroidClasses">
+                    <Platform Name="Android">
+                        <RemoteDir>classes</RemoteDir>
+                        <Operation>64</Operation>
+                    </Platform>
+                    <Platform Name="Android64">
+                        <RemoteDir>classes</RemoteDir>
+                        <Operation>64</Operation>
                     </Platform>
                 </DeployClass>
                 <DeployClass Name="AndroidFileProvider">

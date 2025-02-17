@@ -25,6 +25,10 @@ uses
 
 type
   TClientConnection = class(TConnection)
+    private type
+      TSyncData = set of (Rewards, Transactions, Addresses, Validations);
+    private const
+      SyncDataAll: TSyncData = [Rewards, Transactions, Addresses, Validations];
     private
       FAddress: string;
       FPort: Word;
@@ -32,17 +36,20 @@ type
       FOnConnectionLost: TNotifyEvent;
       FIsForSync: Boolean;
       FIsConnecting: Boolean;
+      FSyncData: TSyncData;
 
-      procedure Disconnect; override;
       procedure Reconnect;
-      procedure DoDisconnect(const AReason: string = ''); override;
       procedure SetSyncFlag(AValue: Boolean);
-      function GetRemoteAddress: string; override;
-      function GetBlocksCountBytes<T>(const AFileName: string): TBytes;
       procedure BreakableSleep(ADuration: Integer);
-      procedure ProcessCommand(const AResponse: TResponseData); override;
-      procedure ReceiveCallBack(const ASyncResult: IAsyncResult); override;
       procedure BeginSyncChains;
+      function GetBlocksCountBytes<T>(const AFileName: string): TBytes;
+      procedure SyncData(Data: TSyncData);
+
+      procedure DoDisconnect(const AReason: string = ''); override;
+      function GetRemoteAddress: string; override;
+      procedure ProcessCommand(const AIncomData: TResponseData); override;
+      procedure ProcessResponse(const AResponse: TResponseData); override;
+      function GetDisconnectMessage: string; override;
     public
       constructor Create(ASocket: TSocket; ACommandHandler: TCommandHandler;
         AOnDisconnected: TNotifyEvent; AOnConnectionChecked: TNotifyEvent;
@@ -53,7 +60,6 @@ type
 
       property Address: string read GetRemoteAddress;
       property IsForSync: Boolean read FIsForSync write SetSyncFlag;
-      property IsChecked: Boolean read FConnectionChecked;
       property IsConnecting: Boolean read FIsConnecting;
   end;
 
@@ -119,7 +125,6 @@ begin
   Logs.DoLog(Format('Connection established to %s', [Address]), CmnLvlLogs, ltNone);
   FIsConnecting := False;
   FIsShuttingDown := False;
-  FRemoteIsAvailable := True;
   WaitForReceive;
 end;
 
@@ -141,34 +146,20 @@ begin
   inherited;
 end;
 
-procedure TClientConnection.Disconnect;
-begin
-//  FOnDisconnected(Self);
-
-  inherited;
-end;
-
 procedure TClientConnection.DoDisconnect(const AReason: string = '');
-var
-  LogStr: string;
 begin
-  LogStr := Format('Disconnected from %s', [Address]);
-  if not AReason.IsEmpty then
-    LogStr := Format('%s: %s', [LogStr, AReason]);
+  inherited;
 
-//  if Assigned(Logs) then
-//  begin
-    Logs.DoLog(LogStr, CmnLvlLogs, ltNone);
-
-    FConnectionChecked := False;
+  FIsChecked := False;
+  if FIsShuttingDown then
+    FOnDisconnected(Self)
+  else begin
+    FIsConnecting := True;
+    FOnConnectionLost(Self);
+    Reconnect;
     if FIsShuttingDown then
-      FOnDisconnected(Self)
-    else begin
-      FIsConnecting := True;
-      FOnConnectionLost(Self);
-      Reconnect;
-    end;
-//  end;
+      FOnDisconnected(Self);
+  end;
 end;
 
 function TClientConnection.GetBlocksCountBytes<T>(
@@ -178,22 +169,72 @@ begin
   Result := BytesOf(@BlocksCount, 8);
 end;
 
+function TClientConnection.GetDisconnectMessage: string;
+begin
+  Result := Format('Disconnected from %s', [Address]);
+  if not FDiscMsg.IsEmpty then
+    Result := Format('%s: %s', [Result, FDiscMsg]);
+end;
+
 function TClientConnection.GetRemoteAddress: string;
 begin
   Result := Format('%s:%d', [FAddress, FPort]);
 end;
 
-procedure TClientConnection.ProcessCommand(const AResponse: TResponseData);
+procedure TClientConnection.SyncData(Data: TSyncData);
 begin
-  WaitForReceive;
-  case AResponse.RequestData.Code of
+  if FSyncData <> SyncDataAll then
+  begin
+    FSyncData := FSyncData + Data;
+    if FSyncData = SyncDataAll then
+      UI.NotifyNewTETBlocks;
+  end;
+end;
+
+procedure TClientConnection.ProcessCommand(const AIncomData: TResponseData);
+begin
+  case AIncomData.Code of
+    SuccessCode:
+      begin
+        FIsChecked := True;
+        if not FIsShuttingDown then
+        begin
+          Logs.DoLog(Format('Connection to %s checked', [Address]), CmnLvlLogs, ltNone);
+
+          if not FIsForSync then
+            FOnConnectionChecked(Self)
+          else
+            BeginSyncChains;
+        end;
+      end;
+
+    InitConnectErrorCode:
+    begin
+      FIsShuttingDown := True;
+      FDiscMsg := 'archiver has terminated the connection: init connection error';
+    end;
+
+    KeyAlreadyUsesErrorCode:
+    begin
+      FIsShuttingDown := True;
+      FDiscMsg := 'archiver has terminated the connection: key is already in use';
+    end;
+  end;
+end;
+
+procedure TClientConnection.ProcessResponse(const AResponse: TResponseData);
+begin
+  case AResponse.Code of
     GetRewardsCommandCode:
     begin
       TMemBlock<TReward>.ByteArrayToFile(TReward.Filename, AResponse.Data);
       //todo: update DataCache/
       BreakableSleep(200);
-      if FIsForSync then
+      if FIsForSync and not FIsShuttingDown then
+      begin
         SendRequest(GetRewardsCommandCode, GetBlocksCountBytes<TReward>(TReward.Filename));
+        if Length(AResponse.Data) = 0 then SyncData([Rewards]) else FSyncData := [];
+      end;
     end;
 
     GetTxnsCommandCode:
@@ -207,117 +248,36 @@ begin
         DataCache.UpdateCache(txn, FromID + i div SizeOf(TTxn));
         Inc(i, SizeOf(TTxn));
       end;
-      if Length(AResponse.Data) > 0 then
-        UI.NotifyNewTETBlocks;
+
       BreakableSleep(200);
-      if FIsForSync then
+      if FIsForSync and not FIsShuttingDown then
+      begin
         SendRequest(GetTxnsCommandCode, GetBlocksCountBytes<TTxn>(TTxn.Filename));
+        if Length(AResponse.Data) = 0 then SyncData([Transactions]) else FSyncData := [];
+      end;
     end;
 
     GetAddressesCommandCode:
     begin
       TMemBlock<TAccount>.ByteArrayToFile(TAccount.Filename, AResponse.Data);
       BreakableSleep(200);
-      if FIsForSync then
+      if FIsForSync and not FIsShuttingDown then
+      begin
         SendRequest(GetAddressesCommandCode, GetBlocksCountBytes<TAccount>(TAccount.Filename));
+        if Length(AResponse.Data) = 0 then SyncData([Addresses]) else FSyncData := [];
+      end;
     end;
 
     GetValidationsCommandCode:
     begin
       TMemBlock<TValidation>.ByteArrayToFile(TValidation.Filename, AResponse.Data);
       BreakableSleep(200);
-      if FIsForSync then
-        SendRequest(GetValidationsCommandCode, GetBlocksCountBytes<TValidation>(TValidation.Filename));
-    end;
-  end;
-end;
-
-procedure TClientConnection.ReceiveCallBack(const ASyncResult: IAsyncResult);
-var
-  IncomData: TResponseData;
-  LengthBytes: array[0..3] of Byte;
-  Length: Integer absolute LengthBytes;
-begin
-  try
-    IncomData.Data := FSocket.EndReceiveBytes(ASyncResult);
-
-    if Assigned(IncomData.Data) then
-    begin
-      FSocket.Receive(IncomData.RequestData.Code, 1, [TSocketFlag.WAITALL]);
-
-      if not (IncomData.RequestData.Code in CommandsCodes) then
+      if FIsForSync and not FIsShuttingDown then
       begin
-        FIsShuttingDown := True;
-        FStatus := UnknownCommandErrorCode;
-        raise EConnectionClosed.CreateFmt('unknown command(code %d) received',
-          [IncomData.RequestData.Code]);
+        SendRequest(GetValidationsCommandCode, GetBlocksCountBytes<TValidation>(TValidation.Filename));
+        if Length(AResponse.Data) = 0 then SyncData([Validations]) else FSyncData := [];
       end;
-
-      case IncomData.RequestData.Code of
-        SuccessCode:
-          begin
-            FConnectionChecked := True;
-            WaitForReceive;
-            if not FIsShuttingDown and FRemoteIsAvailable then
-            begin
-              Logs.DoLog(Format('Connection to %s checked', [Address]), CmnLvlLogs, ltNone);
-
-              if not FIsForSync then
-                FOnConnectionChecked(Self)
-              else
-                BeginSyncChains;
-            end;
-          end;
-
-        InitConnectErrorCode:
-          begin
-            FIsShuttingDown := True;
-            raise EConnectionClosed.Create('archiver has terminated the connection: public key not verified');
-          end;
-
-        KeyAlreadyUsesErrorCode:
-          begin
-            FIsShuttingDown := True;
-            raise EConnectionClosed.Create('archiver has terminated the connection: key is already in use');
-          end;
-
-        ImShuttingDownCode:
-          begin
-            FRemoteIsAvailable := False;
-            WaitForReceive;
-          end;
-
-        UnknownCommandErrorCode:
-          begin
-            FIsShuttingDown := True;
-            raise EConnectionClosed.Create('archiver has terminated the connection: unknown command sended');
-          end
-
-        else
-          begin
-            FSocket.Receive(IncomData.RequestData.ID, 8, [TSocketFlag.WAITALL]);
-            FSocket.Receive(LengthBytes, 4, [TSocketFlag.WAITALL]);
-            FSocket.Receive(IncomData.Data, Length, [TSocketFlag.WAITALL]);
-
-            case IncomData.RequestData.Code of
-              ResponseCode:
-                WriteResponseData(IncomData)
-              else begin
-                WaitForReceive;
-                AddIncomRequest(IncomData);
-              end;
-            end;
-          end;
-      end;
-    end else
-      raise EConnectionClosed.Create('');
-  except
-    on E:EConnectionClosed do
-      DoDisconnect(E.Message);
-    on E:ESocketError do
-      DoDisconnect('timeout data receiving');
-    on E:Exception do
-      DoDisconnect('Client receiveCallBack disconnect: ' + E.Message);
+    end;
   end;
 end;
 
@@ -325,16 +285,9 @@ procedure TClientConnection.Reconnect;
 begin
   Disconnect;
 
-  if not FRemoteIsAvailable then
-    Logs.DoLog(Format('%s is shutting down. Wait for connecting...', [Address]),
-      CmnLvlLogs, ltNone)
-  else
-    Logs.DoLog(Format('Reconnecting to %s...', [Address]), CmnLvlLogs, ltNone);
+  Logs.DoLog(Format('Reconnecting to %s...', [Address]), CmnLvlLogs, ltNone);
 
   Connect(FAddress, FPort, False);
-
-  if FIsShuttingDown then
-    FOnDisconnected(Self);
 end;
 
 procedure TClientConnection.SetSyncFlag(AValue: Boolean);
@@ -343,7 +296,7 @@ begin
     exit;
 
   FIsForSync := AValue;
-  if FIsForSync and FConnectionChecked then
+  if FIsForSync and FIsChecked then
     BeginSyncChains;
 end;
 

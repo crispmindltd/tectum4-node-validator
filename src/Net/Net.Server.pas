@@ -14,7 +14,8 @@ uses
   Net.Socket,
   System.SyncObjs,
   System.SysUtils,
-  System.Types;
+  System.Types,
+  System.Threading;
 
 type
   TServerStatus = (ssStarted, ssShuttingDown, ssStoped);
@@ -55,41 +56,33 @@ implementation
 { TNodeServer }
 
 procedure TNodeServer.AcceptCallback(const ASyncResult: IAsyncResult);
-var
-  FAcceptedSocket: TSocket;
-  NewClient: TServerConnection;
 begin
   try
-    try
-      FAcceptedSocket := FListeningSocket.EndAccept(ASyncResult);
-      if Assigned(FAcceptedSocket) then
-      begin
-        NewClient := TServerConnection.Create(FAcceptedSocket, FCommandHandler,
-          OnClientDisconnected, OnConnectionChecked);
-        FListLock.Enter;
-        try
-          FClients.Add(NewClient);
-          Logs.DoLog('Connection accepted: ' + NewClient.Address + //
-          ' (' + NewClient.shortAddr + ')' + ' Total clients ' + FClients.Count.ToString,
-            CmnLvlLogs, ltNone);
-        finally
-          FListLock.Leave;
-        end;
-      end
-    finally
-      if FStatus = ssStarted then
-      begin
-        Logs.DoLog('Listen socket begin accept', DbgLvlLogs, ltNone);
-        FListeningSocket.BeginAccept(AcceptCallback, INFINITE)
-      end
-       else if FStatus = ssShuttingDown then
-      begin
-        Logs.DoLog('Listen socket closed', AdvLvlLogs, ltNone);
-        TerminateAllClients;
+    const FAcceptedSocket = FListeningSocket.EndAccept(ASyncResult);
+    if Assigned(FAcceptedSocket) then
+    begin
+      const NewClient = TServerConnection.Create(FAcceptedSocket, FCommandHandler,
+        OnClientDisconnected, OnConnectionChecked);
+      FListeningSocket.BeginAccept(AcceptCallback, INFINITE);
+
+      FListLock.Enter;
+      try
+        FClients.Add(NewClient);
+        Logs.DoLog('Connection accepted: ' + NewClient.Address + //
+        ' (' + NewClient.shortAddr + ')' + ' Total clients ' + FClients.Count.ToString,
+          CmnLvlLogs, ltNone);
+      finally
+        FListLock.Leave;
       end;
+    end else
+    begin
+      Logs.DoLog('Listen socket closed', AdvLvlLogs, ltNone);
+      FStatus := ssShuttingDown;
+      TerminateAllClients;
     end;
-  except on E:Exception do
-    Logs.DoLog(E.Message + ' exception in AcceptCallback', CmnLvlLogs, TLogType.ltError);
+  except
+    on E:Exception do
+      Logs.DoLog(E.Message + ' exception in AcceptCallback', CmnLvlLogs, TLogType.ltError);
   end;
 end;
 
@@ -105,7 +98,7 @@ end;
 
 destructor TNodeServer.Destroy;
 begin
-  Logs.DoLog('NodeServer.Destroy', DbgLvlLogs, ltNone);     //
+//  Logs.DoLog('NodeServer.Destroy', DbgLvlLogs, ltNone);     //
 
   Stop;
   FClients.Free;
@@ -119,7 +112,7 @@ end;
 
 function TNodeServer.GetValidators(const [Ref] AExcludePubKey: T65Bytes): TArray<TServerConnection>;
 const
-  MinValidatorStake = _1_TET;
+  MinValidatorStake = _1_TET div 10;
 begin
   Logs.DoLog('get validators', DbgLvlLogs, ltNone);
   FListLock.Enter;
@@ -127,13 +120,18 @@ begin
    var logStr:string;
     for var LConnection in FClients do begin
       try
-        if not LConnection.isChecked then Continue;
-
         logStr := LConnection.shortAddr + ' (' + LConnection.Address + ') ';
+
+        if not LConnection.isChecked then begin
+          logStr := logStr + ' ' + ' not checked !';
+          Continue;
+        end;
+
         if AExcludePubKey = LConnection.PubKey then begin
           logStr := logStr + ' - self!';
           Continue;
         end;
+
         const staked = DataCache.GetStakeBalance(LConnection.PubKey.Address);
 
         if staked < MinValidatorStake then begin
@@ -145,12 +143,12 @@ begin
         Logs.DoLog(logStr, DbgLvlLogs, ltNone);
       end;
     end;
-    if Length(Result) < 3 then begin
-      Result := [];
-      Exit;
-    end;
-    while Length(Result) > 3 do
-      Delete(Result, Random(Length(Result)), 1);
+//    if Length(Result) < 3 then begin
+//      Result := [];
+//      Exit;
+//    end;
+//    while Length(Result) > 3 do
+//      Delete(Result, Random(Length(Result)), 1);
   finally
     FListLock.Leave;
   end;
@@ -209,7 +207,7 @@ end;
 
 procedure TNodeServer.Stop;
 begin
-  Logs.DoLog('NodeServer.Stop', DbgLvlLogs, ltNone);     //
+//  Logs.DoLog('NodeServer.Stop', DbgLvlLogs, ltNone);
   if FStatus <> ssStarted then
     exit;
 
@@ -228,8 +226,15 @@ begin
 end;
 
 procedure TNodeServer.TerminateAllClients;
-var
-  i: Integer;
+
+  procedure Disconnect(AConnection: TServerConnection);
+  begin
+    TTask.Run(procedure
+    begin
+      AConnection.Stop;
+    end);
+  end;
+
 begin
   if FClients.IsEmpty then
   begin
@@ -239,8 +244,8 @@ begin
 
   FListLock.Enter;
   try
-    for i := 0 to FClients.Count - 1 do
-      FClients.Items[i].Stop;
+    for var Connection in FClients do
+      Disconnect(Connection);
   finally
     FListLock.Leave;
   end;
@@ -249,9 +254,7 @@ end;
 procedure TNodeServer.WaitFor;
 begin
   if FServerStoped.WaitFor(ShutDownTimeout) <> wrSignaled then
-  begin
     Logs.DoLog('Server shutdown timeout', CmnLvlLogs, ltError);
-  end;
 end;
 
 end.

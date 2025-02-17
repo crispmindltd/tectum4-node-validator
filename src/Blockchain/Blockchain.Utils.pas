@@ -12,13 +12,16 @@ function StrToAmount(S: string; Digits: Byte=8): UInt64;
 function DateTimeUTC(DateTime: TDateTime): TDateTime;
 function NowUTC: TDateTime;
 function SafeSub(V,S: UInt64): UInt64;
+function InArray(const Value: string; const Values: TArray<string>): Boolean;
 
 implementation
+
+var Invariant: TFormatSettings;
 
 function AmountToStr(const Amount: Int64; WithName: Boolean=False): string;
 const Name: array[Boolean] of string = ('', ' TET');
 begin
-  Result := FormatFloat('0.########' + Name[WithName], Amount/_1_TET);
+  Result := FormatFloat('0.00000000' + Name[WithName], Amount/_1_TET, Invariant);
 end;
 
 function StrToAmount(S: string; Digits: Byte=8): UInt64;
@@ -45,5 +48,14 @@ function SafeSub(V,S: UInt64): UInt64;
 begin
   if V > S then Result := V-S else Result := 0;
 end;
+
+function InArray(const Value: string; const Values: TArray<string>): Boolean;
+begin
+  Result:=False;
+  for var S in Values do if S=Value then Exit(True);
+end;
+
+initialization
+  Invariant := TFormatSettings.Invariant;
 
 end.

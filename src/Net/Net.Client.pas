@@ -214,7 +214,8 @@ begin
 end;
 
 procedure TNodeClient.Stop;
-  procedure Disconnect(AConnection:TClientConnection);
+
+  procedure Disconnect(AConnection: TClientConnection);
   begin
     TTask.Run(procedure
     begin
@@ -225,17 +226,27 @@ procedure TNodeClient.Stop;
 begin
   if FStatus <> csStarted then
     exit;
+
   try
     FStatus := csShuttingDown;
-    if FServers.Count = 0 then begin
+
+    if FServers.Count = 0 then
+    begin
       FClientStoped.SetEvent;
       exit;
     end;
-    for var lConnection in FServers do
-      Disconnect(lConnection);
+
+    FListLock.Enter;
+    try
+      for var Connection in FServers do
+        Disconnect(Connection);
+    finally
+      FListLock.Leave;
+    end;
   finally
     if FClientStoped.WaitFor(ShutDownTimeout) <> wrSignaled then
       Logs.DoLog('Client shutdown timeout', CmnLvlLogs, ltError);
+
     FStatus := csStoped;
   end;
 end;

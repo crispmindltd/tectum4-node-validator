@@ -109,7 +109,7 @@ uses
 
 uses
   Macapi.Foundation, Macapi.AppKit, Macapi.CoreFoundation, Macapi.Helpers,
-  Macapi.IOKit;
+  Macapi.IOKit, FMX.Platform;
 
 {$ENDIF}
 
@@ -129,7 +129,8 @@ begin
 
   BundleIdentifier:=NSStrToStr(TNSBundle.Wrap(TNSBundle.OCClass.mainBundle).bundleIdentifier);
 
-  Panic(BundleIdentifier='','undefined CFBundleIdentifier');
+  if BundleIdentifier.IsEmpty then
+    raise Exception.Create('undefined CFBundleIdentifier');
 
   Result:=TPath.Combine(Result,BundleIdentifier);
 

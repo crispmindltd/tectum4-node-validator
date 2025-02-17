@@ -87,6 +87,7 @@ function CreateTx(const [Ref] ASenderAddr, AReceiverAddr: T20Bytes; AValue, AFee
 function GetAccountTxns(const [Ref] AAddress:T20Bytes; Skip,Count: Int64): TArray<TTransactionInfo>;
 function GetTxns(Skip,Count: Int64): TArray<TTransactionInfo>;
 procedure EnumTxns(Filter: TFilterPredicate);
+procedure EnumUserTxns(const AAddress:T20Bytes; Filter: TFilterPredicate);
 
 implementation
 
@@ -173,7 +174,7 @@ begin
 
     const Blocks = TMemBlock<TTxn>.ByteArrayFromFile(TTxn.Filename, StartIndex, EndIndex - StartIndex + 1);
 
-    for var I := 0 to EndIndex - StartIndex do
+    for var I := EndIndex - StartIndex downto 0  do
     begin
 
       const Block: TMemBlock<TTxn> = Copy(Blocks, I*SizeOf(TTxn), SizeOf(TTxn));
@@ -183,6 +184,65 @@ begin
       Tx.TxId:=StartIndex+I;
 
       Filter(Tx);
+
+    end;
+
+    if StartIndex=0 then Break;
+
+  end;
+
+end;
+
+procedure EnumUserTxns(const AAddress:T20Bytes; Filter: TFilterPredicate);
+const ReadCount = 200;
+begin
+
+  const AddressId = TAccount.GetAddressId(AAddress);
+  const Address = AddressToStr(AAddress);
+
+  const RecordCount = TMemBlock<TTxn>.RecordsCount(TTxn.Filename);
+  var StartIndex := SafeSub(RecordCount,1);
+
+  while StartIndex>=0 do
+  begin
+
+    var EndIndex := StartIndex;
+
+    StartIndex := SafeSub(StartIndex, ReadCount);
+
+    const Blocks = TMemBlock<TTxn>.ByteArrayFromFile(TTxn.Filename, StartIndex, EndIndex - StartIndex + 1);
+
+    for var I := EndIndex - StartIndex downto 0 do
+    begin
+
+      var TxBlock: TMemBlock<TTxn> := Copy(Blocks, I*SizeOf(TTxn), SizeOf(TTxn));
+
+      var Tx: TTransactionInfo := TxBlock;
+
+      Tx.TxId:=StartIndex+I;
+
+      if (TxBlock.Data.Sender.AddressId = AddressId) or (TxBlock.Data.Receiver.AddressId = AddressId) then
+        Filter(Tx);
+
+      if TxBlock.Data.RewardId = INVALID then Continue;
+
+      const RewardsCount = 4;
+      const Rewards = TMemBlock<TReward>.ByteArrayFromFile(TReward.Filename, TxBlock.Data.RewardId, RewardsCount);
+
+      for var J:=0 to RewardsCount-1 do
+      begin
+
+         var R: TMemBlock<TReward> := Copy(Rewards, J*SizeOf(TReward), SizeOf(TReward));
+
+         if R.Data.TxnId = Tx.TxId then
+         if R.Data.RecieverAddressId = AddressId then
+         begin
+           Tx.TxType := 'reward';
+           Tx.Amount := R.Data.Amount;
+           Filter(Tx);
+         end;
+
+      end;
 
     end;
 
@@ -359,7 +419,16 @@ end;
 
 function TTxn.GetValidation(const [Ref] AValidatorPrivKey: T32Bytes): TMemBlock<TValidation>;
 begin
-  // must validate in truth ))
+  if TTxn.NextId > 10 then begin
+      // must validate in truth ))
+      var RestoredHexAddress:string;
+      Assert (RestoreAddress(SenderPubKey, RestoredHexAddress), 'cannot restore sender addres from pubkey');
+      Assert(Sender.Address = T20Bytes( RestoredHexAddress), 'sender pubkey does not match sender address');
+      Assert(isSigned, 'tx sign does not match sender pubkey');
+      Assert(DataCache.GetLastTxId(Sender.Address) = Sender.FromBlock, 'incorrect sender LastBlock value');
+      Assert(DataCache.GetLastTxId(Receiver.Address) = Receiver.FromBlock, 'incorrect sender LastBlock value');
+  end;
+
   var PubKey:string;
   Assert(RestorePublicKey(AValidatorPrivKey, PubKey), 'cannot restore pubkey on create new validation');
 
