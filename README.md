@@ -14,6 +14,14 @@ The network node offers the following functionalities for participants:
 
 ## Web Server ##
 Tectum Blockchain Node includes a local web server that processes requests. It provides explorer functions, allowing users to view information about blocks and transactions, as well as an interface for creating new tokens, staking tokens, becoming a validator, performing transfers, and managing keys.
+Settings for web serever in `settings.ini` section `[http]`:
+
+```
+[http]
+enabled=true
+port=8917
+```
+
 
 ## Endpoints ##
 
@@ -40,3 +48,37 @@ Tectum Blockchain Node supports the following types of requests:
 ### Blocks: ###
 
 -   **[GET /blockscount](docs/block_count.md)**: Retrieve the total count of blocks in the blockchain
+
+
+## Settings.ini ##
+
+Settings for Mainnet:
+
+```
+[connections]
+nodes=[arch1.open.tectum.io:50000,arch2.open.tectum.io:50000,arch3.open.tectum.io:50000,arch4.open.tectum.io:50000,arch5.open.tectum.io:50000,arch6.open.tectum.io:50000,arch7.open.tectum.io:50000,arch8.open.tectum.io:50000,arch9.open.tectum.io:50000,arch10.open.tectum.io:50000,arch11.open.tectum.io:50000,arch12.open.tectum.io:50000]
+```
+
+Settings for Testnet:
+
+```
+[connections]
+nodes=[arch1.test.open.tectum.io:50000, arch2.test.open.tectum.io:50001,arch3.test.open.tectum.io:50002,arch4.test.open.tectum.io:50003,arch5.test.open.tectum.io:50004,arch6.test.open.tectum.io:50005]
+
+```
+
+Settings for Web server. Send request to 'http://localhost:8917' by using API
+
+```
+[http]
+enabled=true
+port=8917
+```
+
+Settings level logs. If you want view all logs you need set `logs_level=3`
+
+```
+[settings]
+logs_level=3
+```
+
