@@ -9,11 +9,12 @@ The network node offers the following functionalities for participants:
 2. Transaction processing.
 3. User key management.
 4. Becoming a validator.
-5. Token staking.
+5. Coin (TET) staking.
 6. Viewing blockchain chains.
 
 ## Web Server ##
-Tectum Blockchain Node includes a local web server that processes requests. It provides explorer functions, allowing users to view information about blocks and transactions, as well as an interface for creating new tokens, staking tokens, becoming a validator, performing transfers, and managing keys.
+Tectum Blockchain Node includes a local web server that processes requests. It provides explorer functions, allowing users to view information about blocks and transactions, staking tokens, becoming a validator, performing transfers, and managing keys.
+
 Settings for web serever in `settings.ini` section `[http]`:
 
 ```
