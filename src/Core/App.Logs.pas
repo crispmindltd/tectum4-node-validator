@@ -8,6 +8,7 @@ uses
   Blockchain.Txn,
   Blockchain.Validation,
   Classes,
+  Crypto,
   IOUtils,
   Net.Data,
   SyncObjs,
@@ -35,13 +36,15 @@ type
       FLock: TCriticalSection;
 
       function CutLogString(const ALogStr: string): string;
+      procedure DoSyncLog(AAddress: string; AReqCode: Byte; AIsRequest: Boolean;
+        ALogBytes: TBytes; AType: TLogType = ltIncom);
     public
       constructor Create(ALogsLevel: Byte = CmnLvlLogs);
       destructor Destroy; override;
 
-      procedure DoLog(AText: string; ALogLevel: Byte; AType: TLogType = ltIncom);
-      procedure DoSyncLog(AAddress: string; AReqCode: Byte; ALogBytes: TBytes;
-        ALogLevel: Byte; AType: TLogType = ltIncom);
+      procedure DoLog(AText: string; ALogLevel: Byte; AType: TLogType = ltIncom); overload;
+      procedure DoLog(AAddress: string; ACommandByte: Byte; AReqID: UInt64;
+        ABytes: TBytes; AIsRequest: Boolean; ALogType: TLogType); overload;
   end;
 
 var
@@ -81,13 +84,16 @@ begin
   inherited;
 end;
 
-procedure TLog.DoSyncLog(AAddress: string; AReqCode: Byte; ALogBytes: TBytes;
-  ALogLevel: Byte; AType: TLogType);
+procedure TLog.DoSyncLog(AAddress: string; AReqCode: Byte; AIsRequest: Boolean;
+  ALogBytes: TBytes; AType: TLogType);
 var
   ToLog: string;
 begin
-  if (ALogLevel > FLogLevel) or (FLogLevel = NoneLvlLogs) or (ALogLevel = NoneLvlLogs) or
-    (Length(ALogBytes) = 0) then
+  if (FLogLevel < AdvLvlLogs) then exit;
+  if (AIsRequest and ((AType = ltIncom) and (FLogLevel = AdvLvlLogs) and
+    (Length(ALogBytes) = 0) or ((AType = ltOutgo) and (FLogLevel = AdvLvlLogs)))) or
+    (not AIsRequest and ((AType = ltOutgo) and (FLogLevel = AdvLvlLogs) and
+    (Length(ALogBytes) = 0) or ((AType = ltIncom) and (FLogLevel = AdvLvlLogs)))) then
     exit;
 
   case AReqCode of
@@ -108,7 +114,7 @@ begin
         [AAddress, AReqCode, Length(ALogBytes) div SizeOf(TReward)]);
   end;
 
-  DoLog(ToLog, ALogLevel, AType);
+  DoLog(ToLog, FLogLevel, AType);
 end;
 
 procedure TLog.DoLog(AText: string; ALogLevel: Byte; AType: TLogType);
@@ -172,6 +178,27 @@ begin
   finally
     FreeAndNil(ToLog);
     FLock.Leave;
+  end;
+end;
+
+procedure TLog.DoLog(AAddress: string; ACommandByte: Byte; AReqID: UInt64;
+  ABytes: TBytes; AIsRequest: Boolean; ALogType: TLogType);
+var
+  LogLvl: Byte;
+begin
+  if ACommandByte in [GetTxnsCommandCode..GetRewardsCommandCode] then
+    Logs.DoSyncLog(AAddress, ACommandByte, AIsRequest, ABytes, ALogType)
+  else begin
+    if ACommandByte in (NoAnswerNeedCodes + [InitConnectCode]) then
+      LogLvl := AdvLvlLogs
+    else
+      LogLvl := CmnLvlLogs;
+
+    var ToLog: string := Format('<%s>[%d ID %d]: %s', [AAddress, ACommandByte,
+      AReqID, BytesToHex(ABytes)]);
+    ToLog := ToLog.TrimRight([' ',':']);
+
+    Logs.DoLog(ToLog, LogLvl, ALogType);
   end;
 end;
 

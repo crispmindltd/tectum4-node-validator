@@ -177,6 +177,7 @@ begin
 
   FCommands := TDictionary<string, TEndpointFunc>.Create;
   FNodeEndpoints := TNodeEndpoints.Create;
+  FCommands.Add('/net', FNodeEndpoints.DoNetStats);
   FCommands.Add('/version', FNodeEndpoints.Version);
   FCommands.Add('/keys/new', FNodeEndpoints.DoNewKeys);
   FCommands.Add('/keys/recover', FNodeEndpoints.DoRecoverKeys);
@@ -188,7 +189,7 @@ begin
 //  FCommands.Add('/keys/public/byuserid', FMainEndpoints.GetPublicKeyByAccID);
 //  FCommands.Add('/keys/public/byskey', FMainEndpoints.GetPublicKeyBySessionKey);
   FCoinEndpoints := TCoinEndpoints.Create;
-  FCommands.Add('/coins/transfer', FCoinEndpoints.DoCoinTransfer);
+  FCommands.Add('/coins/transfer', FCoinEndpoints.DoCoinsTransferRequest);
   FCommands.Add('/coins/stake', FCoinEndpoints.DoCoinStake);
   FCommands.Add('/coins/migrate', FCoinEndpoints.DoMigrate);
   FCommands.Add('/coins/balance/byaddress',FCoinEndpoints.GetCoinBalance);
@@ -231,7 +232,7 @@ end;
 procedure THTTPServer.Stop;
 begin
   Active := False;
-  Logs.DoLog('HTTP server stoped', CmnLvlLogs, ltNone);
+  Logs.DoLog('HTTP server stopped', CmnLvlLogs, ltNone);
 end;
 
 end.

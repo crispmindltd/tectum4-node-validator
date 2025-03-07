@@ -67,7 +67,7 @@ begin
 
   Randomize;
   FBytesForSign := TEncoding.ANSI.GetBytes(THash.GetRandomString(32));
-  SendRequest(InitConnectCode, FBytesForSign, BytesToHex(FBytesForSign));
+  SendRequest(InitConnectCode, FBytesForSign);
   WaitForReceive(True);
 end;
 

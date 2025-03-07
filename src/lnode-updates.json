@@ -1,25 +1,25 @@
 {
     "windows-desktop-x64":{
-        "version":"4.0.102",
+        "version":"4.0.103",
         "timestamp":1739445800,
         "path":"https://github.com/crispmindltd/tectum4-node-release/blob/main/win64/tectumnode.zip",
-        "description":"#v4.0.102 Beta new version:
+        "description":"#v4.0.103 Beta new version:
 1. Stabilize network connection between validatoes and archivators
 2. Fix bugs"
     },
     "windows-console-x64":{
-        "version":"4.0.102",
+        "version":"4.0.103",
         "timestamp":1739445800,
         "path":"https://github.com/crispmindltd/tectum4-node-release/blob/main/win64/tnodeconsole.zip",
-        "description":"#v4.0.102 Beta new version:
+        "description":"#v4.0.103 Beta new version:
 1. Stabilize network connection between validatoes and archivators
 2. Fix bugs"
     },
     "linux-console-x64":{
-        "version":"4.0.102",
+        "version":"4.0.103",
         "timestamp":1738239800,
         "path":"https://github.com/crispmindltd/tectum4-node-release/blob/main/linux/tnodeconsole",
-        "description":"#v4.0.102 Beta new version:
+        "description":"#v4.0.103 Beta new version:
 1. Stabilize network connection between validatoes and archivators
 2. Fix bugs"
     }

@@ -1,0 +1,77 @@
+object ArcFrame: TArcFrame
+  HitTest = False
+  Size.Width = 60.000000000000000000
+  Size.Height = 56.000000000000000000
+  Size.PlatformDefault = False
+  object Circle: TCircle
+    Align = Client
+    Fill.Color = claSilver
+    Locked = True
+    Size.Width = 60.000000000000000000
+    Size.Height = 56.000000000000000000
+    Size.PlatformDefault = False
+    Stroke.Thickness = 0.000000000000000000
+    OnClick = CircleClick
+    OnPaint = CirclePaint
+    object Arc: TArc
+      Align = Client
+      Locked = True
+      HitTest = False
+      Size.Width = 60.000000000000000000
+      Size.Height = 56.000000000000000000
+      Size.PlatformDefault = False
+      Stroke.Color = claDodgerblue
+      Stroke.Thickness = 4.000000000000000000
+      StartAngle = -90.000000000000000000
+      EndAngle = 90.000000000000000000
+    end
+  end
+  object StartAngleAnimation: TFloatAnimation
+    Duration = 1.399999976158142000
+    Loop = True
+    PropertyName = 'StartAngle'
+    StartValue = 0.000000000000000000
+    StopValue = 360.000000000000000000
+  end
+  object CancelImage: TImage
+    MultiResBitmap.Height = 24
+    MultiResBitmap.Width = 24
+    MultiResBitmap.LoadSize = 2
+    MultiResBitmap = <
+      item
+        Width = 24
+        Height = 24
+        PNG = {
+          89504E470D0A1A0A0000000D4948445200000018000000180806000000E0773D
+          F80000000473424954080808087C08648800000099494441544889ED943D0A80
+          300C461F9EA1D0C14907EF7F010715EFE022E23D84BAA420E24F2376D17E6B92
+          EFB5495A48FAAD2AA0064C40AE015AA0D4001AC00103602FF2ACE438A909560E
+          CC52389E40ACC49CE4E61A808778837167701553E9E89421B753437C9FA78DF9
+          DD7C54321B88370FD930B287C0E561DDA1F62D9A78B14551871C754DA33FB48E
+          C85F4505F4E83EBB420348FA9056B3E841E2076EAE7D0000000049454E44AE42
+          6082}
+        FileName = 'D:\baseline_close_black_24dp.png'
+      end>
+    Align = Client
+    Locked = True
+    HitTest = False
+    Opacity = 0.500000000000000000
+    Size.Width = 60.000000000000000000
+    Size.Height = 56.000000000000000000
+    Size.PlatformDefault = False
+    WrapMode = Center
+  end
+  object EndAngleAnimation: TFloatAnimation
+    Duration = 0.200000002980232200
+    PropertyName = 'EndAngle'
+    StartValue = 0.000000000000000000
+    StartFromCurrent = True
+    StopValue = 0.000000000000000000
+  end
+  object LoopAnimation: TFloatAnimation
+    Duration = 3.000000000000000000
+    PropertyName = 'EndAngle'
+    StartValue = 0.000000000000000000
+    StopValue = 340.000000000000000000
+  end
+end

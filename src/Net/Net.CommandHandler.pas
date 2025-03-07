@@ -9,6 +9,8 @@ uses
   Blockchain.Txn,
   Blockchain.Validation,
 //  Net.Connection,
+  App.Types,
+  App.Exceptions,
   Crypto,
   Net.Data,
   System.SyncObjs,
@@ -32,19 +34,24 @@ type
   TCommandHandler = class
     private
       class function DoSign(const AToSign: TBytes): TBytes;
+
+//      class function GetBlocks<T>(const AFileName: string;
+//        const AData: TBytes): TBytes;                         overload;
+
       class function GetBlocks<T>(const AFileName: string;
-        const AData: TBytes): TBytes;
+        ABlockId:UInt64; [ref] AClientHash:T32Bytes): TBytes;
 
       class function DoInitConnect(const AIncomData: TResponseData): TBytes;
-      class function GetRewardsBlocks(const AIncomData: TResponseData): TBytes;
-      class function GetTxnsBlocks(const AIncomData: TResponseData): TBytes;
-      class function GetAddressesBlocks(const AIncomData: TResponseData): TBytes;
-      class function GetValidationsBlocks(const AIncomData: TResponseData): TBytes;
+      class function GetRewardsBlocks(ABlockId:UInt64; [Ref] ALastHash:T32Bytes): TBytes;
+      class function GetTxnsBlocks(ABlockId:UInt64; [Ref] ALastHash:T32Bytes): TBytes;
+      class function GetAddressesBlocks(ABlockId:UInt64; [Ref] ALastHash:T32Bytes): TBytes;
+      class function GetValidationsBlocks(ABlockId:UInt64; [Ref] ALastHash:T32Bytes): TBytes;
       class function DoValidation(const AIncomData: TResponseData): TBytes;
       class procedure DoCheckVersion(const AIncomData: TResponseData);
     public
       class var FCustomCommandProcessor:TProcessCommand;
       class function ProcessCommand(const AIncomData: TResponseData; AConnection:TObject): TBytes;
+      class function ProcessGetBlocksCommand(const AIncomData: TResponseData): TBytes;
   end;
 
 implementation
@@ -79,63 +86,112 @@ begin
   Result := Validation;
 end;
 
-class function TCommandHandler.GetAddressesBlocks(
-  const AIncomData: TResponseData): TBytes;
-begin
-  Result := GetBlocks<TAccount>(TAccount.Filename, AIncomData.Data);
-end;
-
 class function TCommandHandler.GetBlocks<T>(const AFileName: string;
-  const AData: TBytes): TBytes;
-const
-  MaxBlocks = 100;
-var
-  BlocksFrom: UInt64;
+  ABlockId: UInt64; [ref] AClientHash:T32Bytes): TBytes;
 begin
-  Result := [];
-  Move(AData[0], BlocksFrom, 8);
-  if TMemBlock<T>.RecordsCount(AFilename) <= BlocksFrom then
-    exit;
+  const MaxBlocks = 100;
 
-  Result := TMemBlock<T>.ByteArrayFromFile(AFilename, BlocksFrom, MaxBlocks);
+  const LBlockId = TMemBlock<T>.RecordsCount(AFileName);
+
+  if LBlockId < ABlockId then
+    raise EBlockchainCorrupted.Create();
+
+  if (LBlockId = ABlockId) and not (TMemBlock<T>.LastHash(AFileName) = AClientHash) then
+    raise EBlockchainCorrupted.Create();
+
+  Result := TMemBlock<T>.ByteArrayFromFile(AFilename, ABlockId, MaxBlocks);
 end;
 
-class function TCommandHandler.GetRewardsBlocks(
+class function TCommandHandler.GetAddressesBlocks(ABlockId:UInt64; [Ref] ALastHash:T32Bytes): TBytes;
+begin
+  const Bytes = GetBlocks<TAccount>(TAccount.Filename, ABlockId, ALastHash);
+
+  if Length(Bytes) < Sizeof(TAccount) then Exit;
+
+  if not (TMemBlock<TAccount>(Copy(Bytes, 0, Sizeof(TAccount))).Data.PreviousHash = ALastHash) then
+    raise EBlockchainCorrupted.Create();
+
+  Result := Bytes;
+end;
+
+class function TCommandHandler.GetRewardsBlocks(ABlockId:UInt64; [Ref] ALastHash:T32Bytes): TBytes;
+begin
+  const Bytes = GetBlocks<TReward>(TReward.FileName, ABlockId, ALastHash);
+
+  if Length(Bytes) < Sizeof(TReward) then Exit;
+
+  if not (TMemBlock<TReward>(Copy(Bytes, 0, Sizeof(TReward))).Data.PreviousHash = ALastHash) then
+    raise EBlockchainCorrupted.Create();
+
+  Result := Bytes;
+end;
+
+class function TCommandHandler.GetTxnsBlocks(ABlockId:UInt64; [Ref] ALastHash:T32Bytes): TBytes;
+begin
+  const Bytes = GetBlocks<TTxn>(TTxn.FileName, ABlockId, ALastHash);
+
+  if Length(Bytes) < Sizeof(TTxn) then Exit;
+
+  if not (TMemBlock<TTxn>(Copy(Bytes, 0, Sizeof(TTxn))).Data.PreviousHash = ALastHash) then
+    raise EBlockchainCorrupted.Create();
+
+  Result := Bytes;
+end;
+
+class function TCommandHandler.GetValidationsBlocks(ABlockId:UInt64; [Ref] ALastHash:T32Bytes): TBytes;
+begin
+
+  const Bytes = GetBlocks<TValidation>(TValidation.FileName, ABlockId, ALastHash);
+
+  if (Length(Bytes) < Sizeof(TValidation)) then Exit;
+
+  if not (TMemBlock<TValidation>(Copy(Bytes, 0, Sizeof(TValidation))).Data.PreviousHash = ALastHash) then
+    raise EBlockchainCorrupted.Create();
+
+  Result := Bytes;
+end;
+
+class function TCommandHandler.ProcessGetBlocksCommand(
   const AIncomData: TResponseData): TBytes;
 begin
-  Result := GetBlocks<TReward>(TReward.Filename, AIncomData.Data);
-end;
 
-class function TCommandHandler.GetTxnsBlocks(const AIncomData: TResponseData): TBytes;
-begin
-  Result := GetBlocks<TTxn>(TTxn.Filename, AIncomData.Data);
-end;
+  Require(Length(AIncomData.Data) = 40 {block id + hash}, 'incorrect getBlocks request');
 
-class function TCommandHandler.GetValidationsBlocks(
-  const AIncomData: TResponseData): TBytes;
-begin
-  Result := GetBlocks<TValidation>(TValidation.FileName, AIncomData.Data);
+  var BlocksFrom: UInt64;
+  Move(AIncomData.Data[0], BlocksFrom, 8);
+
+  var LastHash: T32Bytes;
+  Move(AIncomData.Data[8], LastHash, SizeOf(LastHash));
+
+  var Blocks:TBytes;
+
+  case AIncomData.Code of
+    GetRewardsCommandCode:
+      Result := GetRewardsBlocks(BlocksFrom, LastHash);
+
+    GetTxnsCommandCode:
+      Result := GetTxnsBlocks(BlocksFrom, LastHash);
+
+    GetAddressesCommandCode:
+      Result := GetAddressesBlocks(BlocksFrom, LastHash);
+
+    GetValidationsCommandCode:
+      Result := GetValidationsBlocks(BlocksFrom, LastHash);
+  end;
 end;
 
 class function TCommandHandler.ProcessCommand(const AIncomData: TResponseData;
   AConnection: TObject): TBytes;
 begin
-  try
     case AIncomData.Code of
       InitConnectCode:
         Result := DoInitConnect(AIncomData);
 
-      GetRewardsCommandCode:
-        Result := GetRewardsBlocks(AIncomData);
-
-      GetTxnsCommandCode:
-        Result := GetTxnsBlocks(AIncomData);
-
-      GetAddressesCommandCode:
-        Result := GetAddressesBlocks(AIncomData);
-
+      GetRewardsCommandCode,
+      GetTxnsCommandCode,
+      GetAddressesCommandCode,
       GetValidationsCommandCode:
-        Result := GetValidationsBlocks(AIncomData);
+        Result := ProcessGetBlocksCommand(AIncomData);
 
       ValidateCommandCode:
         Result := DoValidation(AIncomData);
@@ -146,10 +202,6 @@ begin
       if Assigned(FCustomCommandProcessor) then
         Result := FCustomCommandProcessor(AIncomData, AConnection);
     end;
-  except
-    on E: Exception do
-      Result := [ErrorCode] + TEncoding.ANSI.getbytes(E.Message);
-  end;
 end;
 
 end.

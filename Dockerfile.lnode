@@ -2,10 +2,9 @@ FROM ubuntu:latest
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y iputils-ping libcurl4
+RUN apt-get update && apt-get install -y iputils-ping telnet mc libcurl4
 
 COPY  src/Linux64/Release/exe/lnodeconsole /app/
-COPY settings.ini /app/
 COPY run.sh /app/run.sh
 RUN chmod +x /app/run.sh
 RUN chmod +x /app/lnodeconsole

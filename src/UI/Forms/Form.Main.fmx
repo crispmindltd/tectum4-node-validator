@@ -2103,8 +2103,8 @@ object MainForm: TMainForm
           Size.PlatformDefault = False
           StyleLookup = 'TokenInfoMemostyle'
           TabOrder = 4
-          Viewport.Width = 410.000000000000000000
-          Viewport.Height = 152.000000000000000000
+          Viewport.Width = 382.000000000000000000
+          Viewport.Height = 126.000000000000000000
           object ShadowEffect12: TShadowEffect
             Distance = 3.000000000000000000
             Direction = 70.000000000000000000
@@ -2970,8 +2970,8 @@ object MainForm: TMainForm
               Size.PlatformDefault = False
               StyleLookup = 'PathMemostyle'
               TabOrder = 12
-              Viewport.Width = 568.000000000000000000
-              Viewport.Height = 185.000000000000000000
+              Viewport.Width = 564.000000000000000000
+              Viewport.Height = 181.000000000000000000
             end
           end
         end
@@ -3503,6 +3503,37 @@ object MainForm: TMainForm
       TextSettings.WordWrap = False
       Text = 'Receiving Data...'
       TabOrder = 0
+      inline WaitFrame: TArcFrame
+        Align = Left
+        HitTest = False
+        Margins.Left = -34.000000000000000000
+        Margins.Top = 4.000000000000000000
+        Margins.Bottom = 2.000000000000000000
+        Position.X = -34.000000000000000000
+        Position.Y = 4.000000000000000000
+        Size.Width = 21.000000000000000000
+        Size.Height = 21.200012207031250000
+        Size.PlatformDefault = False
+        inherited Circle: TCircle
+          Fill.Kind = None
+          Size.Width = 21.000000000000000000
+          Size.Height = 21.200012207031250000
+          inherited Arc: TArc
+            Size.Width = 21.000000000000000000
+            Size.Height = 21.200012207031250000
+            Stroke.Color = claWhite
+            Stroke.Thickness = 2.000000000000000000
+          end
+        end
+        inherited CancelImage: TImage
+          MultiResBitmap.Height = 24
+          MultiResBitmap.Width = 24
+          MultiResBitmap.LoadSize = 2
+          Size.Width = 28.000000000000000000
+          Size.Height = 27.000000000000000000
+          Visible = False
+        end
+      end
     end
   end
 end

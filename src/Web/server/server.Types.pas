@@ -33,17 +33,17 @@ const
 type
   TEndpointResponse = record
     Code: Integer;
-    Response: String;
+    Response: string;
   end;
 
   TEndpointFunc = function(AEvent: TEvent; AComType: THTTPCommandType;
-    AParams: TStrings; ABody: String): TEndpointResponse of object;
+    AParams: TStrings; ABody: string): TEndpointResponse of object;
 
-function GetJSONErrorAsString(ACode:Byte; AReason: String): String;
+function GetJSONErrorAsString(ACode: Byte; AReason: string): string;
 
 implementation
 
-function GetStringErrorByCode(ACode: Byte): String;
+function GetStringErrorByCode(ACode: Byte): string;
 begin
   case ACode of
     ERROR_UNKNOWN: Result := 'UNKNOWN_ERROR';
@@ -61,14 +61,14 @@ begin
   end;
 end;
 
-function GetJSONErrorAsString(ACode:Byte; AReason: String): String;
+function GetJSONErrorAsString(ACode:Byte; AReason: string): string;
 var
   JSON: TJSONObject;
 begin
   JSON := TJSONObject.Create;
   try
-    JSON.AddPair('error',GetStringErrorByCode(ACode));
-    JSON.AddPair('message',AReason);
+    JSON.AddPair('error', GetStringErrorByCode(ACode));
+    JSON.AddPair('message', AReason);
     Result := JSON.ToJSON;
   finally
     JSON.Free;

@@ -172,6 +172,8 @@ begin
 
     StartIndex := SafeSub(StartIndex, ReadCount);
 
+    if EndIndex - StartIndex + 1 > RecordCount then Break;
+
     const Blocks = TMemBlock<TTxn>.ByteArrayFromFile(TTxn.Filename, StartIndex, EndIndex - StartIndex + 1);
 
     for var I := EndIndex - StartIndex downto 0  do
@@ -209,6 +211,8 @@ begin
     var EndIndex := StartIndex;
 
     StartIndex := SafeSub(StartIndex, ReadCount);
+
+    if EndIndex - StartIndex + 1 > RecordCount then Break;
 
     const Blocks = TMemBlock<TTxn>.ByteArrayFromFile(TTxn.Filename, StartIndex, EndIndex - StartIndex + 1);
 
@@ -265,6 +269,9 @@ begin
   Result.Data.Receiver.Address := AReceiverAddr;
   Result.Data.Receiver.AddressId := TAccount.GetAddressId(AReceiverAddr);
   Result.Data.Receiver.FromBlock := DataCache.GetLastTxId(AReceiverAddr);
+
+  Result.Data.RewardId := INVALID;
+  Result.Data.ValidationId := INVALID;
 
   if AFee = INVALID then
     Result.Data.Fee := CalculateFee(AValue)
@@ -420,13 +427,12 @@ end;
 function TTxn.GetValidation(const [Ref] AValidatorPrivKey: T32Bytes): TMemBlock<TValidation>;
 begin
   if TTxn.NextId > 10 then begin
-      // must validate in truth ))
-      var RestoredHexAddress:string;
-      Assert (RestoreAddress(SenderPubKey, RestoredHexAddress), 'cannot restore sender addres from pubkey');
-      Assert(Sender.Address = T20Bytes( RestoredHexAddress), 'sender pubkey does not match sender address');
-      Assert(isSigned, 'tx sign does not match sender pubkey');
-      Assert(DataCache.GetLastTxId(Sender.Address) = Sender.FromBlock, 'incorrect sender LastBlock value');
-      Assert(DataCache.GetLastTxId(Receiver.Address) = Receiver.FromBlock, 'incorrect sender LastBlock value');
+//   must validate in truth ))
+    var RestoredHexAddress:string;
+    Assert (RestoreAddress(SenderPubKey, RestoredHexAddress), 'cannot restore sender addres from pubkey');
+    Assert(Sender.Address = T20Bytes( RestoredHexAddress), 'sender pubkey does not match sender address');
+    Assert(isSigned, 'tx sign does not match sender pubkey');
+    Assert(DataCache.GetLastTxId(Sender.Address) = Sender.FromBlock, 'incorrect sender LastBlock value');
   end;
 
   var PubKey:string;

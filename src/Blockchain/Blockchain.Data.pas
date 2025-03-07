@@ -3,6 +3,8 @@
 interface
 
 uses
+  App.Types,
+  App.Exceptions,
   System.TypInfo,
   System.Generics.Collections,
   System.SyncObjs,
@@ -21,7 +23,8 @@ type
     class operator Implicit(const AValue: TMemBlock<T>): TBytes;
 //    class operator Implicit(const AValue: TMemBlock<T>): T;
 //    class operator Implicit(const AValue: T): TMemBlock<T>;
-    class operator Equal(a, b: TMemBlock<T>): Boolean;
+    class operator Equal(const a, b: TMemBlock<T>): Boolean;
+    class operator NotEqual(const a, b: TMemBlock<T>): Boolean;
 
     function Hash(): TBytes;
     class function LastHash(const AFilename: string): TBytes; static;
@@ -29,7 +32,7 @@ type
     procedure SaveToFile(const AFilename: string; AId: UInt64); overload;
     class function RecordsCount(const AFilename: string): UInt64; static;
     class function ByteArrayFromFile(const AFilename: string; AIdFrom, AAmount: Integer): TBytes; static;
-    class procedure ByteArrayToFile(const AFilename: string; const [Ref] AData: TBytes); static;
+    class procedure ByteArrayToFile(const AFilename: string; const [Ref] AData: TBytes; const ALastHash:TBytes = []); static;
     constructor ReadFromFile(const AFilename: string; AId: UInt64);
   end;
 
@@ -52,11 +55,12 @@ type
 
 const
   _1_TET = UInt64(100000000);
-  MinFee = _1_TET div 1000; // 0.001 TET
-  MaxFee = _1_TET; // 1 TET
+  MinFee = _1_TET div 10000; // 0.0001 TET
+  MaxFee = _1_TET;
   TET_Id = 0;
   TreasuryId = 0;
   INVALID = UInt64.MaxValue;
+  EmptyHash: T32Bytes = ();
 
 var CSMap: TCSMap;
 
@@ -78,15 +82,15 @@ end;
 
 function CalculateMaxSendValue(AFullValue:uint64):uint64;
 begin
-  if AFullValue <= 100000 then
+  if AFullValue <= 10000 then
     Exit(0)
-  else if AFullValue <= 100100000 then
-    Exit(AFullValue - 100000)
+  else if AFullValue <= 10010000 then
+    Exit(AFullValue - 10000)
   else if AFullValue <= 100100000000 then
-    Result := 1 + (AFullValue * 1000) div 1001
+    Result := (AFullValue * 1000) div 1001
   else
     Result := AFullValue - _1_TET;
-  if Result + CalculateFee(Result) <> AFullValue then
+  if Result + CalculateFee(Result) < AFullValue then
     Inc(Result);
 end;
 
@@ -118,11 +122,9 @@ begin
   CSMap.Enter(AFilename);
   try
     const fs = TFileStream.Create(AFilename, fmOpenRead);
-    begin
-    end;
     try
       const readFrom = AIdFrom * SizeOf(T);
-      Assert(fs.Size > readFrom, 'Can not read blocks after the end of file');
+      Require(fs.Size > readFrom, 'Can not read blocks after the end of file');
       fs.Position := readFrom;
 
       const BufferSize = AAmount * SizeOf(T);
@@ -139,18 +141,24 @@ begin
   end;
 end;
 
-class procedure TMemBlock<T>.ByteArrayToFile(const AFilename: string; const [Ref] AData: TBytes);
+class procedure TMemBlock<T>.ByteArrayToFile(const AFilename: string; const [Ref] AData: TBytes; const ALastHash:TBytes = []);
 begin
   if Length(AData) = 0 then
     Exit;
   const BytesCount = Length(AData);
   Assert(BytesCount mod SizeOf(T) = 0);
 
+  const LastHashSize = Length(ALastHash);
+  Assert(lastHashSize mod SizeOf(T32Bytes) = 0);
+
+  if (LastHashSize > 0) then begin
+    if (T32Bytes(ALastHash) <> T32Bytes(LastHash(AFilename))) then
+      raise EBlockchainCorrupted.Create();
+  end;
+
   CSMap.Enter(AFilename);
   try
     const fs = TFileStream.Create(AFilename, fmOpenWrite);
-    begin
-    end;
     try
       const FileBytes = fs.Size;
       Assert(FileBytes mod SizeOf(T) = 0, 'Incorrect block size on file write');
@@ -164,9 +172,14 @@ begin
   end;
 end;
 
-class operator TMemBlock<T>.Equal(a, b: TMemBlock<T>): Boolean;
+class operator TMemBlock<T>.Equal(const a, b: TMemBlock<T>): Boolean;
 begin
   Result := CompareMem(@a, @b, SizeOf(T));
+end;
+
+class operator TMemBlock<T>.NotEqual(const a, b: TMemBlock<T>): Boolean;
+begin
+  Result := not (a = b);
 end;
 
 class function TMemBlock<T>.RecordsCount(const AFilename: string): UInt64;
@@ -174,9 +187,14 @@ begin
   Result := 0;
   if not TFile.Exists(AFilename) then
     Exit;
-  const FileBytes = TFile.GetSize(AFilename);
-  Assert(FileBytes mod SizeOf(T) = 0, 'Incorrect blockchain file size');
-  Result := FileBytes div SizeOf(T);
+  CSMap.Enter(AFilename);
+  try
+    const FileBytes = TFile.GetSize(AFilename);
+    Assert(FileBytes mod SizeOf(T) = 0, 'Incorrect blockchain file size');
+    Result := FileBytes div SizeOf(T);
+  finally
+    CSMap.Leave(AFilename);
+  end;
 end;
 
 function TMemBlock<T>.Hash: TBytes;
@@ -215,9 +233,6 @@ end;
 class function TMemBlock<T>.LastHash(const AFilename: string): TBytes;
 begin
   const LRecordsCount = RecordsCount(AFilename);
-
-  begin
-  end;
 
   if LRecordsCount = 0 then begin
     Result := TBytes(T32Bytes(string.Create('0', 64)));
