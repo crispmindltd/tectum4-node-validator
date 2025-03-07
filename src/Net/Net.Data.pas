@@ -21,6 +21,8 @@ const
   ErrorCode = 3;
   CheckVersionCommandCode = 4;
   InitConnectCode = 5;
+  InfoCommandCode = 6;
+  PingCommandCode = 7;
 
   NewTransactionCommandCode = 100;
   ValidateCommandCode = 101;
@@ -35,6 +37,8 @@ const
   InitConnectErrorCode = 200;
   KeyAlreadyUsesErrorCode = 201;
 
+  BlockchainCorruptedErrorCode = 255;
+
   CommandsCodes = [ResponseCode..InitConnectCode,
     CheckVersionCommandCode, NewTransactionCommandCode, ValidateCommandCode,
     ValidationDoneCode, NewValidatedTransactionCommandCode,
@@ -42,80 +46,13 @@ const
     InitConnectErrorCode, KeyAlreadyUsesErrorCode];
 
   NoAnswerNeedCodes = [CheckVersionCommandCode, InitConnectErrorCode,
-    KeyAlreadyUsesErrorCode, SuccessCode];
+    KeyAlreadyUsesErrorCode, SuccessCode, BlockchainCorruptedErrorCode];
 
-type
-  TNodesConnectManager = class
-  private
-    FNodesPool: TStringList;
+  ResponseWithResultCodes = [NewTransactionCommandCode, ValidateCommandCode,
+    ValidationDoneCode, NewValidatedTransactionCommandCode];
 
-    function IsPoolEmpty: Boolean;
-  public
-    constructor Create;
-    destructor Destroy; override;
-
-    procedure AddNodeToPool(const ANodeAddress: string);
-    function GetNodeToConnect: string;
-    function GetNodesArray: TArray<string>;
-
-    property IsEmpty: Boolean read IsPoolEmpty;
-  end;
-
-var
-  Nodes: TNodesConnectManager;
-  ListenTo: string;
-  HTTPPort: Word;
+  ResultCode: Array[Boolean] of Byte = (ErrorCode, SuccessCode);
 
 implementation
-
-{ TNodesConnectManager }
-
-procedure TNodesConnectManager.AddNodeToPool(const ANodeAddress: string);
-begin
-  FNodesPool.Add(ANodeAddress);
-end;
-
-constructor TNodesConnectManager.Create;
-begin
-  FNodesPool := TStringList.Create(dupIgnore, True, False);
-end;
-
-destructor TNodesConnectManager.Destroy;
-begin
-  FNodesPool.Free;
-
-  inherited;
-end;
-
-function TNodesConnectManager.GetNodesArray: TArray<string>;
-begin
-  Result := FNodesPool.ToStringArray;
-end;
-
-function TNodesConnectManager.GetNodeToConnect: string;
-var
-  id: Integer;
-begin
-  if FNodesPool.Count = 0 then
-    exit('');
-
-  Randomize;
-  id := Random(FNodesPool.Count);
-  Result := FNodesPool.Strings[id];
-  FNodesPool.Delete(id);
-end;
-
-function TNodesConnectManager.IsPoolEmpty: Boolean;
-begin
-  Result := FNodesPool.Count = 0;
-end;
-
-initialization
-
-Nodes := TNodesConnectManager.Create;
-
-finalization
-
-Nodes.Free;
 
 end.

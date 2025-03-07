@@ -31,6 +31,7 @@ Tectum Blockchain Node supports the following types of requests:
 ### Coin operations: ###
 
 -   **[POST /coins/transfer](docs/tokens_transfer_request.md)**: To transfer TET between two addresses
+-   **GET /coins/transfer?id=N**: Retrieve full information of transfer for the TET
 -   **[POST /coins/stake](docs/tokens_stake_request.md)**: Staking TET to become a network validator
 -   **POST /coins/migrate**: Migrate TET to new address
 -   **[GET /coins/transfers](docs/token_transfer_history.md)**: Retrieve the transfer history for the TET

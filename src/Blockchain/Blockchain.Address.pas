@@ -13,8 +13,13 @@ type
   // Public key
   T65Bytes = TMemBlock < array [0 .. 64] of Byte >;
 
+  TAddress = T20Bytes;
+  TPublicKey = T65Bytes;
+
   TPubKeyToAddress = record helper for T65Bytes
-    function Address: T20Bytes;
+    function Address: TAddress;
+    function ShortAddress: string;
+    function IsEmpty: Boolean;
   end;
 
   TAccount = record
@@ -31,6 +36,9 @@ type
     PreviousHash: T32Bytes;
     procedure GenerateNew();
   end;
+
+const
+  EmptyPublicKey: TPublicKey = ();
 
 function AddressToStr(const Address: T20Bytes): string;
 function RestoreAddressAsStr(const PubKeyStr: string): string;
@@ -100,21 +108,32 @@ begin
 end;
 
 { TPubKeyToAddress }
+
 function TPubKeyToAddress.Address: T20Bytes;
 begin
-  var AddrStr:string;
+  var AddrStr: string;
   Assert(RestoreAddress(Self, AddrStr));
   Result := AddrStr;
 end;
 
+function TPubKeyToAddress.ShortAddress: string;
+begin
+  Result := Copy(Address, 35);
+end;
+
+function TPubKeyToAddress.IsEmpty: Boolean;
+begin
+  Result := Self = EmptyPublicKey;
+end;
+
 function AddressToStr(const Address: T20Bytes): string;
 begin
-  Result:=('0x'+Address).ToLower;
+  Result := ('0x' + Address).ToLower;
 end;
 
 function RestoreAddressAsStr(const PubKeyStr: string): string;
 begin
-  const pubKey:T65Bytes = PubKeyStr;
+  const pubKey: TPublicKey = PubKeyStr;
   Result := AddressToStr(pubKey.address);
 end;
 

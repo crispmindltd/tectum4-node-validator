@@ -3,160 +3,109 @@ unit App.Settings;
 interface
 
 uses
-  App.Constants,
-  App.Logs,
-  IniFiles,
-  IOUtils,
+  System.SysUtils,
+  System.IOUtils,
+  System.IniFiles,
   Net.Data,
-  SysUtils;
+  App.Constants,
+  App.Types,
+  App.Logs;
 
 type
-  TSettingsFile = class
-    private
-      FPath: string;
-      FIni: TIniFile;
-
-      function GetFullPath: string;
-      function CheckAddress(const AAddress: string): Boolean;
-      procedure FillNodesList(AAddresses: string);
-      procedure SetHTTPPort(APort: string);
-
-      function GetHTTPEnabled: Boolean;
-      function GetAutoUpdate: Boolean;
-      function GetLogsLevel: Byte;
-      function GetAddress: string;
-    public
-      constructor Create;
-      destructor Destroy; override;
-
-      procedure Init;
-      procedure SetAddress(const Address: string);
-
-      property EnabledHTTP: Boolean read GetHTTPEnabled;
-      property AutoUpdate: Boolean read GetAutoUpdate;
-      property LogsLevel: Byte read GetLogsLevel;
-      property Address: string read GetAddress;
+  TSettings = class
+  private
+    FPath: string;
+    FFileName: string;
+    FIni: TIniFile;
+    function GetHTTPPort: Word;
+    function GetHTTPEnabled: Boolean;
+    function GetAutoUpdate: Boolean;
+    function GetLogsLevel: Byte;
+    function GetAddress: string;
+    function GetNodes: TArray<string>;
+    function GetServers: TArray<string>;
+    procedure SetAddress(const Address: string);
+  public
+    constructor Create;
+    destructor Destroy; override;
+    property AutoUpdate: Boolean read GetAutoUpdate;
+    property LogsLevel: Byte read GetLogsLevel;
+    property Address: string read GetAddress write SetAddress;
+    property Nodes: TArray<string> read GetNodes;
+    property Servers: TArray<string> read GetServers;
+    property HTTPEnabled: Boolean read GetHTTPEnabled;
+    property HTTPPort: Word read GetHTTPPort;
   end;
 
 implementation
 
-{ TSettingsFile }
+{ TSettings }
 
-function TSettingsFile.CheckAddress(const AAddress: string): Boolean;
-var
-  i, j: Integer;
-  Splitted: TArray<string>;
+constructor TSettings.Create;
 begin
-  if not(AAddress.Contains('.') and AAddress.Contains(':')) then
-    exit(False);
-  Splitted := AAddress.Split(['.', ':']);
-  if (Length(Splitted) <> 5) then
-    exit(False);
-  for i := 0 to Length(Splitted) - 1 do
-    if not TryStrToInt(Splitted[i], j) then
-      exit(False);
-
-  Result := True;
-end;
-
-constructor TSettingsFile.Create;
-begin
-  FPath := ExtractFilePath(ParamStr(0));
-
-  FIni := TIniFile.Create(GetFullPath);
-  if not FileExists(GetFullPath) then  //initialize the .ini file if it doesn’t already exist
+  TrueBoolStrs := [DefaultTrueBoolStr, 'yes', 'y', '1'];
+  FalseBoolStrs := [DefaultFalseBoolStr, 'no', 'n', '0'];
+  FPath := TPath.GetAppPath;
+  FFileName := TPath.Combine(FPath, ConstStr.SettingsFileName);
+  FIni := TIniFile.Create(FFileName);
+  if not FileExists(FFileName) then  //initialize the .ini file if it doesn’t already exist
   begin
     FIni.WriteString('connections', 'listen_to', DefaultTCPListenTo);
-    FIni.WriteString('connections', 'nodes', Format('[%s]', [DefaultNodeAddress]));
+    FIni.WriteString('connections', 'nodes', '[' + DefaultNodeAddress + ']');
     FIni.WriteString('http', 'enabled', BoolToStr(True, True));
-    FIni.WriteString('http', 'port', DefaultPortHTTP.ToString);
+    FIni.WriteInteger('http', 'port', DefaultPortHTTP);
     FIni.WriteString('settings', 'auto_update', BoolToStr(True, True));
     FIni.WriteInteger('settings', 'logs_level', CmnLvlLogs);
     FIni.UpdateFile;
   end;
 end;
 
-destructor TSettingsFile.Destroy;
+destructor TSettings.Destroy;
 begin
   FIni.Free;
-
   inherited;
 end;
 
-procedure TSettingsFile.FillNodesList(AAddresses: string);
-var
-  i: Integer;
-  Splitted: TArray<string>;
-begin
-  Splitted := AAddresses.Trim(['[', ']']).Split([',']);
-  if Length(Splitted) = 0 then
-    exit;
-
-  for i := 0 to Length(Splitted) - 1 do
-    if Splitted[i] <> ListenTo then
-      Nodes.AddNodeToPool(Splitted[i]);
-end;
-
-function TSettingsFile.GetAddress: string;
+function TSettings.GetAddress: string;
 begin
   Result := FIni.ReadString('settings', 'address', '');
 end;
 
-function TSettingsFile.GetAutoUpdate: Boolean;
+function TSettings.GetAutoUpdate: Boolean;
 begin
-  Result := StrToBool(FIni.ReadString('settings', 'auto_update', 'True'));
+  Result := StrToBool(FIni.ReadString('settings', 'auto_update', DefaultTrueBoolStr));
 end;
 
-function TSettingsFile.GetFullPath: string;
+function TSettings.GetHTTPEnabled: Boolean;
 begin
-  Result := TPath.Combine(FPath, ConstStr.SettingsFileName);
+  Result := StrToBool(FIni.ReadString('http', 'enabled', DefaultTrueBoolStr));
 end;
 
-function TSettingsFile.GetHTTPEnabled: Boolean;
+function TSettings.GetHTTPPort: Word;
 begin
-  Result := StrToBool(FIni.ReadString('http', 'enabled', 'True'));
+  Result := FIni.ReadInteger('http', 'port', DefaultPortHTTP);
 end;
 
-function TSettingsFile.GetLogsLevel: Byte;
+function TSettings.GetLogsLevel: Byte;
 begin
   Result := FIni.ReadInteger('settings', 'logs_level', CmnLvlLogs);
 end;
 
-procedure TSettingsFile.Init;
-var
-  Value: string;
+function TSettings.GetNodes: TArray<string>;
 begin
-  if not FileExists(GetFullPath) then
-    raise Exception.Create('Settings file not found. Please, restart the application');
-
-  Value := FIni.ReadString('connections', 'listen_to', '');
-  if Value.IsEmpty then
-    raise Exception.Create('incorrect settings file');
-  if CheckAddress(Value) then
-    ListenTo := Value
-  else
-    raise Exception.Create(Format('address "%s" is invalid', [Value]));
-
-  Value := FIni.ReadString('connections', 'nodes', '');
-  FillNodesList(Value);
-
-  Value := FIni.ReadString('http', 'port', '');
-  if Value.IsEmpty then
-    raise Exception.Create('incorrect settings file');
-  SetHTTPPort(Value);
+  var Value := FIni.ReadString('connections', 'nodes', DefaultNodeAddress).
+    TrimLeft(['[']).TrimRight([']']);
+  Result := TCode.TrimValues(Value.Split([',']));
 end;
 
-procedure TSettingsFile.SetHTTPPort(APort: string);
-var
-  PortValue: Integer;
+function TSettings.GetServers: TArray<string>;
 begin
-  if (not TryStrToInt(APort, PortValue)) or (PortValue > 65535) or (PortValue < 0) then
-    raise Exception.Create(Format('HTTP port "%s" is invalid', [APort]));
-
-  HTTPPort := PortValue;
+  var Value := FIni.ReadString('connections', 'listen_to', DefaultTCPListenTo).
+    TrimLeft(['[']).TrimRight([']']);
+  Result := TCode.TrimValues(Value.Split([',']));
 end;
 
-procedure TSettingsFile.SetAddress(const Address: string);
+procedure TSettings.SetAddress(const Address: string);
 begin
   FIni.WriteString('settings', 'address', Address);
 end;

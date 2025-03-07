@@ -6,7 +6,7 @@
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>
         <Platform Condition="'$(Platform)'==''">Win64</Platform>
-        <TargetedPlatforms>131</TargetedPlatforms>
+        <TargetedPlatforms>135299</TargetedPlatforms>
         <AppType>Console</AppType>
         <MainSource>lnodeconsole.dpr</MainSource>
         <ProjectName Condition="'$(ProjectName)'==''">lnodeconsole</ProjectName>
@@ -103,7 +103,7 @@
         <DCC_K>false</DCC_K>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;$(DCC_Namespace)</DCC_Namespace>
         <SanitizedProjectName>lnodeconsole</SanitizedProjectName>
-        <DCC_UnitSearchPath>ExtLib\CryptoLib\Asn1;ExtLib\CryptoLib\Asn1\Bsi;ExtLib\CryptoLib\Asn1\CryptLib;ExtLib\CryptoLib\Asn1\CryptoPro;ExtLib\CryptoLib\Asn1\Eac;ExtLib\CryptoLib\Asn1\Edec;ExtLib\CryptoLib\Asn1\Iana;ExtLib\CryptoLib\Asn1\Misc;ExtLib\CryptoLib\Asn1\Nist;ExtLib\CryptoLib\Asn1\Oiw;ExtLib\CryptoLib\Asn1\Pkcs;ExtLib\CryptoLib\Asn1\RossStandart;ExtLib\CryptoLib\Asn1\Sec;ExtLib\CryptoLib\Asn1\TeleTrust;ExtLib\CryptoLib\Asn1\X9;ExtLib\CryptoLib\Crypto;ExtLib\CryptoLib\Crypto\Agreement;ExtLib\CryptoLib\Crypto\Digests;ExtLib\CryptoLib\Crypto\EC;ExtLib\CryptoLib\Crypto\Engines;ExtLib\CryptoLib\Crypto\Generators;ExtLib\CryptoLib\Crypto\Macs;ExtLib\CryptoLib\Crypto\Modes;ExtLib\CryptoLib\Crypto\Paddings;ExtLib\CryptoLib\Crypto\Parsers;ExtLib\CryptoLib\Crypto\Parameters;ExtLib\CryptoLib\Crypto\Prng;ExtLib\CryptoLib\Crypto\Signers;ExtLib\CryptoLib\Crypto\Signers\SignersEncodings;ExtLib\CryptoLib\Interfaces;ExtLib\CryptoLib\Math;ExtLib\CryptoLib\Math\EC;ExtLib\CryptoLib\Math\EC\Abc;ExtLib\CryptoLib\Math\EC\Custom\Djb;ExtLib\CryptoLib\Math\EC\Custom\Sec;ExtLib\CryptoLib\Math\EC\Endo;ExtLib\CryptoLib\Math\EC\Multiplier;ExtLib\CryptoLib\Math\EC\Rfc7748;ExtLib\CryptoLib\Math\EC\Rfc8032;ExtLib\CryptoLib\Math\Field;ExtLib\CryptoLib\Math\Raw;ExtLib\CryptoLib\Security;ExtLib\CryptoLib\Utils;ExtLib\CryptoLib\Utils\Encoders;ExtLib\CryptoLib\Utils\Randoms;ExtLib\CryptoLib\Utils\Rng;ExtLib\HashLib\Base;ExtLib\HashLib\Checksum;ExtLib\HashLib\Crypto;ExtLib\HashLib\Crypto\Blake2BParams;ExtLib\HashLib\Crypto\Blake2SParams;ExtLib\HashLib\Hash128;ExtLib\HashLib\Hash32;ExtLib\HashLib\Hash64;ExtLib\HashLib\Interfaces;ExtLib\HashLib\Interfaces\IBlake2BParams;ExtLib\HashLib\Interfaces\IBlake2SParams;ExtLib\HashLib\KDF;ExtLib\HashLib\Nullable;ExtLib\HashLib\NullDigest;ExtLib\HashLib\Utils;ExtLib\SimpleBaseLib\Bases;ExtLib\SimpleBaseLib\Interfaces;ExtLib\SimpleBaseLib\Utils;..\src\Update;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>ExtLib\CryptoLib\Asn1;ExtLib\CryptoLib\Asn1\Bsi;ExtLib\CryptoLib\Asn1\CryptLib;ExtLib\CryptoLib\Asn1\CryptoPro;ExtLib\CryptoLib\Asn1\Eac;ExtLib\CryptoLib\Asn1\Edec;ExtLib\CryptoLib\Asn1\Iana;ExtLib\CryptoLib\Asn1\Misc;ExtLib\CryptoLib\Asn1\Nist;ExtLib\CryptoLib\Asn1\Oiw;ExtLib\CryptoLib\Asn1\Pkcs;ExtLib\CryptoLib\Asn1\RossStandart;ExtLib\CryptoLib\Asn1\Sec;ExtLib\CryptoLib\Asn1\TeleTrust;ExtLib\CryptoLib\Asn1\X9;ExtLib\CryptoLib\Crypto;ExtLib\CryptoLib\Crypto\Agreement;ExtLib\CryptoLib\Crypto\Digests;ExtLib\CryptoLib\Crypto\EC;ExtLib\CryptoLib\Crypto\Engines;ExtLib\CryptoLib\Crypto\Generators;ExtLib\CryptoLib\Crypto\Macs;ExtLib\CryptoLib\Crypto\Modes;ExtLib\CryptoLib\Crypto\Paddings;ExtLib\CryptoLib\Crypto\Parsers;ExtLib\CryptoLib\Crypto\Parameters;ExtLib\CryptoLib\Crypto\Prng;ExtLib\CryptoLib\Crypto\Signers;ExtLib\CryptoLib\Crypto\Signers\SignersEncodings;ExtLib\CryptoLib\Interfaces;ExtLib\CryptoLib\Math;ExtLib\CryptoLib\Math\EC;ExtLib\CryptoLib\Math\EC\Abc;ExtLib\CryptoLib\Math\EC\Custom\Djb;ExtLib\CryptoLib\Math\EC\Custom\Sec;ExtLib\CryptoLib\Math\EC\Endo;ExtLib\CryptoLib\Math\EC\Multiplier;ExtLib\CryptoLib\Math\EC\Rfc7748;ExtLib\CryptoLib\Math\EC\Rfc8032;ExtLib\CryptoLib\Math\Field;ExtLib\CryptoLib\Math\Raw;ExtLib\CryptoLib\Security;ExtLib\CryptoLib\Utils;ExtLib\CryptoLib\Utils\Encoders;ExtLib\CryptoLib\Utils\Randoms;ExtLib\CryptoLib\Utils\Rng;ExtLib\HashLib\Base;ExtLib\HashLib\Checksum;ExtLib\HashLib\Crypto;ExtLib\HashLib\Crypto\Blake2BParams;ExtLib\HashLib\Crypto\Blake2SParams;ExtLib\HashLib\Hash128;ExtLib\HashLib\Hash32;ExtLib\HashLib\Hash64;ExtLib\HashLib\Interfaces;ExtLib\HashLib\Interfaces\IBlake2BParams;ExtLib\HashLib\Interfaces\IBlake2SParams;ExtLib\HashLib\KDF;ExtLib\HashLib\Nullable;ExtLib\HashLib\NullDigest;ExtLib\HashLib\Utils;ExtLib\SimpleBaseLib\Bases;ExtLib\SimpleBaseLib\Interfaces;ExtLib\SimpleBaseLib\Utils;..\src\Update;Net;Patches;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <VerInfo_Locale>1049</VerInfo_Locale>
         <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
     </PropertyGroup>
@@ -186,10 +186,22 @@
     <PropertyGroup Condition="'$(Base_OSX64)'!=''">
         <DCC_UsePackage>DataSnapServer;fmx;DbxCommonDriver;bindengine;FireDACCommonODBC;IndyIPCommon;emsclient;FireDACCommonDriver;IndyProtocols;dbxcds;IndyIPClient;FmxTeeUI;bindcompfmx;DBXFirebirdDriver;inetdb;ibmonitor;FireDACSqliteDriver;DbxClientDriver;FireDACASADriver;soapmidas;fmxFireDAC;dbexpress;DBXMySQLDriver;inet;DataSnapCommon;fmxase;dbrtl;FireDACOracleDriver;FireDACDBXDriver;fmxdae;CustomIPTransport;FireDACMSSQLDriver;DataSnapIndy10ServerTransport;DBXInterBaseDriver;FireDACMongoDBDriver;IndySystem;FireDACTDataDriver;ibxbindings;bindcomp;FireDACCommon;DataSnapServerMidas;FireDACODBCDriver;IndyCore;RESTBackendComponents;bindcompdbx;rtl;FireDACMySQLDriver;RESTComponents;DBXSqliteDriver;dsnapxml;IndyIPServer;DataSnapClient;DataSnapProviderClient;DataSnapFireDAC;emsclientfiredac;FireDACPgDriver;FireDAC;FireDACDSDriver;inetdbxpress;xmlrtl;tethering;ibxpress;dsnap;DBXSybaseASADriver;CloudService;DBXOracleDriver;DBXInformixDriver;DataSnapNativeClient;fmxobj;FMXTee;soaprtl;soapserver;FireDACIBDriver;$(DCC_UsePackage)</DCC_UsePackage>
         <DCC_ConsoleTarget>true</DCC_ConsoleTarget>
+        <VerInfo_Keys>CFBundleName=$(MSBuildProjectName);CFBundleDisplayName=$(MSBuildProjectName);CFBundleIdentifier=$(MSBuildProjectName);CFBundleVersion=1.0.0;CFBundleShortVersionString=1.0.0;CFBundlePackageType=APPL;CFBundleSignature=????;CFBundleAllowMixedLocalizations=YES;CFBundleExecutable=$(MSBuildProjectName);NSHighResolutionCapable=true;LSApplicationCategoryType=public.app-category.utilities;NSLocationUsageDescription=The reason for accessing the location information of the user;NSContactsUsageDescription=The reason for accessing the contacts;NSCalendarsUsageDescription=The reason for accessing the calendar data;NSRemindersUsageDescription=The reason for accessing the reminders;NSCameraUsageDescription=The reason for accessing the camera;NSMicrophoneUsageDescription=The reason for accessing the microphone;NSMotionUsageDescription=The reason for accessing the accelerometer;NSDesktopFolderUsageDescription=The reason for accessing the Desktop folder;NSDocumentsFolderUsageDescription=The reason for accessing the Documents folder;NSDownloadsFolderUsageDescription=The reason for accessing the Downloads folder;NSNetworkVolumesUsageDescription=The reason for accessing files on a network volume;NSRemovableVolumesUsageDescription=The reason for accessing files on a removable volume;NSSpeechRecognitionUsageDescription=The reason for requesting to send user data to Apple&apos;s speech recognition servers;ITSAppUsesNonExemptEncryption=false;NSBluetoothAlwaysUsageDescription=The reason for accessing the Bluetooth interface</VerInfo_Keys>
+        <BT_BuildType>Debug</BT_BuildType>
+        <Debugger_Launcher>/usr/X11/bin/xterm -e &quot;%debuggee%&quot;</Debugger_Launcher>
+        <Icon_MainIcon>..\icon\Windows\AppIcon.ico</Icon_MainIcon>
+        <Manifest_File>(None)</Manifest_File>
+        <AppDPIAwarenessMode>none</AppDPIAwarenessMode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_OSXARM64)'!=''">
         <DCC_UsePackage>DataSnapServer;fmx;DbxCommonDriver;bindengine;FireDACCommonODBC;IndyIPCommon;emsclient;FireDACCommonDriver;IndyProtocols;dbxcds;IndyIPClient;FmxTeeUI;bindcompfmx;DBXFirebirdDriver;inetdb;ibmonitor;FireDACSqliteDriver;DbxClientDriver;FireDACASADriver;soapmidas;fmxFireDAC;dbexpress;DBXMySQLDriver;inet;DataSnapCommon;fmxase;dbrtl;FireDACOracleDriver;FireDACDBXDriver;fmxdae;CustomIPTransport;FireDACMSSQLDriver;DataSnapIndy10ServerTransport;DBXInterBaseDriver;FireDACMongoDBDriver;IndySystem;FireDACTDataDriver;ibxbindings;bindcomp;FireDACCommon;DataSnapServerMidas;FireDACODBCDriver;IndyCore;RESTBackendComponents;bindcompdbx;rtl;FireDACMySQLDriver;RESTComponents;DBXSqliteDriver;dsnapxml;IndyIPServer;DataSnapClient;DataSnapProviderClient;DataSnapFireDAC;emsclientfiredac;FireDACPgDriver;FireDAC;FireDACDSDriver;inetdbxpress;xmlrtl;tethering;ibxpress;dsnap;DBXSybaseASADriver;CloudService;DBXOracleDriver;DBXInformixDriver;DataSnapNativeClient;fmxobj;FMXTee;soaprtl;soapserver;FireDACIBDriver;$(DCC_UsePackage)</DCC_UsePackage>
         <DCC_ConsoleTarget>true</DCC_ConsoleTarget>
+        <VerInfo_Keys>CFBundleName=$(MSBuildProjectName);CFBundleDisplayName=$(MSBuildProjectName);CFBundleIdentifier=$(MSBuildProjectName);CFBundleVersion=1.0.0;CFBundleShortVersionString=1.0.0;CFBundlePackageType=APPL;CFBundleSignature=????;CFBundleAllowMixedLocalizations=YES;CFBundleExecutable=$(MSBuildProjectName);NSHighResolutionCapable=true;LSApplicationCategoryType=public.app-category.utilities;NSLocationUsageDescription=The reason for accessing the location information of the user;NSContactsUsageDescription=The reason for accessing the contacts;NSCalendarsUsageDescription=The reason for accessing the calendar data;NSRemindersUsageDescription=The reason for accessing the reminders;NSCameraUsageDescription=The reason for accessing the camera;NSMicrophoneUsageDescription=The reason for accessing the microphone;NSMotionUsageDescription=The reason for accessing the accelerometer;NSDesktopFolderUsageDescription=The reason for accessing the Desktop folder;NSDocumentsFolderUsageDescription=The reason for accessing the Documents folder;NSDownloadsFolderUsageDescription=The reason for accessing the Downloads folder;NSNetworkVolumesUsageDescription=The reason for accessing files on a network volume;NSRemovableVolumesUsageDescription=The reason for accessing files on a removable volume;NSSpeechRecognitionUsageDescription=The reason for requesting to send user data to Apple&apos;s speech recognition servers;ITSAppUsesNonExemptEncryption=false;NSBluetoothAlwaysUsageDescription=The reason for accessing the Bluetooth interface</VerInfo_Keys>
+        <BT_BuildType>Debug</BT_BuildType>
+        <Debugger_Launcher>/usr/X11/bin/xterm -e &quot;%debuggee%&quot;</Debugger_Launcher>
+        <Icon_MainIcon>..\icon\Windows\AppIcon.ico</Icon_MainIcon>
+        <Manifest_File>(None)</Manifest_File>
+        <AppDPIAwarenessMode>none</AppDPIAwarenessMode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
         <DCC_UsePackage>DataSnapServer;vclwinx;emshosting;fmx;DbxCommonDriver;vclie;bindengine;VCLRESTComponents;FireDACCommonODBC;DBXMSSQLDriver;IndyIPCommon;emsclient;FireDACCommonDriver;appanalytics;IndyProtocols;vclx;Skia.Package.RTL;dbxcds;vcledge;IndyIPClient;bindcompvclwinx;FmxTeeUI;emsedge;bindcompfmx;DBXFirebirdDriver;inetdb;ibmonitor;FireDACSqliteDriver;DbxClientDriver;FireDACASADriver;Tee;soapmidas;vclactnband;TeeUI;fmxFireDAC;dbexpress;FireDACInfxDriver;DBXMySQLDriver;VclSmp;inet;DataSnapCommon;fmxase;vcltouch;DBXOdbcDriver;dbrtl;FireDACOracleDriver;FireDACDBXDriver;Skia.Package.FMX;fmxdae;TeeDB;FireDACMSAccDriver;CustomIPTransport;FireDACMSSQLDriver;DataSnapIndy10ServerTransport;DataSnapConnectors;DBXInterBaseDriver;vcldsnap;FireDACMongoDBDriver;IndySystem;FireDACTDataDriver;Skia.Package.VCL;vcldb;ibxbindings;vclFireDAC;bindcomp;FireDACCommon;DataSnapServerMidas;FireDACODBCDriver;emsserverresource;IndyCore;RESTBackendComponents;bindcompdbx;rtl;FireDACMySQLDriver;FireDACADSDriver;RESTComponents;DBXSqliteDriver;vcl;adortl;dsnapxml;IndyIPServer;DataSnapClient;DataSnapProviderClient;dsnapcon;DBXSybaseASEDriver;DBXDb2Driver;vclimg;DataSnapFireDAC;emsclientfiredac;FireDACPgDriver;FireDAC;FireDACDSDriver;inetdbxpress;xmlrtl;tethering;ibxpress;bindcompvcl;dsnap;DBXSybaseASADriver;CloudService;DBXOracleDriver;FireDACDb2Driver;DBXInformixDriver;vclib;DataSnapNativeClient;bindcompvclsmp;fmxobj;FMXTee;DatasnapConnectorsFreePascal;soaprtl;soapserver;FireDACIBDriver;$(DCC_UsePackage)</DCC_UsePackage>
@@ -201,7 +213,7 @@
         <UWP_DelphiLogo150>$(BDS)\bin\Artwork\Windows\UWP\delphi_UwpDefault_150.png</UWP_DelphiLogo150>
         <VerInfo_MajorVer>4</VerInfo_MajorVer>
         <VerInfo_Release>101</VerInfo_Release>
-        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=4.0.102.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=4.0.103.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <Manifest_File>(None)</Manifest_File>
         <AppDPIAwarenessMode>none</AppDPIAwarenessMode>
@@ -219,7 +231,7 @@
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_MajorVer>4</VerInfo_MajorVer>
         <VerInfo_Release>101</VerInfo_Release>
-        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=4.0.102.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=4.0.103.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
         <Icon_MainIcon>..\icon\Windows\AppIcon.ico</Icon_MainIcon>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1)'!=''">
@@ -239,14 +251,14 @@
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_MajorVer>4</VerInfo_MajorVer>
         <VerInfo_Release>101</VerInfo_Release>
-        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=4.0.102.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=4.0.103.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win64)'!=''">
         <VerInfo_Locale>1033</VerInfo_Locale>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_MajorVer>4</VerInfo_MajorVer>
-        <VerInfo_Release>101</VerInfo_Release>
-        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=4.0.102.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+        <VerInfo_Release>103</VerInfo_Release>
+        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=4.0.103.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
@@ -260,7 +272,7 @@
         <VerInfo_MajorVer>4</VerInfo_MajorVer>
         <VerInfo_Release>101</VerInfo_Release>
         <VerInfo_Locale>1033</VerInfo_Locale>
-        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=4.0.102.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=4.0.103.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win64)'!=''">
         <DCC_ExeOutput>.\$(Platform)\$(Config)\exe</DCC_ExeOutput>
@@ -268,45 +280,53 @@
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_MajorVer>4</VerInfo_MajorVer>
         <VerInfo_Release>101</VerInfo_Release>
-        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=4.0.102.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=4.0.103.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
     </PropertyGroup>
     <ItemGroup>
         <DelphiCompile Include="$(MainSource)">
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
-        <DCCReference Include="Core\App.Mutex.pas"/>
-        <DCCReference Include="Core\App.Intf.pas"/>
-        <DCCReference Include="Core\App.Types.pas"/>
-        <DCCReference Include="Core\App.Core.pas"/>
-        <DCCReference Include="UI\Console.pas"/>
-        <DCCReference Include="Core\App.Logs.pas"/>
+        <DCCReference Include="Core\App.Constants.pas"/>
         <DCCReference Include="Core\App.Exceptions.pas"/>
+        <DCCReference Include="Core\App.Logs.pas"/>
+        <DCCReference Include="Core\App.Intf.pas"/>
+        <DCCReference Include="Core\App.Core.pas"/>
+        <DCCReference Include="Core\App.Mutex.pas"/>
+        <DCCReference Include="Core\App.Types.pas"/>
         <DCCReference Include="Core\App.Settings.pas"/>
-        <DCCReference Include="Net\Net.Data.pas"/>
+        <DCCReference Include="Core\App.Keystore.pas"/>
         <DCCReference Include="Crypto\Crypto.pas"/>
-        <DCCReference Include="Net\Net.Client.pas"/>
-        <DCCReference Include="Net\Net.Server.pas"/>
+        <DCCReference Include="Crypto\SeedPhrase\WordsPool.pas"/>
+        <DCCReference Include="Crypto\EthereumSigner.pas"/>
         <DCCReference Include="Web\server\server.HTTP.pas"/>
         <DCCReference Include="Web\server\server.Types.pas"/>
-        <DCCReference Include="Web\endpoints\endpoints.Coin.pas"/>
-        <DCCReference Include="Web\endpoints\endpoints.Base.pas"/>
-        <DCCReference Include="Crypto\SeedPhrase\WordsPool.pas"/>
-        <DCCReference Include="Core\App.Constants.pas"/>
         <DCCReference Include="Web\endpoints\endpoints.Node.pas"/>
-        <DCCReference Include="Update\Update.Core.pas"/>
+        <DCCReference Include="Web\endpoints\endpoints.Base.pas"/>
+        <DCCReference Include="Web\endpoints\endpoints.Account.pas"/>
+        <DCCReference Include="Web\endpoints\endpoints.Coin.pas"/>
         <DCCReference Include="Blockchain\Blockchain.Address.pas"/>
         <DCCReference Include="Blockchain\Blockchain.Data.pas"/>
         <DCCReference Include="Blockchain\Blockchain.Txn.pas"/>
         <DCCReference Include="Blockchain\Blockchain.Validation.pas"/>
-        <DCCReference Include="Blockchain\Blockchain.Reward.pas"/>
         <DCCReference Include="Blockchain\BlockChain.DataCache.pas"/>
-        <DCCReference Include="Blockchain\BlockChain.Utils.pas"/>
-        <DCCReference Include="Net\Net.CommandHandler.pas"/>
-        <DCCReference Include="Net\Net.ServerConnection.pas"/>
-        <DCCReference Include="Net\Net.Connection.pas"/>
+        <DCCReference Include="Blockchain\Blockchain.Reward.pas"/>
+        <DCCReference Include="Blockchain\Blockchain.Utils.pas"/>
+        <DCCReference Include="Net\Net.Client.pas"/>
         <DCCReference Include="Net\Net.ClientConnection.pas"/>
+        <DCCReference Include="Net\Net.CommandHandler.pas"/>
+        <DCCReference Include="Net\Net.Connection.pas"/>
+        <DCCReference Include="Net\Net.Data.pas"/>
+        <DCCReference Include="Net\Net.Server.pas"/>
+        <DCCReference Include="Net\Net.ServerConnection.pas"/>
+        <DCCReference Include="Net\Net.Core.pas"/>
+        <DCCReference Include="Net\Net.ClientHandler.pas"/>
+        <DCCReference Include="Net\Net.CustomHandler.pas"/>
+        <DCCReference Include="Net\Net.Intf.pas"/>
+        <DCCReference Include="Net\Net.ServerHandler.pas"/>
+        <DCCReference Include="Net\Net.Types.pas"/>
+        <DCCReference Include="UI\Console.pas"/>
+        <DCCReference Include="Update\Update.Core.pas"/>
         <DCCReference Include="Update\Update.Utils.pas"/>
-        <DCCReference Include="Crypto\EthereumSigner.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
@@ -1337,8 +1357,8 @@
                 <Platform value="iOSDevice64">False</Platform>
                 <Platform value="iOSSimARM64">False</Platform>
                 <Platform value="Linux64">True</Platform>
-                <Platform value="OSX64">False</Platform>
-                <Platform value="OSXARM64">False</Platform>
+                <Platform value="OSX64">True</Platform>
+                <Platform value="OSXARM64">True</Platform>
                 <Platform value="Win32">True</Platform>
                 <Platform value="Win64">True</Platform>
             </Platforms>

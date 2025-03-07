@@ -3,26 +3,23 @@ unit endpoints.Node;
 interface
 
 uses
+  System.SyncObjs,
+  System.SysUtils,
+  System.Classes,
+  System.JSON,
+  IdCustomHTTPServer,
   App.Exceptions,
   App.Intf,
-  Update.Core,
-  Classes,
+  App.Types,
+  Net.Intf,
   endpoints.Base,
-  JSON,
-  IdCustomHTTPServer,
-  server.Types,
-  SyncObjs,
-  SysUtils;
+  server.Types;
 
 type
   TNodeEndpoints = class(TEndpointsBase)
   public
-    constructor Create;
-    destructor Destroy; override;
-
-//    function BlocksCountLocal(AReqID: string; AEvent: TEvent;
-//      AComType: THTTPCommandType; AParams: TStrings; ABody: string)
-//      : TEndpointResponse;
+    function DoNetStats(AEvent: TEvent; AComType: THTTPCommandType;
+      AParams: TStrings; ABody: string): TEndpointResponse;
     function BlocksCount(AEvent: TEvent; AComType: THTTPCommandType;
       AParams: TStrings; ABody: string): TEndpointResponse;
     function Version(AEvent: TEvent; AComType: THTTPCommandType;
@@ -34,6 +31,51 @@ type
   end;
 
 implementation
+
+function TNodeEndpoints.DoNetStats(AEvent: TEvent; AComType: THTTPCommandType;
+  AParams: TStrings; ABody: string): TEndpointResponse;
+begin
+  try
+
+    if (AComType <> hcGET) and (AComType <> hcPOST) then
+      raise ENotSupportedError.Create('');
+
+    var JSON := TJSONObject.Create;
+
+    AddRelease(JSON);
+
+    var Servers := TJSONArray.Create;
+    var Clients := TJSONArray.Create;
+
+    JSON.AddPair('servers', Servers);
+    JSON.AddPair('clients', Clients);
+
+    var Stats := AppCore.GetNetStats;
+
+    for var Server in Stats.Servers do
+    begin
+      var V := TJSONObject.Create;
+      Servers.AddElement(V);
+      V.AddPair('name', Server.Name);
+      V.AddPair('state', ConnectionStateNames[Server.State]);
+    end;
+
+    for var Client in Stats.Clients do
+    begin
+      var V := TJSONObject.Create;
+      Clients.AddElement(V);
+      V.AddPair('name', Client.Name);
+      V.AddPair('state', ConnectionStateNames[Client.State]);
+    end;
+
+    Result.Code := HTTP_SUCCESS;
+    Result.Response := JSON.ToJSON;
+
+  finally
+    if Assigned(AEvent) then
+      AEvent.SetEvent;
+  end;
+end;
 
 function TNodeEndpoints.BlocksCount(AEvent: TEvent; AComType: THTTPCommandType;
   AParams: TStrings; ABody: string): TEndpointResponse;
@@ -56,41 +98,6 @@ begin
     if Assigned(AEvent) then
       AEvent.SetEvent;
   end;
-end;
-
-//function TNodeEndpoints.BlocksCountLocal(AReqID: string; AEvent: TEvent;
-//  AComType: THTTPCommandType; AParams: TStrings; ABody: string): TEndpointResponse;
-//var
-//  JSON: TJSONObject;
-//begin
-//  Result.ReqID := AReqID;
-//  try
-//    JSON := TJSONObject.Create;
-//    if AComType <> hcGET then
-//      raise ENotSupportedError.Create('');
-//    try
-//      JSON.AddPair('blocksCount',
-//        TJSONNumber.Create(AppCore.GetTETChainBlocksCount));
-//      Result.Code := HTTP_SUCCESS;
-//      Result.Response := JSON.ToString;
-//    finally
-//      JSON.Free;
-//    end;
-//  finally
-//    if Assigned(AEvent) then
-//      AEvent.SetEvent;
-//  end;
-//end;
-
-constructor TNodeEndpoints.Create;
-begin
-  inherited;
-end;
-
-destructor TNodeEndpoints.Destroy;
-begin
-
-  inherited;
 end;
 
 function TNodeEndpoints.DoNewKeys(AEvent: TEvent; AComType: THTTPCommandType;

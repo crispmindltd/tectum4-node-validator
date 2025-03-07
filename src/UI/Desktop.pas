@@ -3,18 +3,21 @@ unit Desktop;
 interface
 
 uses
-  App.Exceptions,
-  App.Intf,
-  Classes,
+  System.Classes,
+  System.SysUtils,
+  System.UITypes,
+  System.SyncObjs,
+  System.Math,
+  System.Messaging,
   FMX.Dialogs,
+  FMX.DialogService,
   FMX.Forms,
   FMX.Platform,
-  Form.Main,
-  Math,
-  SyncObjs,
-  SysUtils,
+  App.Exceptions,
+  App.Types,
+  App.Intf,
   Styles,
-  UITypes;
+  Form.Main;
 
 type
   TAccessCommonCustomForm = class(TCommonCustomForm);
@@ -22,8 +25,6 @@ type
 type
   TUICore = class(TInterfacedObject, IUI)
   private
-    FStartFormCreated: TEvent;
-
     procedure CreateForm(const InstanceClass: TComponentClass;
       var Reference; AsMainForm: Boolean = False);
     procedure SetMainForm(const Reference);
@@ -33,15 +34,19 @@ type
     procedure ReleaseForm(var Form);
     procedure DoReleaseForm(Form: TCommonCustomForm);
     procedure NullForm(var Form);
+    procedure FormsCreatedHandler(const Sender: TObject; const M: System.Messaging.TMessage);
   public
     constructor Create;
     destructor Destroy; override;
-
     procedure DoMessage(const AMessage: string);
+    procedure ShowMessage(const AMessage: string; OnCloseProc: TProc);
+    procedure ShowException(const Reason: string; OnCloseProc: TProc);
+    procedure ShowWarning(const Reason: string; OnCloseProc: TProc);
     procedure DoTerminate;
     procedure Run;
-    procedure ShowVersionDidNotMatch;
     procedure NotifyNewTETBlocks;
+    procedure DoSynchronize(const Position, Count: UInt64);
+    procedure DoConnectionFailed(const Address: string);
   end;
 
 procedure CopyToClipboard(const Text: string);
@@ -52,12 +57,25 @@ implementation
 
 constructor TUICore.Create;
 begin
-  FStartFormCreated := TEvent.Create;
-  FStartFormCreated.ResetEvent;
   Application.Initialize;
   CreateAndShowForm(TMainForm, MainForm, True);
   CreateForm(TStylesForm, StylesForm);
-  FStartFormCreated.SetEvent;
+  TMessageManager.DefaultManager.SubscribeToMessage(TFormsCreatedMessage,FormsCreatedHandler);
+end;
+
+destructor TUICore.Destroy;
+begin
+  TMessageManager.DefaultManager.Unsubscribe(TFormsCreatedMessage,FormsCreatedHandler);
+  inherited;
+end;
+
+procedure TUICore.FormsCreatedHandler(const Sender: TObject; const M: System.Messaging.TMessage);
+begin
+  try
+    AppCore.Start;
+  except on E: Exception do
+    ApplicationHandleException(E);
+  end;
 end;
 
 procedure TUICore.CreateAndShowForm(const InstanceClass: TComponentClass;
@@ -75,14 +93,6 @@ begin
     Application.CreateForm(InstanceClass,Reference);
     if AsMainForm then SetMainForm(Reference);
   end;
-end;
-
-destructor TUICore.Destroy;
-begin
-  if Assigned(FStartFormCreated) then
-    FStartFormCreated.Free;
-
-  inherited;
 end;
 
 procedure TUICore.ReleaseForm(var Form);
@@ -115,18 +125,45 @@ begin
   end;
 end;
 
-procedure TUICore.ShowVersionDidNotMatch;
-begin
-  DoMessage(NewVersionAvailableText);
-end;
-
 procedure TUICore.DoMessage(const AMessage: string);
 begin
-//  TThread.Synchronize(nil,
-//  procedure
-//  begin
-//    ShowMessage(AMessage);
-//  end);
+
+end;
+
+procedure TUICore.ShowMessage(const AMessage: string; OnCloseProc: TProc);
+begin
+  TCode.InMainThread(procedure
+  begin
+    TDialogService.MessageDialog(AMessage, TMsgDlgType.mtInformation, [TMsgDlgBtn.mbOK],
+      TMsgDlgBtn.mbOK, 0, procedure(const AResult: TModalResult)
+      begin
+        if Assigned(OnCloseProc) then OnCloseProc;
+      end);
+  end);
+end;
+
+procedure TUICore.ShowException(const Reason: string; OnCloseProc: TProc);
+begin
+  TCode.InMainThread(procedure
+  begin
+    TDialogService.MessageDialog(Reason, TMsgDlgType.mtError, [TMsgDlgBtn.mbOK],
+      TMsgDlgBtn.mbOK, 0, procedure(const AResult: TModalResult)
+      begin
+        if Assigned(OnCloseProc) then OnCloseProc;
+      end);
+  end);
+end;
+
+procedure TUICore.ShowWarning(const Reason: string; OnCloseProc: TProc);
+begin
+  TCode.InMainThread(procedure
+  begin
+    TDialogService.MessageDialog(Reason, TMsgDlgType.mtWarning, [TMsgDlgBtn.mbOK],
+      TMsgDlgBtn.mbOK, 0, procedure(const AResult: TModalResult)
+      begin
+        if Assigned(OnCloseProc) then OnCloseProc;
+      end);
+  end);
 end;
 
 procedure TUICore.DoReleaseForm(Form: TCommonCustomForm);
@@ -141,12 +178,29 @@ end;
 
 procedure TUICore.NotifyNewTETBlocks;
 begin
-  if Assigned(MainForm) then
-    TThread.Synchronize(nil,
-    procedure
-    begin
+  TCode.InMainThread(procedure
+  begin
+    if Assigned(AppCore) then
       MainForm.NewTETChainBlocksEvent;
-    end);
+  end);
+end;
+
+procedure TUICore.DoSynchronize(const Position, Count: UInt64);
+begin
+  TCode.InMainThread(procedure
+  begin
+    if Assigned(AppCore) then
+      MainForm.DoSynchronize(Position, Count);
+  end);
+end;
+
+procedure TUICore.DoConnectionFailed(const Address: string);
+begin
+  TCode.InMainThread(procedure
+  begin
+    if Assigned(AppCore) then
+      MainForm.DoConnectionFailed(Address);
+  end);
 end;
 
 procedure TUICore.NullForm(var Form);

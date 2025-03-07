@@ -2,36 +2,29 @@
 
 uses
   System.StartUpCopy,
-  SysUtils,
-  Classes,
-  IOUtils,
-//  FMX.Dialogs,
-//  FMX.Forms,
-//  FMX.Types,
-  Types,
+  System.Types,
+  System.Net.Socket,
+  System.Net.HttpClient,
+  IdHTTPServer,
+  FMX.Forms,
+  App.Constants in 'Core\App.Constants.pas',
+  App.Exceptions in 'Core\App.Exceptions.pas',
+  App.Logs in 'Core\App.Logs.pas',
   App.Intf in 'Core\App.Intf.pas',
   App.Core in 'Core\App.Core.pas',
   App.Mutex in 'Core\App.Mutex.pas',
-  App.Logs in 'Core\App.Logs.pas',
-  server.HTTP in 'Web\server\server.HTTP.pas',
-  endpoints.Node in 'Web\endpoints\endpoints.Node.pas',
-  Desktop in 'UI\Desktop.pas',
+  App.Types in 'Core\App.Types.pas',
   App.Settings in 'Core\App.Settings.pas',
+  App.Keystore in 'Core\App.Keystore.pas',
   Crypto in 'Crypto\Crypto.pas',
-  server.Types in 'Web\server\server.Types.pas',
+  WordsPool in 'Crypto\SeedPhrase\WordsPool.pas',
+  EthereumSigner in 'Crypto\EthereumSigner.pas',
+  Server.HTTP in 'Web\server\server.HTTP.pas',
+  Server.Types in 'Web\server\server.Types.pas',
+  endpoints.Node in 'Web\endpoints\endpoints.Node.pas',
   endpoints.Base in 'Web\endpoints\endpoints.Base.pas',
   endpoints.Account in 'Web\endpoints\endpoints.Account.pas',
-  App.Exceptions in 'Core\App.Exceptions.pas',
   endpoints.Coin in 'Web\endpoints\endpoints.Coin.pas',
-  Form.Main in 'UI\Forms\Form.Main.pas' {MainForm},
-  Styles in 'UI\Forms\Styles.pas' {StylesForm},
-  WordsPool in 'Crypto\SeedPhrase\WordsPool.pas',
-  Frame.Ticker in 'UI\Forms\Frame.Ticker.pas' {TickerFrame: TFrame},
-  Frame.Explorer in 'UI\Forms\Frame.Explorer.pas' {ExplorerTransactionFrame: TFrame},
-  Frame.History in 'UI\Forms\Frame.History.pas' {HistoryTransactionFrame: TFrame},
-  Form.EnterKey in 'UI\Forms\Form.EnterKey.pas' {EnterPrivateKeyForm},
-  App.Constants in 'Core\App.Constants.pas',
-  OpenURL in 'UI\OpenURL.pas',
   Blockchain.Address in 'Blockchain\Blockchain.Address.pas',
   Blockchain.Data in 'Blockchain\Blockchain.Data.pas',
   Blockchain.Txn in 'Blockchain\Blockchain.Txn.pas',
@@ -47,14 +40,21 @@ uses
   Net.Server in 'Net\Net.Server.pas',
   Net.ServerConnection in 'Net\Net.ServerConnection.pas',
   Update.Core in 'Update\Update.Core.pas',
-  App.Types in 'Core\App.Types.pas',
   Update.Utils in 'Update\Update.Utils.pas',
+  Desktop in 'UI\Desktop.pas',
   Desktop.Controls in 'UI\Desktop.Controls.pas',
+  OpenURL in 'UI\OpenURL.pas',
+  Form.Main in 'UI\Forms\Form.Main.pas' {MainForm},
+  Styles in 'UI\Forms\Styles.pas' {StylesForm},
+  Form.EnterKey in 'UI\Forms\Form.EnterKey.pas' {EnterPrivateKeyForm},
+  Frame.Ticker in 'UI\Forms\Frame.Ticker.pas' {TickerFrame: TFrame},
+  Frame.Explorer in 'UI\Forms\Frame.Explorer.pas' {ExplorerTransactionFrame: TFrame},
+  Frame.History in 'UI\Forms\Frame.History.pas' {HistoryTransactionFrame: TFrame},
   Frame.Reward in 'UI\Forms\Frame.Reward.pas' {RewardFrame: TFrame},
   Frame.Transaction in 'UI\Forms\Frame.Transaction.pas' {TransactionFrame: TFrame},
   Frame.StakingTransaction in 'UI\Forms\Frame.StakingTransaction.pas' {StakingTransactionFrame: TFrame},
   Frame.Navigation in 'UI\Forms\Frame.Navigation.pas' {NavigationFrame: TFrame},
-  EthereumSigner in 'Crypto\EthereumSigner.pas';
+  Frame.Arc in 'UI\Forms\Frame.Arc.pas' {ArcFrame: TFrame};
 
 {$R *.res}
 
@@ -66,18 +66,9 @@ begin
 
   if TUpdateCore.RunAsUpdater then Exit;
 
-  UI := TUICore.Create;
   AppCore := TAppCore.Create;
-  AppCore.Run;
+  UI := TUICore.Create;
 
-  try
-    UI.Run;
-
-//  except on E:Exception do
-//    ShowMessage(E.Message);
-//  end;
-  finally
-    AppCore.Stop;
-  end;
+  UI.Run;
 
 end.

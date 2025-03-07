@@ -20,6 +20,7 @@ type
   ERequestInProgressError = class(Exception);
   EConnectionClosed = class(Exception);
   ENoArchiversAvailableError = class(Exception);
+  ECriticalException = class(Exception);
   EKeyException = class(Exception)
   public const
     INVALID_KEY = 0;
@@ -29,6 +30,9 @@ type
   public
     constructor Create(ErrMsg: string; ErrCode: Integer);
     property ErrorCode: Integer read FErrorCode;
+  end;
+  EBlockchainCorrupted = class(Exception)
+    constructor Create;
   end;
 
 const
@@ -43,11 +47,16 @@ const
 implementation
 
 { EKeyException }
-
 constructor EKeyException.Create(ErrMsg: string; ErrCode: Integer);
 begin
   FErrorCode := ErrCode;
   inherited Create(ErrMsg);
+end;
+
+{ EBlockchainCorrupted }
+constructor EBlockchainCorrupted.Create;
+begin
+  inherited Create('Blockchain corrupted!');
 end;
 
 end.

@@ -44,6 +44,7 @@ type
 
 function GetRwd(FirstBlock: UInt64): TArray<TRewardInfo>;
 function GetRewardTotalInfo(StartIndex: UInt64; AddressId: UInt64): TRewardTotalInfo;
+function GetTxRewards(const AFirstBlockID: UInt64; ATxID: UInt64): TArray<TReward>;
 
 implementation
 
@@ -105,6 +106,30 @@ begin
 
   end;
 
+end;
+
+function GetTxRewards(const AFirstBlockID: UInt64; ATxID: UInt64): TArray<TReward>;
+begin
+  Result := [];
+
+  var BlockSize := SizeOf(TReward);
+  var i := 0;
+  repeat
+    var BytesBlock := TMemBlock<TReward>.ByteArrayFromFile(TReward.FileName,
+      AFirstBlockID + i, 1);
+    var RewardBlock: TMemBlock<TReward> := Copy(BytesBlock, 0, BlockSize);
+    if RewardBlock.Data.TxnId <> ATxID then
+      exit;
+
+    Result := Result + [RewardBlock.Data];
+    Inc(i);
+  until (i = TMemBlock<TReward>.RecordsCount(TReward.FileName)) or (Length(Result) = 4);
+
+  if Result[Length(Result) - 1].RewardType = rtArchiverReward then
+  begin
+    const ArchReward = Result[Length(Result) - 1];
+    Result := [ArchReward] + Copy(Result, 0, Length(Result) - 1);
+  end;
 end;
 
 { TReward }

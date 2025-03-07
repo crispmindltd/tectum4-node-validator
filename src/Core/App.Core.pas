@@ -3,6 +3,19 @@
 interface
 
 uses
+  System.Classes,
+  System.IOUtils,
+  System.Math,
+  System.DateUtils,
+  System.SysUtils,
+  System.Threading,
+  App.Constants,
+  App.Exceptions,
+  App.Intf,
+  App.Types,
+  App.Logs,
+  App.Settings,
+  App.Keystore,
   Blockchain.Data,
   Blockchain.DataCache,
   Blockchain.Txn,
@@ -10,72 +23,36 @@ uses
   Blockchain.Address,
   Blockchain.Reward,
   Blockchain.Utils,
-  App.Constants,
-  App.Exceptions,
-  App.Intf,
-  App.Logs,
-  App.Settings,
   Update.Core,
-  Classes,
-  ClpIAsymmetricCipherKeyPair,
-  ClpIECPrivateKeyParameters,
-  ClpIECPublicKeyParameters,
-  ClpCryptoLibTypes,
-  Crypto,
-  IOUtils,
-  Math,
-  DateUtils,
-  Net.Client,
   Net.Data,
-  Net.Server,
-  Net.Socket,
+  Net.Core,
   Server.HTTP,
   Server.Types,
-  SyncObjs,
-  SysUtils,
-  WordsPool;
+  Crypto;
 
 type
   TAppCore = class(TInterfacedObject, IAppCore)
-  strict private
-    FPrKey: string;
-    FPubKey: string;
-    FAddress: string;
-  public
-
   private
-    FSettings: TSettingsFile;
-    FNodeServer: TNodeServer;
-    FNodeClient: TNodeClient;
+    FSettings: TSettings;
+    FNetCore: TNetCore;
     FHTTPServer: THTTPServer;
     FUpdate: TUpdateCore;
-
+    FKeystore: TKeystore;
  private
     FRewardTotal: TRewardTotalInfo;
-
-    function CheckTickerName(const ATicker: string): Boolean;
-    function CheckShortName(const AShortName: string): Boolean;
+    FStates: TAppStates;
     function CheckAddress(const AHexAddress: string): Boolean;
-    function Remove0x(AAddress: string): string;
-    function SignTransaction(const AToSign: string; const APrivateKey: string): string;
-    function IsURKError(const AText: string): Boolean;
-    function CheckIncomingSign(const ATransBytes: TBytes): Boolean;
-    function InitKeys: Boolean;
     procedure InitBCFiles;
+    function GetStates: TAppStates;
   public
     constructor Create;
     destructor Destroy; override;
-
-    procedure Run;
+    procedure Start;
     procedure Stop;
     procedure Reset;
     function GetPrKey: string;
     function GetPubKey: string;
     function GetAddress: string;
-    function GetNodeServer: TNodeServer;
-    function GetNeedAutoUpdate: Boolean;
-
-    procedure GenNewKeys(var ASeedPhrase, APrKey, APubKey, AAddress: string);
     function DoRecoverKeys(ASeed: string; out APubKey: string;
       out APrKey: string; out AAddress: string): string;
     function GetBlocksCount: Int64;
@@ -89,28 +66,204 @@ type
     function GetStakingReward(AAddress: string): TRewardTotalInfo;
     function GetUserLastTransactions(AAddress: string; Skip,Count: Int64): TArray<TTransactionInfo>;
     function GetLastTransactions(Skip,Count: Int64): TArray<TTransactionInfo>;
-    function TrySaveKeysToFile(APrivateKey: string): Boolean;
+    procedure GenNewKeys(var ASeedPhrase, APrKey, APubKey, AAddress: string);
     procedure ChangePrivateKey(const PrKey: string);
     function DoValidation(const [Ref] ATxn: TMemBlock<TTxn>;
       out ASign: TMemBlock<TValidation>): Boolean;
+    function ServerClientExists(const PubKey: T65Bytes): Boolean;
+    procedure DoHalt(const Reason: string);
 
-    function DoRequestToArchivator(const ACommandCode: Byte; ARequest: TBytes): TBytes;
+    function SendTransaction(ARequest: TBytes): TBytes;
+    procedure SetBlockchainSynchronized(Synchronized: Boolean);
+    function GetNetStats: TNetStatistics;
 
     function GetAppVersion: string;
     function GetAppVersionText: string;
     procedure StartUpdate;
-    procedure WaitForStop;
 
     property PrKey: string read GetPrKey;
     property PubKey: string read GetPubKey;
     property Address: string read GetAddress;
-    property NodeServer: TNodeServer read GetNodeServer;
-    property NeedAutoUpdate: Boolean read GetNeedAutoUpdate;
+    property States: TAppStates read GetStates;
   end;
 
 implementation
 
-{ TAppCore }
+constructor TAppCore.Create;
+begin
+  FStates := [];
+  FSettings := TSettings.Create;
+  FKeystore := TKeystore.Create;
+  Logs := TLog.Create(FSettings.LogsLevel);
+  InitBCFiles;
+  FNetCore := TNetCore.Create(FSettings);
+  FUpdate := TUpdateCore.Create;
+  FUpdate.UpdatesRef := 'https://raw.githubusercontent.com/crispmindltd/tectum4-node-release/refs/heads/main/update/lnode-updates.json';
+  if FSettings.HTTPEnabled then
+    FHTTPServer := THTTPServer.Create;
+end;
+
+destructor TAppCore.Destroy;
+begin
+  FHTTPServer.Free;
+  FNetCore.Free;
+  FSettings.Free;
+  FKeystore.Free;
+  FUpdate.Free;
+  FreeAndNil(Logs);
+  inherited;
+end;
+
+function TAppCore.GetPrKey: string;
+begin
+  Result := FKeystore.PrKey;
+end;
+
+function TAppCore.GetAddress: string;
+begin
+  Result := FKeystore.Address;
+end;
+
+function TAppCore.GetPubKey: string;
+begin
+  Result := FKeystore.PubKey;
+end;
+
+procedure TAppCore.Start;
+begin
+  DataCache.Init;
+  FRewardTotal := Default(TRewardTotalInfo);
+  FKeystore.ReadKeys(FSettings.Address);
+  if Assigned(FHTTPServer) then
+    FHTTPServer.Start(FSettings.HTTPPort);
+  FNetCore.Start;
+  if FSettings.AutoUpdate then
+    FUpdate.StartUpdate;
+end;
+
+procedure TAppCore.Stop;
+begin
+  if Assigned(FHTTPServer) then
+    FHTTPServer.Stop;
+  FNetCore.Stop;
+end;
+
+procedure TAppCore.Reset;
+begin
+  Stop;
+  Start;
+  UI.NotifyNewTETBlocks;
+end;
+
+function TAppCore.GetStates: TAppStates;
+begin
+  Result := FStates;
+end;
+
+procedure TAppCore.DoHalt(const Reason: string);
+begin
+  if not (TAppState.Halted in States) then
+  begin
+    Include(FStates, TAppState.Halted);
+    UI.ShowException('Node stopped: ' + Reason,
+    procedure
+    begin
+      UI.DoTerminate;
+    end);
+  end;
+end;
+
+function TAppCore.ServerClientExists(const PubKey: T65Bytes): Boolean;
+begin
+  Result := FNetCore.ServerClientExists(PubKey);
+end;
+
+function TAppCore.GetAppVersion: string;
+begin
+  Result := FUpdate.AppVersion;
+end;
+
+function TAppCore.GetAppVersionText: string;
+begin
+  Result := GetAppVersion;
+  var S := Result.Split(['.']);
+  if Length(S) > 2 then Result := ''.Join('.', S, 0, 3);
+  Result := Result + ' Beta';
+end;
+
+procedure TAppCore.StartUpdate;
+begin
+  FUpdate.StartUpdate;
+end;
+
+function TAppCore.SendTransaction(ARequest: TBytes): TBytes;
+begin
+  Result := FNetCore.SendRequestToAnyServer(NewTransactionCommandCode, ARequest);
+end;
+
+procedure TAppCore.SetBlockchainSynchronized(Synchronized: Boolean);
+begin
+
+  if Synchronized then
+    Include(FStates, TAppState.Synchronized)
+  else
+    Exclude(FStates, TAppState.Synchronized);
+
+  if TAppState.Synchronized in States then
+    UI.NotifyNewTETBlocks;
+
+end;
+
+function TAppCore.GetNetStats: TNetStatistics;
+begin
+  Result.Servers := FNetCore.GetServerStats;
+  Result.Clients := FNetCore.GetClientsStats;
+end;
+
+procedure TAppCore.InitBCFiles;
+begin
+  const ProgramPath = ExtractFilePath(ParamStr(0));
+  const ChainsDirPath = TPath.Combine(ProgramPath, 'chains');
+  if not DirectoryExists(ChainsDirPath) then
+    TDirectory.CreateDirectory(ChainsDirPath);
+
+  const AddressPath = TPath.Combine(ChainsDirPath, ConstStr.AddressChainFileName);
+  if not TFile.Exists(AddressPath) then
+    TFile.WriteAllText(AddressPath, '');
+  TAccount.Filename := AddressPath;
+
+  const TxnPath = TPath.Combine(ChainsDirPath, ConstStr.TxnFileName);
+  if not TFile.Exists(TxnPath) then
+    TFile.WriteAllText(TxnPath, '');
+  TTxn.Filename := TxnPath;
+
+  const RewardPath = TPath.Combine(ChainsDirPath, ConstStr.RewardFileName);
+  if not TFile.Exists(RewardPath) then
+    TFile.WriteAllText(RewardPath, '');
+  TReward.FileName := RewardPath;
+
+  const ValidationPath = TPath.Combine(ChainsDirPath, ConstStr.ValidationFileName);
+  if not TFile.Exists(ValidationPath) then
+    TFile.WriteAllText(ValidationPath, '');
+  TValidation.FileName := ValidationPath;
+
+end;
+
+function TAppCore.DoRecoverKeys(ASeed: string; out APubKey: string;
+  out APrKey: string; out AAddress: string): string;
+begin
+  Result := FKeystore.DoRecoverKeys(ASeed, APubKey, APrKey, AAddress);
+end;
+
+procedure TAppCore.GenNewKeys(var ASeedPhrase, APrKey, APubKey, AAddress: string);
+begin
+  FKeystore.GenNewKeys(ASeedPhrase, APrKey, APubKey, AAddress);
+end;
+
+procedure TAppCore.ChangePrivateKey(const PrKey: string);
+begin
+   FSettings.Address := FKeystore.ChangePrivateKey(PrKey);
+end;
 
 function TAppCore.CheckAddress(const AHexAddress: string): Boolean;
 const
@@ -127,79 +280,6 @@ begin
   Result := True;
 end;
 
-function TAppCore.CheckIncomingSign(const ATransBytes: TBytes): Boolean;
-var
-  IncomStr: string;
-  Splitted: TArray<string>;
-begin
-  try
-    IncomStr := TEncoding.ANSI.GetString(Copy(ATransBytes, 0, Length(ATransBytes) - 65));
-    Splitted := IncomStr.Trim.Split([' '], '<', '>');
-    Result := ECDSACheckTextSign(Splitted[0].Trim(['<','>']), Splitted[1],
-      Copy(ATransBytes, Length(ATransBytes) - 65, 65));
-  except
-    Result := False;
-  end;
-end;
-
-function TAppCore.CheckShortName(const AShortName: string): Boolean;
-const
-  Acceptable = 'QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm0123456789-., ';
-var
-  i: Integer;
-begin
-  Result := False;
-  if (Length(AShortName) < 3) or (Length(AShortName) > 32) then
-    exit;
-  for i := 1 to Length(AShortName) do
-    if Acceptable.IndexOf(AShortName[i]) = -1 then
-      exit;
-  Result := True;
-end;
-
-function TAppCore.CheckTickerName(const ATicker: string): Boolean;
-const
-  Acceptable = 'QWERTYUIOPASDFGHJKLZXCVBNM1234567890';
-var
-  i: Integer;
-begin
-  Result := False;
-  if (Length(ATicker) < 3) or (Length(ATicker) > 8) or TryStrToInt(ATicker[1], i) then
-    exit;
-  for i := 1 to Length(ATicker) do
-    if Acceptable.IndexOf(ATicker[i]) = -1 then
-      exit;
-  Result := True;
-end;
-
-constructor TAppCore.Create;
-begin
-  FSettings := TSettingsFile.Create;
-  Logs := TLog.Create(FSettings.LogsLevel);
-  InitBCFiles;
-  FNodeServer := TNodeServer.Create;
-  FNodeClient := TNodeClient.Create;
-  FUpdate:=TUpdateCore.Create;
-  FUpdate.UpdatesRef:='https://raw.githubusercontent.com/crispmindltd/tectum4-node-release/refs/heads/main/update/lnode-updates.json';
-
-  if FSettings.EnabledHTTP then
-    FHTTPServer := THTTPServer.Create;
-end;
-
-destructor TAppCore.Destroy;
-begin
-//  Logs.DoLog('Appcore.Destroy', DbgLvlLogs, ltNone);     //
-
-  FUpdate.Free;
-  FNodeServer.Free;
-  FHTTPServer.Free;
-  FNodeClient.Free;
-  FSettings.Free;
-  FreeAndNil(Logs);
-
-  inherited;
-end;
-
 function TAppCore.DoTokenStake(AAddr: string; AAmount: UInt64; APrKey: string): string;
 begin
   if not CheckAddress(AAddr) then
@@ -209,12 +289,7 @@ begin
 
   var LTx:TMemBlock<TTxn> := CreateTx(AAddr, AAddr, AAmount, CalculateFee(AAmount), TTxnType.txStake, TET_Id, APrKey);
 
-  const Answer = DoRequestToArchivator(NewTransactionCommandCode, LTx);
-
-  if Answer[0] = SuccessCode then
-    Result := Crypto.BytesToHex(Copy(Answer, 1))
-  else
-    raise Exception.Create(TEncoding.ANSI.GetString(Answer));
+  Result := Crypto.BytesToHex(SendTransaction(LTx)).ToLower;
 
 end;
 
@@ -227,12 +302,8 @@ begin
 
   var LTx:TMemBlock<TTxn> := CreateTx(AAddr, AAddr, AAmount, CalculateFee(AAmount), TTxnType.txUnStake, TET_Id, APrKey);
 
-  const Answer = DoRequestToArchivator(NewTransactionCommandCode, LTx);
+  Result := Crypto.BytesToHex(SendTransaction(LTx)).ToLower;
 
-  if Answer[0] = SuccessCode then
-    Result := Crypto.BytesToHex(Copy(Answer, 1))
-  else
-    raise Exception.Create(TEncoding.ANSI.GetString(Answer));
 end;
 
 function TAppCore.DoTokenTransfer(AAddrFrom, AAddrTo: string; AAmount: UInt64;
@@ -250,15 +321,7 @@ begin
 
   var LTx:TMemBlock<TTxn> := CreateTx(AAddrFrom, AAddrTo, AAmount, CalculateFee(AAmount), TTxnType.txSend, TET_Id, APrKey);
 
-  const Answer = DoRequestToArchivator(NewTransactionCommandCode, LTx);
-
-  if Length(Answer) = 0 then
-    raise Exception.Create('no answer from archiever');
-
-  if Answer[0] = SuccessCode then
-    Result := Crypto.BytesToHex(Copy(Answer, 1))
-  else
-    raise Exception.Create(TEncoding.ANSI.GetString(Answer));
+  Result := Crypto.BytesToHex(SendTransaction(LTx)).ToLower;
 
 end;
 
@@ -277,12 +340,7 @@ begin
 
   var LTx:TMemBlock<TTxn> := CreateTx(AAddrFrom, AAddrTo, AAmount, {fee=} 0, TTxnType.txMigrate, TET_Id, APrKey);
 
-  const Answer = DoRequestToArchivator(NewTransactionCommandCode, LTx);
-
-  if Answer[0] = SuccessCode then
-    Result := Crypto.BytesToHex(Copy(Answer, 1))
-  else
-    raise Exception.Create(TEncoding.ANSI.GetString(Answer));
+  Result := Crypto.BytesToHex(SendTransaction(LTx)).ToLower;
 
 end;
 
@@ -291,13 +349,7 @@ function TAppCore.DoValidation(const [Ref] ATxn: TMemBlock<TTxn>;
 begin
   Result := ATxn.Data.isSigned;
   if not Result then Exit;
-
   ASign := ATxn.Data.GetValidation(AppCore.PrKey);
-end;
-
-function TAppCore.GetNeedAutoUpdate: Boolean;
-begin
-  Result := FSettings.AutoUpdate;
 end;
 
 function TAppCore.GetBlocksCount: Int64;
@@ -317,19 +369,14 @@ begin
   Result := Min((AAmount div (ADecimals * 10)) + 1, 10);
 end;
 
-function TAppCore.GetNodeServer: TNodeServer;
-begin
-  Result := FNodeServer;
-end;
-
 function TAppCore.GetUserLastTransactions(AAddress: string; Skip,Count: Int64): TArray<TTransactionInfo>;
 begin
-  Result:=GetAccountTxns(AAddress,Skip,Count);
+  Result:=GetAccountTxns(AAddress, Skip,Count);
 end;
 
 function TAppCore.GetLastTransactions(Skip,Count: Int64): TArray<TTransactionInfo>;
 begin
-  Result:=GetTxns(Skip,Count);
+  Result:=GetTxns(Skip, Count);
 end;
 
 function TAppCore.GetTokenBalance(AAddress: string): UInt64;
@@ -364,276 +411,5 @@ begin
 
 end;
 
-procedure TAppCore.InitBCFiles;
-begin
-  const ProgramPath = ExtractFilePath(ParamStr(0));
-  const ChainsDirPath = TPath.Combine(ProgramPath, 'chains');
-  if not DirectoryExists(ChainsDirPath) then
-    TDirectory.CreateDirectory(ChainsDirPath);
-
-  const AddressPath = TPath.Combine(ChainsDirPath, ConstStr.AddressChainFileName);
-  if not TFile.Exists(AddressPath) then
-    TFile.WriteAllText(AddressPath, '');
-  TAccount.Filename := AddressPath;
-
-  const TxnPath = TPath.Combine(ChainsDirPath, ConstStr.TxnFileName);
-  if not TFile.Exists(TxnPath) then
-    TFile.WriteAllText(TxnPath, '');
-  TTxn.Filename := TxnPath;
-
-  const RewardPath = TPath.Combine(ChainsDirPath, ConstStr.RewardFileName);
-  if not TFile.Exists(RewardPath) then
-    TFile.WriteAllText(RewardPath, '');
-  TReward.FileName := RewardPath;
-
-  const ValidationPath = TPath.Combine(ChainsDirPath, ConstStr.ValidationFileName);
-  if not TFile.Exists(ValidationPath) then
-    TFile.WriteAllText(ValidationPath, '');
-  TValidation.FileName := ValidationPath;
-  
-end;
-
-function TAppCore.InitKeys: Boolean;
-var
-  Seed, Path, RestoredKey: string;
-begin
-
-  Path := TPath.Combine(ExtractFilePath(ParamStr(0)), 'keys');
-  ForceDirectories(Path);
-
-  const Address = FSettings.Address;
-
-  if Address.IsEmpty then
-  begin
-
-    var Filenames := TDirectory.GetFiles(Path, '*.txt');
-
-    if Length(Filenames) = 0 then begin
-      GenNewKeys(Seed, FPrKey, FPubKey, FAddress);
-      UI.DoMessage('No keys found. New keys generated and saved in the "keys" folder');
-      Exit(True);
-    end else
-      Path := Filenames[0];
-
-  end else
-     Path := TPath.Combine(Path,Address+'.txt');
-
-  try
-
-    for var L in TFile.ReadAllLines(Path) do
-      if L.StartsWith('private key') then
-        FPrKey := L.Split([':'])[1]
-      else if L.StartsWith('public key') then
-        FPubKey := L.Split([':'])[1];
-
-    Result := RestorePublicKey(FPrKey, RestoredKey) and (CompareText(RestoredKey, FPubKey) = 0);
-
-  except
-    Result:=False;
-  end;
-
-  if Result then
-  begin
-    FAddress := RestoreAddressAsStr(FPubKey);
-    UI.DoMessage(Format('Keys from the file "%s" successfully read',[TPath.GetFileName(Path)]));
-  end;
-
-end;
-
-function TAppCore.IsURKError(const AText: string): Boolean;
-begin
-  Result := AText.StartsWith('URKError');
-end;
-
-function TAppCore.DoRecoverKeys(ASeed: string; out APubKey: string;
-  out APrKey: string; out AAddress: string): string;
-var
-  Keys: IAsymmetricCipherKeyPair;
-  BytesArray: TCryptoLibByteArray;
-begin
-  if (Length(ASeed.Split([' '])) <> 12) then
-    raise EValidError.Create('incorrect seed phrase');
-
-  GenECDSAKeysOnPhrase(ASeed, Keys);
-
-  SetLength(BytesArray, 0);
-  BytesArray := (Keys.Private as IECPrivateKeyParameters).D.ToByteArrayUnsigned;
-  APrKey := BytesToHex(BytesArray).ToLower;
-  BytesArray := (Keys.Public as IECPublicKeyParameters).Q.GetEncoded;
-  APubKey := BytesToHex(BytesArray).ToLower;
-  AAddress := RestoreAddressAsStr(APubKey);
-end;
-
-function TAppCore.DoRequestToArchivator(const ACommandCode: Byte;
-  ARequest: TBytes): TBytes;
-begin
-  Result := FNodeClient.DoRequestToArchiver(ACommandCode, ARequest);
-end;
-
-procedure TAppCore.GenNewKeys(var ASeedPhrase, APrKey, APubKey, AAddress: string);
-var
-  Keys: IAsymmetricCipherKeyPair;
-  BytesArray: TCryptoLibByteArray;
-  SavingPath: string;
-begin
-  ASeedPhrase := GenSeedPhrase;
-  GenECDSAKeysOnPhrase(ASeedPhrase, Keys);
-
-  SetLength(BytesArray, 0);
-  BytesArray := (Keys.Private as IECPrivateKeyParameters).D.ToByteArrayUnsigned;
-  APrKey := BytesToHex(BytesArray).ToLower;
-  BytesArray := (Keys.Public as IECPublicKeyParameters).Q.GetEncoded;
-  APubKey := BytesToHex(BytesArray).ToLower;
-  AAddress := RestoreAddressAsStr(APubKey);
-
-  SavingPath := TPath.Combine(ExtractFilePath(ParamStr(0)), 'keys');
-  if not DirectoryExists(SavingPath) then
-    TDirectory.CreateDirectory(SavingPath);
-  SavingPath := TPath.Combine(SavingPath, AAddress + '.txt');
-  TFile.AppendAllText(SavingPath, 'seed phrase:' + ASeedPhrase + sLineBreak);
-  TFile.AppendAllText(SavingPath, 'public key:' + APubKey + sLineBreak);
-  TFile.AppendAllText(SavingPath, 'private key:' + APrKey + sLineBreak);
-  TFile.AppendAllText(SavingPath, 'address:' + AAddress);
-end;
-
-procedure TAppCore.ChangePrivateKey(const PrKey: string);
-begin
-
-  var PubKeyStr: string;
-
-  if not RestorePublicKey(PrKey, PubKeyStr) then
-    raise EKeyException.Create('Restore public key error',EKeyException.INVALID_KEY);
-
-  const Address = RestoreAddressAsStr(PubKeyStr);
-
-  var KeyFile:=TPath.Combine(TPath.Combine(ExtractFilePath(ParamStr(0)), 'keys'),Address+'.txt');
-
-  if TFile.Exists(KeyFile) then
-    raise EKeyException.Create('Private key already exists',EKeyException.KEYFILE_EXISTS);
-
-  TFile.WriteAllText(KeyFile, 'seed phrase:'+sLineBreak+
-    'public key:' + PubKeyStr + sLineBreak+
-    'private key:' + PrKey + sLineBreak+
-    'address:' + Address);
-
-   FSettings.SetAddress(Address);
-
-end;
-
-function TAppCore.GetPrKey: string;
-begin
-  Result := FPrKey;
-end;
-
-function TAppCore.GetAddress: string;
-begin
-  Result := FAddress;
-end;
-
-function TAppCore.GetPubKey: string;
-begin
-  Result := FPubKey;
-end;
-
-function TAppCore.Remove0x(AAddress: string): string;
-begin
-  if (Length(AAddress) > 40) and AAddress.StartsWith('0x') then
-    Result := AAddress.Substring(2, Length(AAddress))
-  else
-    Result := AAddress;
-end;
-
-procedure TAppCore.Run;
-var
-  splt: TArray<string>;
-begin
-  try
-    DataCache.Init;
-    FSettings.Init;
-    FRewardTotal := Default(TRewardTotalInfo);
-    if not InitKeys then
-      raise Exception.Create('Failed to read keys from file or it is invalid');
-    splt := ListenTo.Split([':']);
-    FNodeServer.Start(splt[0], splt[1].ToInteger);
-    if Assigned(FHTTPServer) then
-      FHTTPServer.Start(HTTPPort);
-    FNodeClient.Start;
-    if GetNeedAutoUpdate then
-      FUpdate.StartUpdate;
-  except
-    on E:Exception do
-    begin
-      Logs.DoLog('Error starting node: ' + E.Message, CmnLvlLogs, ltError);
-      Stop;
-      raise;
-    end;
-  end;
-end;
-
-procedure TAppCore.Reset;
-begin
-  Stop;
-  Run;
-  UI.NotifyNewTETBlocks;
-end;
-
-function TAppCore.TrySaveKeysToFile(APrivateKey: string): Boolean;
-var
-  Path, PubKey: string;
-begin
-  Result := RestorePublicKey(APrivateKey, PubKey);
-  if not Result then
-    exit;
-
-  Path := TPath.Combine(ExtractFilePath(ParamStr(0)), 'keys');
-  if not DirectoryExists(Path) then
-    TDirectory.CreateDirectory(Path);
-  Path := TPath.Combine(Path, 'keys');
-  Path := Format('%s_%s.txt', [Path, PubKey]);
-  TFile.AppendAllText(Path, 'public key:' + PubKey + sLineBreak);
-  TFile.AppendAllText(Path, 'private key:' + APrivateKey + sLineBreak);
-end;
-
-function TAppCore.SignTransaction(const AToSign: string; const APrivateKey: string): string;
-var
-  prKeyBytes: TBytes;
-begin
-  prKeyBytes := HexToBytes(APrivateKey);
-
-  ECDSASignText(AToSign,prKeyBytes,Result);
-end;
-
-function TAppCore.GetAppVersion: string;
-begin
-  Result:=FUpdate.AppVersion;
-end;
-
-function TAppCore.GetAppVersionText: string;
-begin
-  Result := GetAppVersion;
-  var S := Result.Split(['.']);
-  if Length(S)>2 then Result := ''.Join('.',S,0,3);
-  Result := Result + ' Beta';
-end;
-
-procedure TAppCore.StartUpdate;
-begin
-  FUpdate.StartUpdate;
-end;
-
-procedure TAppCore.Stop;
-begin
-//  Logs.DoLog('AppCore.Stop', DbgLvlLogs, ltNone);
-
-  if Assigned(FHTTPServer) then
-    FHTTPServer.Stop;
-  FNodeClient.Stop;
-  FNodeServer.Stop;
-end;
-
-procedure TAppCore.WaitForStop;
-begin
-  FNodeServer.WaitFor;
-end;
-
 end.
+

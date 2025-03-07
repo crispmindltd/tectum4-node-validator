@@ -5,6 +5,7 @@ interface
 uses
   App.Exceptions,
   App.Logs,
+  App.Types,
   Crypto,
   DateUtils,
   System.Classes,
@@ -35,7 +36,7 @@ type
       FLeftToReceive: Integer;
 
       procedure SendResponse(const AReqID: UInt64; const ACommandCode: Byte;
-        const ABytes: TBytes; ALogLvl: Byte; const AToLog: string);
+        const ABytes: TBytes; ALogLvl: Byte);
       function GetResponse(const AReqID: UInt64): TBytes;
       function IsSocketConnected: Boolean;
     protected
@@ -48,8 +49,7 @@ type
 
       procedure WaitForReceive(const ANeedTimeOut: Boolean = False); inline;
       procedure ReceiveCallBack(const ASyncResult: IAsyncResult);
-      procedure SendRequest(const ACommandByte: Byte; const AReqBytes: TBytes;
-        const AToLog: string = '');
+      procedure SendRequest(const ACommandByte: Byte; const AReqBytes: TBytes);
       procedure ProcessIncomRequest(const ARequest: TResponseData);
       procedure WriteResponseData(AResponse: TResponseData);
       procedure CheckForStop;
@@ -75,6 +75,9 @@ type
 
 implementation
 
+uses
+ App.Intf;
+
 { TConnection }
 
 constructor TConnection.Create(ASocket: TSocket; ACommandHandler: TCommandHandler;
@@ -89,7 +92,7 @@ begin
   FReadyToStopEvent.ResetEvent;
   FDiscMsg := '';
   FStatus := 0;
-  FOutgoRequests := TDictionary<UInt64, TOutgoRequestData>.Create(50);
+  FOutgoRequests := TDictionary<UInt64, TOutgoRequestData>.Create(10);
   FIncomRequestsCount := 0;
   FRequestID := 0;
   FBufferBytes := [];
@@ -182,6 +185,9 @@ begin
       TMonitor.Exit(FSocket);
     end;
 
+    Logs.DoLog(GetRemoteAddress, ACommandByte, NewRequestID, AReqBytes, True,
+      ltOutgo);
+
     if DoneEvent.WaitFor(ResponseWaitingTimeout) = wrSignaled then
       Result := GetResponse(NewRequestID)
     else begin
@@ -193,8 +199,7 @@ begin
   end;
 end;
 
-procedure TConnection.SendRequest(const ACommandByte: Byte; const AReqBytes: TBytes;
-  const AToLog: string);
+procedure TConnection.SendRequest(const ACommandByte: Byte; const AReqBytes: TBytes);
 var
   RequestData: TOutgoRequestData;
   NewRequestID: UInt64;
@@ -224,23 +229,12 @@ begin
     TMonitor.Exit(FSocket);
   end;
 
-  if (ACommandByte in [GetTxnsCommandCode..GetRewardsCommandCode]) then
-    LogLvl := NoneLvlLogs
-  else if ACommandByte in NoAnswerNeedCodes then
-    LogLvl := AdvLvlLogs
-  else
-    LogLvl := CmnLvlLogs;
-
-  if AToLog.IsEmpty then
-    Logs.DoLog(Format('<%s>[%d ID %d]', [GetRemoteAddress, ACommandByte,
-      NewRequestID]), LogLvl, ltOutgo)
-  else
-    Logs.DoLog(Format('<%s>[%d ID %d]: %s', [GetRemoteAddress, ACommandByte,
-      NewRequestID, AToLog]), LogLvl, ltOutgo);
+  Logs.DoLog(GetRemoteAddress, ACommandByte, NewRequestID, AReqBytes, True,
+    ltOutgo);
 end;
 
 procedure TConnection.SendResponse(const AReqID: UInt64; const ACommandCode: Byte;
-  const ABytes: TBytes; ALogLvl: Byte; const AToLog: string);
+  const ABytes: TBytes; ALogLvl: Byte);
 begin
   TMonitor.Enter(FSocket);
   try
@@ -250,11 +244,7 @@ begin
     TMonitor.Exit(FSocket);
   end;
 
-  if ACommandCode in [GetTxnsCommandCode..GetRewardsCommandCode] then
-    Logs.DoSyncLog(GetRemoteAddress, ACommandCode, ABytes, DbgLvlLogs, ltOutgo)
-  else
-    Logs.DoLog(Format('<%s>[ID %d]: %s', [GetRemoteAddress, AReqID, AToLog]),
-      ALogLvl, ltOutgo);
+  Logs.DoLog(GetRemoteAddress, ACommandCode, AReqID, ABytes, False, ltOutgo);
 end;
 
 procedure TConnection.Stop;
@@ -277,15 +267,8 @@ begin
   if FIsShuttingDown then
     exit;
 
-  if ARequest.Code in NoAnswerNeedCodes then
-    LogLvl := AdvLvlLogs
-  else if (ARequest.Code in [GetTxnsCommandCode..GetRewardsCommandCode]) then
-    LogLvl := NoneLvlLogs
-  else
-    LogLvl := CmnLvlLogs;
-
-  Logs.DoLog(Format('<%s>[%d ID:%d]: %s', [GetRemoteAddress,
-    ARequest.Code, ARequest.ID, BytesToHex(ARequest.Data)]), LogLvl);
+  Logs.DoLog(GetRemoteAddress, ARequest.Code, ARequest.ID, ARequest.Data,
+    False, ltIncom);
 
   AtomicIncrement(FIncomRequestsCount);
   try
@@ -295,7 +278,7 @@ begin
       const ResBytes = FCommandHandler.ProcessCommand(ARequest, Self);
 
       if ARequest.Code <> CheckVersionCommandCode then
-        SendResponse(ARequest.ID, ARequest.Code, ResBytes, LogLvl, BytesToHex(ResBytes));
+        SendResponse(ARequest.ID, ARequest.Code, ResBytes, LogLvl);
     end;
   finally
     AtomicDecrement(FIncomRequestsCount);
@@ -312,15 +295,8 @@ begin
     Found := FOutgoRequests.TryGetValue(AResponse.ID, ReqData);
     if Found then
     begin
-      if (ReqData.Code in [GetTxnsCommandCode..GetRewardsCommandCode]) then
-        Logs.DoSyncLog(GetRemoteAddress, ReqData.Code, AResponse.Data,
-          DbgLvlLogs)
-      else if ReqData.Code in NoAnswerNeedCodes then
-        Logs.DoLog(Format('<%s>[ID %d]: %s', [GetRemoteAddress,
-          AResponse.ID, BytesToHex(AResponse.Data)]), AdvLvlLogs)
-      else
-        Logs.DoLog(Format('<%s>[ID %d]: %s', [GetRemoteAddress,
-          AResponse.ID, BytesToHex(AResponse.Data)]), CmnLvlLogs);
+      Logs.DoLog(GetRemoteAddress, ReqData.Code, AResponse.ID,
+        AResponse.Data, True, ltIncom);
 
       ReqData.Data := AResponse.Data;
       NeedProcess := not Assigned(ReqData.DoneEvent);

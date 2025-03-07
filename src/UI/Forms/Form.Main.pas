@@ -24,7 +24,8 @@ uses
   Frame.Reward,
   Frame.Transaction,
   Frame.StakingTransaction,
-  Frame.Navigation;
+  Frame.Navigation,
+  Frame.Arc;
 
 type
   TLayout = class(FMX.Layouts.TLayout, IContent)
@@ -273,6 +274,7 @@ type
     TransactionNavigation: TNavigationFrame;
     WaitDataLayout: TRectangle;
     WaitDataLabel: TLabel;
+    WaitFrame: TArcFrame;
     procedure FormShow(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure SendTETButtonClick(Sender: TObject);
@@ -309,6 +311,7 @@ type
     procedure PrivateKeyEditEnter(Sender: TObject);
     procedure TabsChange(Sender: TObject);
   private
+    FFailedConnection: Boolean;
     FBalance: UInt64;
     FStakingBalance: UInt64;
     FStakingMaxAmountText: string;
@@ -333,6 +336,8 @@ type
     procedure StakingContentChanged(Sender: TObject);
   public
     procedure NewTETChainBlocksEvent;
+    procedure DoSynchronize(const Position, Count: UInt64);
+    procedure DoConnectionFailed(const Address: string);
   end;
 
 var
@@ -355,6 +360,7 @@ begin
 
   Caption := 'Tectum Node ' + AppCore.GetAppVersionText;
 
+  FFailedConnection := False;
   FStakingMaxAmountText := StakingMaxAmountLabel.Text;
   FUnstakingMaxAmountText := UnstakingMaxAmountLabel.Text;
 
@@ -363,7 +369,6 @@ begin
   StakeLayout.FOnChanged := StakingContentChanged;
   UnstakeLayout.FOnChanged := StakingContentChanged;
 
-  WaitDataLayout.Visible := True;
   HistoryTETHeaderLayout.Visible := False;
   StakingHeaderLayout.Visible := False;
 
@@ -399,6 +404,18 @@ begin
   TransactionNavigation.OnChange := OnTransactionPageChange;
   TransactionNavigation.PagesCount := 0;
   TransactionNavigation.PageNum := 1;
+
+  if not (TAppState.Synchronized in AppCore.States) then
+  begin
+    WaitFrame.Visible := True;
+    WaitFrame.Reset;
+    WaitFrame.StartAngle := 0;
+    WaitFrame.EndAngle := 280;
+    WaitFrame.AnimateStartAngle := True;
+    WaitFrame.AnimateLoop := True;
+    WaitDataLayout.Visible := True;
+  end else
+    NewTETChainBlocksEvent;
 
 end;
 
@@ -539,6 +556,8 @@ end;
 
 procedure TMainForm.NewTETChainBlocksEvent;
 begin
+  WaitFrame.Visible := False;
+  WaitFrame.AnimateLoop := False;
   WaitDataLayout.Visible := False;
   AddressTETLabel.Text := AppCore.Address;
   RefreshBalances;
@@ -548,6 +567,20 @@ begin
     RefreshUserStaking;
   if ExplorerNavigation.PageNum = 1 then
     RefreshExplorer;
+end;
+
+procedure TMainForm.DoSynchronize(const Position, Count: UInt64);
+begin
+  WaitFrame.AnimateEndAngleTo(Max(30, 360*Min(0.95, Position/Count)));
+end;
+
+procedure TMainForm.DoConnectionFailed(const Address: string);
+begin
+  if not FFailedConnection then
+  begin
+    FFailedConnection := True;
+    UI.ShowWarning('Not connected to ' + Address, nil);
+  end;
 end;
 
 procedure TMainForm.onExplorerFrameClick(Sender: TObject);

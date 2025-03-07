@@ -3,11 +3,11 @@ unit endpoints.Coin;
 interface
 
 uses
+  Blockchain.Address,
+  Blockchain.Txn,
   Blockchain.Data,
   Blockchain.Validation,
   Blockchain.Reward,
-  Blockchain.Txn,
-  Blockchain.Address,
   Crypto,
   App.Exceptions,
   App.Intf,
@@ -22,7 +22,8 @@ uses
   Net.Data,
   server.Types,
   System.SyncObjs,
-  System.SysUtils;
+  System.SysUtils,
+  System.TypInfo;
 
 type
   TCoinEndpoints = class(TEndpointsBase)
@@ -50,10 +51,15 @@ type
 //    function GetTokenBalanceWithTicker(AReqID: string; AEvent: TEvent;
 //      AComType: THTTPCommandType; AParams: TStrings; ABody: string)
 //      : TEndpointResponse;
+    function DoCoinsTransferRequest(AEvent: TEvent; AComType: THTTPCommandType;
+      AParams: TStrings; ABody: string): TEndpointResponse;
     function GetCoinTransferHistory(AEvent: TEvent; AComType: THTTPCommandType;
+      AParams: TStrings; ABody: string): TEndpointResponse;
+    function GetCoinTransferInfo(AEvent: TEvent; AComType: THTTPCommandType;
       AParams: TStrings; ABody: string): TEndpointResponse;
     function GetCoinTransferHistoryUser(AEvent: TEvent; AComType: THTTPCommandType;
       AParams: TStrings; ABody: string): TEndpointResponse;
+
 //    function GetAddressByID(AReqID: string; AEvent: TEvent;
 //      AComType: THTTPCommandType; AParams: TStrings; ABody: string)
 //      : TEndpointResponse;
@@ -174,6 +180,84 @@ begin
 
 end;
 
+function TCoinEndpoints.GetCoinTransferInfo(AEvent: TEvent;
+  AComType: THTTPCommandType; AParams: TStrings; ABody: string): TEndpointResponse;
+var
+  Params: TStringList;
+begin
+  CheckMethod(AComType, hcGET);
+
+  Params := TStringList.Create(dupIgnore, True, False);
+  try
+    Params.AddStrings(AParams);
+    var TxID: UInt64;
+    if AParams.Values['id'].IsEmpty or not TryStrToUInt64(GetStrParameter(AParams, 'id'), TxID) then
+      raise EValidError.Create('request parameters error');
+
+    var JSON := TJSONObject.Create;
+    AddRelease(JSON);
+
+    try
+      const TxInfo = TMemBlock<TTxn>.ReadFromFile(TTxn.Filename, TxID);
+      JSON.AddPair('hash', T32Bytes(TxInfo.Hash()));
+      JSON.AddPair('type', GetEnumName(TypeInfo(TTxnType), Ord(TxInfo.Data.TxnType)));
+      JSON.AddPair('token_id', TJSONNumber.Create(TxInfo.Data.TokenId));
+      JSON.AddPair('block', TJSONNumber.Create(TxID));
+      JSON.AddPair('date', DateTimeToUnix(TxInfo.Data.CreatedAt));
+      JSON.AddPair('sign', TxInfo.Data.SenderSign);
+      JSON.AddPair('sender_address', TxInfo.Data.Sender.Address);
+      JSON.AddPair('sender_pubkey', TxInfo.Data.SenderPubKey);
+      JSON.AddPair('prev_hash', TxInfo.Data.PreviousHash);
+      JSON.AddPair('receiver_address', TxInfo.Data.Receiver.Address);
+      JSON.AddPair('amount', TJSONNumber.Create(TxInfo.Data.Amount));
+      JSON.AddPair('fee', TJSONNumber.Create(TxInfo.Data.Fee.Fee1));
+
+      const ValidsInfo = GetTxValidations(TxInfo.Data.ValidationId, TxID);
+      const RewardsInfo = GetTxRewards(TxInfo.Data.RewardId, TxID);
+      var TotalReward: Integer := 0;
+      for var Reward in RewardsInfo do
+        Inc(TotalReward, Reward.Amount);
+
+      if Length(ValidsInfo) > 0 then
+      begin
+        var InnerJSON := TJSONObject.Create;
+        InnerJSON.AddPair('amount', TJSONNumber.Create(TotalReward));
+
+        var JSONArray := TJSONArray.Create;
+        InnerJSON.AddPair('validators', JSONArray);
+        for var i := 0 to Length(ValidsInfo) - 1 do
+        begin
+          var Item := TJSONObject.Create;
+          Item.AddPair('amount', TJSONNumber.Create(RewardsInfo[i].Amount));
+          const AccInfo = TMemBlock<TAccount>.ReadFromFile(TAccount.Filename,
+            ValidsInfo[i].SignerId);
+          Item.AddPair('address', AccInfo.Data.Address);
+          Item.AddPair('sign', ValidsInfo[i].Sign);
+          Item.AddPair('signer_pubkey', ValidsInfo[i].SignerPubKey);
+          Item.AddPair('started_date', DateTimeToUnix(ValidsInfo[i].StartedAt));
+          Item.AddPair('finished_date', DateTimeToUnix(ValidsInfo[i].FinishedAt));
+
+          if i > 0 then
+            JSONArray.AddElement(Item)
+          else
+            InnerJSON.AddPair('archiver', Item);
+        end;
+        JSON.AddPair('rewards', InnerJSON);
+      end;
+
+    except
+      raise EValidError.Create('transaction does not exist');
+    end;
+
+    Result.Code := HTTP_SUCCESS;
+    Result.Response := JSON.ToString;
+  finally
+    Params.Free;
+    if Assigned(AEvent) then
+      AEvent.SetEvent;
+  end;
+end;
+
 function TCoinEndpoints.GetCoinTransferFee(AEvent: TEvent; AComType: THTTPCommandType;
   AParams: TStrings; ABody: string): TEndpointResponse;
 var
@@ -235,18 +319,18 @@ end;
 function TCoinEndpoints.GetCoinTransferHistory(AEvent: TEvent;
   AComType: THTTPCommandType; AParams: TStrings; ABody: string): TEndpointResponse;
 var
-  JSON, JSONNestedObject: TJSONObject;
+  JSON: TJSONObject;
   JSONArray: TJSONArray;
+  Rows, Skip: Integer;
   Params: TStringList;
-  i, Rows, Skip: Integer;
 begin
+  CheckMethod(AComType, hcGET);
+
   Params := TStringList.Create(dupIgnore, True, False);
   try
-    CheckMethod(AComType, hcGET);
     Params.AddStrings(AParams);
-
-    Rows := GetIntParameter(Params, 'rows', 20);
-    Skip := GetIntParameter(Params, 'skip', 0);
+    Rows := GetIntParameter(AParams, 'rows', 20);
+    Skip := GetIntParameter(AParams, 'skip', 0);
 
     JSON := TJSONObject.Create;
     AddRelease(JSON);
@@ -269,7 +353,6 @@ begin
 
     Result.Code := HTTP_SUCCESS;
     Result.Response := JSON.ToString;
-
   finally
     Params.Free;
     if Assigned(AEvent) then
@@ -350,6 +433,20 @@ begin
   finally
     if Assigned(AEvent) then
       AEvent.SetEvent;
+  end;
+end;
+
+function TCoinEndpoints.DoCoinsTransferRequest(AEvent: TEvent;
+  AComType: THTTPCommandType; AParams: TStrings;
+  ABody: string): TEndpointResponse;
+begin
+  case AComType of
+    hcGET:
+      Result := GetCoinTransferInfo(AEvent, AComType, AParams, ABody);
+    hcPOST:
+      Result := DoCoinTransfer(AEvent, AComType, AParams, ABody);
+    else
+      raise ENotSupportedError.Create('');
   end;
 end;
 

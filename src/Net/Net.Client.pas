@@ -203,12 +203,12 @@ begin
   FClientStoped.ResetEvent;
   FServers.Clear;
 
-  Node := Nodes.GetNodeToConnect;
-  while not Node.IsEmpty do
-  begin
-    Connect(Node);
-    Node := Nodes.GetNodeToConnect;
-  end;
+//  Node := Nodes.GetNodeToConnect;
+//  while not Node.IsEmpty do
+//  begin
+//    Connect(Node);
+//    Node := Nodes.GetNodeToConnect;
+//  end;
 
   FStatus := csStarted;
 end;

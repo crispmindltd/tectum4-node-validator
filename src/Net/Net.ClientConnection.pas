@@ -6,6 +6,7 @@ uses
   App.Exceptions,
   App.Intf,
   App.Logs,
+  App.Types,
   Blockchain.Address,
   Blockchain.Data,
   BlockChain.DataCache,
@@ -13,7 +14,6 @@ uses
   Blockchain.Txn,
   Blockchain.Validation,
   System.Classes,
-  Crypto,
   System.Math,
   Net.CommandHandler,
   Net.Connection,
@@ -42,7 +42,7 @@ type
       procedure SetSyncFlag(AValue: Boolean);
       procedure BreakableSleep(ADuration: Integer);
       procedure BeginSyncChains;
-      function GetBlocksCountBytes<T>(const AFileName: string): TBytes;
+      function GetBlockRequestBytes<T>(const AFileName: string): TBytes;
       procedure SyncData(Data: TSyncData);
 
       procedure DoDisconnect(const AReason: string = ''); override;
@@ -69,18 +69,17 @@ implementation
 
 procedure TClientConnection.BeginSyncChains;
 begin
-  SendRequest(GetRewardsCommandCode, GetBlocksCountBytes<TReward>(TReward.Filename));
-  SendRequest(GetTxnsCommandCode, GetBlocksCountBytes<TTxn>(TTxn.Filename));
-  SendRequest(GetAddressesCommandCode, GetBlocksCountBytes<TAccount>(TAccount.Filename));
-  SendRequest(GetValidationsCommandCode, GetBlocksCountBytes<TValidation>(TValidation.Filename));
+  SendRequest(GetRewardsCommandCode, GetBlockRequestBytes<TReward>(TReward.Filename));
+  SendRequest(GetTxnsCommandCode, GetBlockRequestBytes<TTxn>(TTxn.Filename));
+  SendRequest(GetAddressesCommandCode, GetBlockRequestBytes<TAccount>(TAccount.Filename));
+  SendRequest(GetValidationsCommandCode, GetBlockRequestBytes<TValidation>(TValidation.Filename));
 end;
 
 procedure TClientConnection.BreakableSleep(ADuration: Integer);
 var
   SleepFor: Integer;
 begin
-  while not FIsShuttingDown and (ADuration > 0) do
-  begin
+  while not FIsShuttingDown and (ADuration > 0) do begin
     SleepFor := Min(250, ADuration);
     Dec(ADuration, SleepFor);
     Sleep(SleepFor);
@@ -162,11 +161,18 @@ begin
   end;
 end;
 
-function TClientConnection.GetBlocksCountBytes<T>(
+function TClientConnection.GetBlockRequestBytes<T>(
   const AFileName: string): TBytes;
 begin
   const BlocksCount = TMemBlock<T>.RecordsCount(AFileName);
-  Result := BytesOf(@BlocksCount, 8);
+  var Hash:T32Bytes;
+  if BlocksCount > 0 then begin
+    const LastBlock = TMemBlock<T>.ReadFromFile(AFilename, BlocksCount - 1);
+    Hash := LastBlock.Hash;
+  end else
+    FillChar(Hash, SizeOf(T32Bytes), 0);
+
+  Result := BytesOf(@BlocksCount, 8) + TBytes(Hash);
 end;
 
 function TClientConnection.GetDisconnectMessage: string;
@@ -219,27 +225,34 @@ begin
       FIsShuttingDown := True;
       FDiscMsg := 'archiver has terminated the connection: key is already in use';
     end;
+
+    BlockchainCorruptedErrorCode: begin
+      raise EBlockchainCorrupted.Create();
+    end;
   end;
 end;
 
 procedure TClientConnection.ProcessResponse(const AResponse: TResponseData);
 begin
   case AResponse.Code of
-    GetRewardsCommandCode:
-    begin
+    GetRewardsCommandCode: begin
       TMemBlock<TReward>.ByteArrayToFile(TReward.Filename, AResponse.Data);
-      //todo: update DataCache/
+      var i := 0;
+      while i < Length(AResponse.Data) do begin
+        const reward: TMemBlock<TReward> = Copy(AResponse.Data, i, SizeOf(TReward));
+        DataCache.UpdateCache(reward);
+        Inc(i, SizeOf(TReward));
+      end;
       BreakableSleep(200);
-      if FIsForSync and not FIsShuttingDown then
-      begin
-        SendRequest(GetRewardsCommandCode, GetBlocksCountBytes<TReward>(TReward.Filename));
+      if FIsForSync and not FIsShuttingDown then begin
+        SendRequest(GetRewardsCommandCode, GetBlockRequestBytes<TReward>(TReward.Filename));
         if Length(AResponse.Data) = 0 then SyncData([Rewards]) else FSyncData := [];
       end;
     end;
 
     GetTxnsCommandCode:
     begin
-      var FromID := TMemBlock<TTxn>.RecordsCount(TTxn.Filename);
+      const FromID = TMemBlock<TTxn>.RecordsCount(TTxn.Filename);
       TMemBlock<TTxn>.ByteArrayToFile(TTxn.Filename, AResponse.Data);
       var i := 0;
       while i < Length(AResponse.Data) do
@@ -252,7 +265,7 @@ begin
       BreakableSleep(200);
       if FIsForSync and not FIsShuttingDown then
       begin
-        SendRequest(GetTxnsCommandCode, GetBlocksCountBytes<TTxn>(TTxn.Filename));
+        SendRequest(GetTxnsCommandCode, GetBlockRequestBytes<TTxn>(TTxn.Filename));
         if Length(AResponse.Data) = 0 then SyncData([Transactions]) else FSyncData := [];
       end;
     end;
@@ -263,7 +276,7 @@ begin
       BreakableSleep(200);
       if FIsForSync and not FIsShuttingDown then
       begin
-        SendRequest(GetAddressesCommandCode, GetBlocksCountBytes<TAccount>(TAccount.Filename));
+        SendRequest(GetAddressesCommandCode, GetBlockRequestBytes<TAccount>(TAccount.Filename));
         if Length(AResponse.Data) = 0 then SyncData([Addresses]) else FSyncData := [];
       end;
     end;
@@ -274,7 +287,7 @@ begin
       BreakableSleep(200);
       if FIsForSync and not FIsShuttingDown then
       begin
-        SendRequest(GetValidationsCommandCode, GetBlocksCountBytes<TValidation>(TValidation.Filename));
+        SendRequest(GetValidationsCommandCode, GetBlockRequestBytes<TValidation>(TValidation.Filename));
         if Length(AResponse.Data) = 0 then SyncData([Validations]) else FSyncData := [];
       end;
     end;
