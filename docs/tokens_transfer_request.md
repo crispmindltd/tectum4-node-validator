@@ -12,7 +12,6 @@ To transfer tokens between two addresses.
 | to                | Yes      | Body     | String    | Valid address      | The recipient's wallet address     |
 | amount            | Yes      | Body     | String    | Positive value     | The amount of tokens to transfer   |
 | private_key       | Yes      | Body     | String    | Valid private key  | The private key of the sender      |
-| public_key        | Yes      | Body     | String    | Valid public key   | The public key of the sender       |
 
 #### Example Request in JSON Format
 ```json
@@ -20,8 +19,7 @@ To transfer tokens between two addresses.
   "from": "0x535af33106dcdf40b68348fe227f7bee1347cae6",
   "to": "0x78a53a1aa4bec431a53e6628fe06d34cb8053599",
   "amount": 400,
-  "private_key": "1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d",
-  "public_key": "0p0p0p0p0p0p0p0p0p0p0p0p00p0p0p0p0p0p00p0p0p0p0p0p0p0p00p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0p0"
+  "private_key": "1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d"
 }
 ```
 
