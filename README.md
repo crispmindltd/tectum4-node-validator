@@ -30,26 +30,26 @@ Tectum Blockchain Node supports the following types of requests:
 
 ### Coin operations: ###
 
--   **[POST /coins/transfer](docs/tokens_transfer_request.md)**: To transfer TET between two addresses
--   **GET /coins/transfer?id=N**: Retrieve full information of transfer for the TET
--   **[POST /coins/stake](docs/tokens_stake_request.md)**: Staking TET to become a network validator
--   **POST /coins/migrate**: Migrate TET to new address
--   **[GET /coins/transfers](docs/token_transfer_history.md)**: Retrieve the transfer history for the TET
--   **[GET /coins/balance/byaddress](docs/token_balance_request.md)**: Retrieve TET balance by address
--   **[GET /coins/transfers/user](docs/tet_transfer_history_user.md)**: Retrieve the TET transfer history for a specific user
+-   **[POST /coins/transfer](docs/coin_operations/POST_coins_transfer.md)**: To transfer TET between two addresses
+-   **[GET /coins/transfer?id=N](docs/coin_operations/GET_coins_transfers.md)**: Retrieve full information of transfer for the TET
+-   **[POST /coins/stake](docs/coin_operations/POST_coins_stake.md)**: Staking TET to become a network validator
+-   **[POST /coins/migrate](docs/coin_operations/POST_coins_migrate.md)**: Migrate TET to new address
+-   **[GET /coins/transfers](docs/coin_operations/GET_coins_transfers.md)**: Retrieve the transfer history for the TET
+-   **[GET /coins/balance/byaddress](docs/coin_operations/GET_coins_balance_byAddress.md)**: Retrieve TET balance by address
+-   **[GET /coins/transfers/user](docs/coin_operations/GET_coins_transfers_user.md)**: Retrieve the TET transfer history for a specific user
 
 ### Key management: ###
 
--   **[GET /keys/new](docs/keys_generate_request.md)**: Generate a private/public key pair
--   **[POST /keys/recover](docs/keys_recovery_request.md)**: Recover keys using a seed phrase
+-   **[GET /keys/new](docs/key_management/GET_keys_generate.md)**: Generate a private/public key pair
+-   **[POST /keys/recover](docs/key_management/POST_keys_recovery.md)**: Recover keys using a seed phrase
 
 ### Settings: ###
 
--   **[GET /version](docs/version_request.md)**: View node version
+-   **[GET /version](docs/settings/GET_version_request.md)**: View node version
 
 ### Blocks: ###
 
--   **[GET /blockscount](docs/block_count.md)**: Retrieve the total count of blocks in the blockchain
+-   **[GET /blockscount](docs/blocks/GET_blocks_count.md)**: Retrieve the total count of blocks in the blockchain
 
 
 ## Settings.ini ##
@@ -83,4 +83,3 @@ Settings level logs. If you want view all logs you need set `logs_level=3`
 [settings]
 logs_level=3
 ```
-
