@@ -8,12 +8,12 @@ Get a certain amount of transactions for a coin.
 ### Request Parameters
 | Parameter      | Required | Location | Data Type | Constraints     | Description                                      |
 | -------------- | -------- | -------- | --------- | --------------- | ------------------------------------------------ |
-| row            | Yes      | Query    | Integer   | Positive value  | Number of transactions                           |
+| rows           | Yes      | Query    | Integer   | Positive value  | Number of transactions                           |
 | skip           | Yes      | Query    | Integer   | Positive value  | Sheet number                                     |
 
 #### Example Request
 ```
-GET /coins/transfers?row=20&skip=0
+GET /coins/transfers?rows=20&skip=0
 ```
 
 ### Response Parameters
