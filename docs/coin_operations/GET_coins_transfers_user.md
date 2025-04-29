@@ -8,12 +8,12 @@ Get a certain amount of transactions for a cryptocurrency address.
 ### Request Parameters
 | Parameter      | Required | Location | Data Type | Constraints                | Description                                      |
 | -------------- | -------- | -------- | --------- | -------------------------- | ------------------------------------------------ |
-| row            | Yes      | Query    | Integer   | Positive value             | Number of transactions                           |
+| rows           | Yes      | Query    | Integer   | Positive value             | Number of transactions                           |
 | address        | Yes      | Query    | String    | Valid address (42 words)   | User's cryptocurrency address                    |
 
 #### Example Request
 ```
-GET /coins/transfers/user?row=20&skip=0&address=0xe19e5829389d9dc5731fb807dde6de3fbe3d5a11
+GET /coins/transfers/user?rows=20&skip=0&address=0xe19e5829389d9dc5731fb807dde6de3fbe3d5a11
 ```
 
 ### Response Parameters
