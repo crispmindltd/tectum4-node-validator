@@ -1,15 +1,15 @@
-# Welcome to MAINNET Tectum Blockchain Node v4.0 Beta! #
+# Welcome to MAIN NET Tectum Blockchain Node v4.1 beta! #
 
 ## Description ##
 
 Tectum Blockchain Node is a component of the Tectum blockchain designed to provide access to the functionality of the blockchain network. Anyone who downloads and runs this node becomes a full participant in the Tectum network and can take advantage of all its benefits.
 
 The network node offers the following functionalities for participants:
-1. Token management (in development).
+1. Token management.
 2. Transaction processing.
 3. User key management.
 4. Becoming a validator.
-5. Coin (TET) staking.
+5. Token staking.
 6. Viewing blockchain chains.
 
 ## Web Server ##
@@ -31,12 +31,22 @@ Tectum Blockchain Node supports the following types of requests:
 ### Coin operations: ###
 
 -   **[POST /coins/transfer](docs/coin_operations/POST_coins_transfer.md)**: To transfer TET between two addresses
--   **[GET /coins/transfer?id=N](docs/coin_operations/GET_coins_transfers.md)**: Retrieve full information of transfer for the TET
--   **[POST /coins/stake](docs/coin_operations/POST_coins_stake.md)**: Staking TET to become a network validator
--   **[POST /coins/migrate](docs/coin_operations/POST_coins_migrate.md)**: Migrate TET to new address
+-   **[POST /coins/transfer/create-sign](docs/coin_operations/POST_coins_transfer_create_sign.md)**: Generating a signed transaction
+-   **[POST /coins/transfer/sign](docs/coin_operations/POST_coins_transfer_sign.md)**: Sending a signed transaction to the network
+-   **[GET /coins/transfer?id=N](docs/coin_operations/GET_coins_transfers_id.md)**: Retrieve full information of transfer for the TET
 -   **[GET /coins/transfers](docs/coin_operations/GET_coins_transfers.md)**: Retrieve the transfer history for the TET
+-   **[POST /coins/stake](docs/coin_operations/POST_coins_stake.md)**: Staking TET to become a network validator
+-   **[POST /coins/unstake](docs/coin_operations/POST_coins_unstake.md)**: Withdrawal of funds from staking
+-   **[POST /coins/migrate](docs/coin_operations/POST_coins_migrate.md)**: Migrate TET to new address
 -   **[GET /coins/balance/byaddress](docs/coin_operations/GET_coins_balance_byAddress.md)**: Retrieve TET balance by address
 -   **[GET /coins/transfers/user](docs/coin_operations/GET_coins_transfers_user.md)**: Retrieve the TET transfer history for a specific user
+
+### Token operations: ###
+
+- **[GET /token/balance/byaddress](docs/coin_operations/GET_token_balance_byAddress.md)**: Get the token balance by the cryptocurrency address
+- **[POST /token/mint](docs/coin_operations/POST_token_mint.md)**: Creating a new token
+- **[GET /token/info](docs/coin_operations/GET_token_info.md)**: Getting token information by ticker
+- **[POST /token/transfer](docs/coin_operations/POST_token_transfer.md)**: Transfer tokens between two cryptocurrency addresses
 
 ### Key management: ###
 
@@ -46,10 +56,12 @@ Tectum Blockchain Node supports the following types of requests:
 ### Settings: ###
 
 -   **[GET /version](docs/settings/GET_version_request.md)**: View node version
+-   **[GET /net](docs/settings/GET_archivers_info.md)**: Getting information about archivers
 
 ### Blocks: ###
 
 -   **[GET /blockscount](docs/blocks/GET_blocks_count.md)**: Retrieve the total count of blocks in the blockchain
+-   **[GET /blocks]**: Retrieve the array of blocks
 
 
 ## Settings.ini ##

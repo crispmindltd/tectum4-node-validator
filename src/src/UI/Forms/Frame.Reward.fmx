@@ -1,0 +1,42 @@
+object RewardFrame: TRewardFrame
+  Align = Top
+  Size.Width = 524.000000000000000000
+  Size.Height = 32.000000000000000000
+  Size.PlatformDefault = False
+  object BackRectangle: TRectangle
+    Align = Left
+    Margins.Top = 5.000000000000000000
+    Margins.Bottom = 5.000000000000000000
+    Position.X = 297.000000000000000000
+    Position.Y = 5.000000000000000000
+    Size.Width = 120.000000000000000000
+    Size.Height = 22.000000000000000000
+    Size.PlatformDefault = False
+    Stroke.Thickness = 0.000000000000000000
+    XRadius = 2.000000000000000000
+    YRadius = 2.000000000000000000
+    object AmountText: TText
+      Align = HorzCenter
+      Size.Width = 120.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'Amount'
+      TextSettings.Font.Family = 'Inter'
+      TextSettings.Font.Size = 15.000000000000000000
+      TextSettings.FontColor = xFF1E2022
+      TextSettings.WordWrap = False
+    end
+  end
+  object AddressText: TText
+    Align = MostLeft
+    Size.Width = 297.000000000000000000
+    Size.Height = 32.000000000000000000
+    Size.PlatformDefault = False
+    Text = 'Address'
+    TextSettings.Font.Family = 'Inter'
+    TextSettings.Font.Size = 15.000000000000000000
+    TextSettings.FontColor = xFF1E2022
+    TextSettings.WordWrap = False
+    TextSettings.HorzAlign = Leading
+  end
+end

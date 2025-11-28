@@ -1,0 +1,31 @@
+FROM ubuntu:latest 
+
+# Установка зависимостей
+RUN apt update && apt install -y \
+    build-essential \
+    wget \
+    tar \
+    zlib1g-dev \
+	iputils-ping \
+	telnet \
+	mc \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN wget https://github.com/openssl/openssl/releases/download/openssl-3.5.0/openssl-3.5.0.tar.gz -O /tmp/openssl.tar.gz \
+    && tar -xzf /tmp/openssl.tar.gz -C /tmp/ \
+    && cd /tmp/openssl-3.5.0 \
+    && ./config --prefix=/opt/openssl-3.5 --openssldir=/opt/openssl-3.5 no-shared \
+    && make -j$(nproc) \
+    && make install \
+    && rm -rf /tmp/openssl*
+
+ENV PATH="/opt/openssl-3.5/bin:${PATH:-/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin}"
+ENV LD_LIBRARY_PATH="/opt/openssl-3.5/lib64"
+
+WORKDIR /app
+
+COPY settings.ini /app/settings.ini
+COPY validator/Linux64/Release/ctectumnode /app/
+COPY validator/run.sh /app/run.sh
+RUN chmod +x /app/ctectumnode
+RUN chmod +x /app/run.sh

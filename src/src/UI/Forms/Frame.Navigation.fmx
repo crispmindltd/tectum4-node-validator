@@ -1,0 +1,99 @@
+object NavigationFrame: TNavigationFrame
+  Size.Width = 573.000000000000000000
+  Size.Height = 36.000000000000000000
+  Size.PlatformDefault = False
+  object PagesPanelLayout: TLayout
+    Align = Client
+    Size.Width = 355.000000000000000000
+    Size.Height = 36.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 2
+    object PageText: TText
+      Align = Left
+      AutoSize = True
+      Margins.Left = 4.000000000000000000
+      Margins.Top = 2.000000000000000000
+      Margins.Right = 4.000000000000000000
+      Margins.Bottom = 4.000000000000000000
+      Position.X = 4.000000000000000000
+      Position.Y = 2.000000000000000000
+      Size.Width = 22.765151977539060000
+      Size.Height = 19.363636016845700000
+      Size.PlatformDefault = False
+      Text = '10'
+      TextSettings.Font.Family = 'Inter'
+      TextSettings.Font.Size = 16.000000000000000000
+      TextSettings.FontColor = xFF5A6773
+      TextSettings.WordWrap = False
+      TextSettings.HorzAlign = Leading
+    end
+  end
+  object NextPageLayout: TLayout
+    Align = Right
+    Cursor = crHandPoint
+    HitTest = True
+    Position.X = 379.000000000000000000
+    Size.Width = 24.000000000000000000
+    Size.Height = 36.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 3
+    OnClick = NextPageLayoutClick
+    object NextPagePath: TPath
+      Align = Center
+      Data.Path = {
+        03000000000000002540953F65AA2A410100000051A5BA4058FFBF4001000000
+        2540953FF0A7AA3F}
+      Enabled = False
+      Fill.Kind = None
+      HitTest = False
+      Size.Width = 7.000000000000000000
+      Size.Height = 14.000000000000000000
+      Size.PlatformDefault = False
+      Stroke.Color = xFF5A6773
+      Stroke.Thickness = 2.500000000000000000
+      Stroke.Cap = Round
+    end
+  end
+  object PrevPageLayout: TLayout
+    Align = MostLeft
+    Cursor = crHandPoint
+    HitTest = True
+    Size.Width = 24.000000000000000000
+    Size.Height = 36.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    OnClick = PrevPageLayoutClick
+    object PrevPagePath: TPath
+      Align = Center
+      Data.Path = {
+        03000000000000002540953F65AA2A410100000051A5BA4058FFBF4001000000
+        2540953FF0A7AA3F}
+      Enabled = False
+      Fill.Kind = None
+      HitTest = False
+      RotationAngle = 180.000000000000000000
+      Size.Width = 7.000000000000000000
+      Size.Height = 14.000000000000000000
+      Size.PlatformDefault = False
+      Stroke.Color = xFF5A6773
+      Stroke.Thickness = 2.500000000000000000
+      Stroke.Cap = Round
+    end
+  end
+  object PageEdit: TEdit
+    Touch.InteractiveGestures = [LongTap, DoubleTap]
+    Align = MostRight
+    TabOrder = 0
+    MaxLength = 8
+    FilterChar = '0123456789'
+    TextSettings.HorzAlign = Center
+    Position.X = 423.000000000000000000
+    Margins.Left = 20.000000000000000000
+    Size.Width = 150.000000000000000000
+    Size.Height = 36.000000000000000000
+    Size.PlatformDefault = False
+    TextPrompt = 'Enter page number'
+    KillFocusByReturn = True
+    OnKeyDown = PageEditKeyDown
+  end
+end
