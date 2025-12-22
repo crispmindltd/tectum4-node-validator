@@ -2,7 +2,7 @@ object MainForm: TMainForm
   Left = 0
   Top = 0
   Caption = 'LNode'
-  ClientHeight = 909
+  ClientHeight = 900
   ClientWidth = 1200
   Fill.Color = xFFE7E7E7
   Fill.Kind = Solid
@@ -26,7 +26,7 @@ object MainForm: TMainForm
     Margins.Top = 30.000000000000000000
     Margins.Right = 53.000000000000000000
     Size.Width = 1094.000000000000000000
-    Size.Height = 879.000000000000000000
+    Size.Height = 870.000000000000000000
     Size.PlatformDefault = False
     StyleLookup = 'AuthTabControlstyle'
     TabIndex = 0
@@ -35,17 +35,17 @@ object MainForm: TMainForm
     OnChange = TabsChange
     Sizes = (
       1089s
-      848s
+      839s
       1089s
-      848s
+      839s
       1089s
-      848s
+      839s
       1089s
-      848s
+      839s
       1089s
-      848s
+      839s
       1089s
-      848s)
+      839s)
     object TectumTabItem: TTabItem
       CustomIcon = <
         item
@@ -68,7 +68,7 @@ object MainForm: TMainForm
         Align = Client
         Margins.Top = 55.000000000000000000
         Size.Width = 1089.000000000000000000
-        Size.Height = 793.000000000000000000
+        Size.Height = 784.000000000000000000
         Size.PlatformDefault = False
         StyleLookup = 'AuthTabControlstyle'
         TabIndex = 0
@@ -76,9 +76,9 @@ object MainForm: TMainForm
         TabPosition = None
         Sizes = (
           1089s
-          793s
+          784s
           1089s
-          793s)
+          784s)
         object TECTabItemData: TTabItem
           CustomIcon = <
             item
@@ -294,7 +294,7 @@ object MainForm: TMainForm
               Text = 'Amount'
               TabOrder = 1
             end
-            object StatusTECHeaderLabel: TLabel
+            object TypeTECHeaderLabel: TLabel
               Align = Left
               StyledSettings = [Style]
               Margins.Left = 5.000000000000000000
@@ -305,7 +305,7 @@ object MainForm: TMainForm
               TextSettings.Font.Family = 'Inter'
               TextSettings.Font.Size = 14.000000000000000000
               TextSettings.FontColor = xFF1E2022
-              Text = 'Status'
+              Text = 'Type'
               TabOrder = 0
             end
             object TECAddressToHeaderLabel: TLabel
@@ -345,7 +345,7 @@ object MainForm: TMainForm
             StyledSettings = []
             Opacity = 0.750000000000000000
             Size.Width = 1089.000000000000000000
-            Size.Height = 355.000000000000000000
+            Size.Height = 346.000000000000000000
             Size.PlatformDefault = False
             TextSettings.Font.Family = 'Inter'
             TextSettings.Font.Size = 32.000000000000000000
@@ -479,17 +479,17 @@ object MainForm: TMainForm
             Margins.Top = 10.000000000000000000
             Margins.Bottom = 20.000000000000000000
             Size.Width = 1089.000000000000000000
-            Size.Height = 325.000000000000000000
+            Size.Height = 316.000000000000000000
             Size.PlatformDefault = False
             TabOrder = 7
             OnResized = HistoryTECVertScrollBoxResized
             Viewport.Width = 1089.000000000000000000
-            Viewport.Height = 325.000000000000000000
+            Viewport.Height = 316.000000000000000000
           end
           object TransactionNavigationLayout: TLayout
             Align = Bottom
             Margins.Bottom = 15.000000000000000000
-            Position.Y = 750.000000000000000000
+            Position.Y = 741.000000000000000000
             Size.Width = 1089.000000000000000000
             Size.Height = 28.000000000000000000
             Size.PlatformDefault = False
@@ -540,7 +540,7 @@ object MainForm: TMainForm
           inline TransactionFrame2: TTransactionFrame
             Align = Client
             Size.Width = 1089.000000000000000000
-            Size.Height = 793.000000000000000000
+            Size.Height = 784.000000000000000000
             Size.PlatformDefault = False
             inherited TECTransactionDetailsLayout: TLayout
               Size.Width = 1089.000000000000000000
@@ -581,15 +581,18 @@ object MainForm: TMainForm
                 Size.Width = 1059.000000000000000000
               end
               inherited TECDetailsLayout: TLayout
+                Position.Y = 583.000000000000000000
                 Size.Width = 1059.000000000000000000
               end
               inherited TECInfoDetailsLayout: TLayout
                 Size.Width = 1059.000000000000000000
               end
               inherited TECFeeDetailsLayout: TLayout
+                Position.Y = 320.000000000000000000
                 Size.Width = 1059.000000000000000000
               end
               inherited FeeRewardLayout: TLayout
+                Position.Y = 386.000000000000000000
                 Size.Width = 1059.000000000000000000
                 inherited RewardsLayout: TLayout
                   Size.Width = 859.000000000000000000
@@ -608,6 +611,14 @@ object MainForm: TMainForm
                 end
               end
               inherited AddressToLayout: TLayout
+                Size.Width = 1059.000000000000000000
+              end
+              inherited LiquidityAmountLayout: TLayout
+                Position.Y = 626.000000000000000000
+                Size.Width = 1059.000000000000000000
+              end
+              inherited TECReceivedLayout: TLayout
+                Position.Y = 363.000000000000000000
                 Size.Width = 1059.000000000000000000
               end
             end
@@ -638,7 +649,7 @@ object MainForm: TMainForm
         Align = Client
         Margins.Top = 55.000000000000000000
         Size.Width = 1089.000000000000000000
-        Size.Height = 793.000000000000000000
+        Size.Height = 784.000000000000000000
         Size.PlatformDefault = False
         StyleLookup = 'AuthTabControlstyle'
         TabIndex = 0
@@ -646,9 +657,9 @@ object MainForm: TMainForm
         TabPosition = None
         Sizes = (
           1089s
-          793s
+          784s
           1089s
-          793s)
+          784s)
         object StakingMainTabItem: TTabItem
           CustomIcon = <
             item
@@ -738,7 +749,7 @@ object MainForm: TMainForm
               Text = 'Amount'
               TabOrder = 1
             end
-            object HeaderStakingStatusLabel: TLabel
+            object HeaderStakingTypeLabel: TLabel
               Align = Left
               StyledSettings = [Style]
               Margins.Left = 5.000000000000000000
@@ -749,7 +760,7 @@ object MainForm: TMainForm
               TextSettings.Font.Family = 'Inter'
               TextSettings.Font.Size = 14.000000000000000000
               TextSettings.FontColor = xFF1E2022
-              Text = 'Status'
+              Text = 'Type'
               TabOrder = 0
             end
           end
@@ -776,7 +787,7 @@ object MainForm: TMainForm
             StyledSettings = []
             Opacity = 0.750000000000000000
             Size.Width = 1089.000000000000000000
-            Size.Height = 325.000000000000000000
+            Size.Height = 316.000000000000000000
             Size.PlatformDefault = False
             TextSettings.Font.Family = 'Inter'
             TextSettings.Font.Size = 32.000000000000000000
@@ -792,12 +803,12 @@ object MainForm: TMainForm
             Margins.Top = 10.000000000000000000
             Margins.Bottom = 20.000000000000000000
             Size.Width = 1089.000000000000000000
-            Size.Height = 295.000000000000000000
+            Size.Height = 286.000000000000000000
             Size.PlatformDefault = False
             TabOrder = 5
             OnResized = StakingScrollBoxResized
             Viewport.Width = 1089.000000000000000000
-            Viewport.Height = 295.000000000000000000
+            Viewport.Height = 286.000000000000000000
           end
           object StakingLayout: TLayout
             Align = Top
@@ -1158,7 +1169,7 @@ object MainForm: TMainForm
           object StakingNavigationLayout: TLayout
             Align = Bottom
             Margins.Bottom = 15.000000000000000000
-            Position.Y = 750.000000000000000000
+            Position.Y = 741.000000000000000000
             Size.Width = 1089.000000000000000000
             Size.Height = 28.000000000000000000
             Size.PlatformDefault = False
@@ -1209,7 +1220,7 @@ object MainForm: TMainForm
           inline TransactionFrame3: TTransactionFrame
             Align = Client
             Size.Width = 1089.000000000000000000
-            Size.Height = 793.000000000000000000
+            Size.Height = 784.000000000000000000
             Size.PlatformDefault = False
             inherited TECTransactionDetailsLayout: TLayout
               Size.Width = 1089.000000000000000000
@@ -1261,15 +1272,18 @@ object MainForm: TMainForm
                 Size.Width = 1059.000000000000000000
               end
               inherited TECDetailsLayout: TLayout
+                Position.Y = 583.000000000000000000
                 Size.Width = 1059.000000000000000000
               end
               inherited TECInfoDetailsLayout: TLayout
                 Size.Width = 1059.000000000000000000
               end
               inherited TECFeeDetailsLayout: TLayout
+                Position.Y = 320.000000000000000000
                 Size.Width = 1059.000000000000000000
               end
               inherited FeeRewardLayout: TLayout
+                Position.Y = 386.000000000000000000
                 Size.Width = 1059.000000000000000000
                 inherited RewardsLayout: TLayout
                   Size.Width = 859.000000000000000000
@@ -1288,6 +1302,14 @@ object MainForm: TMainForm
                 end
               end
               inherited AddressToLayout: TLayout
+                Size.Width = 1059.000000000000000000
+              end
+              inherited LiquidityAmountLayout: TLayout
+                Position.Y = 626.000000000000000000
+                Size.Width = 1059.000000000000000000
+              end
+              inherited TECReceivedLayout: TLayout
+                Position.Y = 363.000000000000000000
                 Size.Width = 1059.000000000000000000
               end
             end
@@ -1319,17 +1341,20 @@ object MainForm: TMainForm
         Align = Client
         Margins.Top = 55.000000000000000000
         Size.Width = 1089.000000000000000000
-        Size.Height = 793.000000000000000000
+        Size.Height = 784.000000000000000000
         Size.PlatformDefault = False
         StyleLookup = 'AuthTabControlstyle'
         TabIndex = 0
         TabOrder = 0
         TabPosition = None
+        OnChange = TokenTabControlChange
         Sizes = (
           1089s
-          793s
+          784s
           1089s
-          793s)
+          784s
+          1089s
+          784s)
         object TokenTabItemData: TTabItem
           CustomIcon = <
             item
@@ -1348,7 +1373,7 @@ object MainForm: TMainForm
             Margins.Top = 5.000000000000000000
             Position.Y = 5.000000000000000000
             Size.Width = 1089.000000000000000000
-            Size.Height = 124.000000000000000000
+            Size.Height = 164.000000000000000000
             Size.PlatformDefault = False
             TabOrder = 1
             object AddressTokenLabel: TLabel
@@ -1362,9 +1387,8 @@ object MainForm: TMainForm
               TextSettings.Font.Size = 15.000000000000000000
               TextSettings.FontColor = xFF323130
               TextSettings.WordWrap = False
-              Text = 'Token address value'
-              Visible = False
-              TabOrder = 1
+              Text = '0xbe07ae854e6a72bac492674a00ad6990bd228041'
+              TabOrder = 0
             end
             object BalanceTokenLabel: TLabel
               Align = Top
@@ -1378,30 +1402,95 @@ object MainForm: TMainForm
               TextSettings.FontColor = xFF323130
               TextSettings.WordWrap = False
               Text = 'Balance'
-              TabOrder = 2
+              TabOrder = 1
             end
-            object BalanceTokenValueLabel: TLabel
+            object BalanceTokenValueLayout: TLayout
               Align = Top
-              AutoSize = True
-              StyledSettings = []
               Margins.Top = 2.000000000000000000
               Position.Y = 24.000000000000000000
               Size.Width = 1089.000000000000000000
               Size.Height = 37.000000000000000000
               Size.PlatformDefault = False
-              TextSettings.Font.Family = 'Inter'
-              TextSettings.Font.Size = 30.000000000000000000
-              TextSettings.Font.StyleExt = {00070000000000000004000000}
-              TextSettings.FontColor = xFF323130
-              TextSettings.WordWrap = False
-              Text = 'Balance value'
-              TabOrder = 0
+              TabOrder = 2
+              object TokenIconImage: TImage
+                MultiResBitmap = <
+                  item
+                  end>
+                Align = Left
+                Size.Width = 37.000000000000000000
+                Size.Height = 37.000000000000000000
+                Size.PlatformDefault = False
+              end
+              object BalanceTokenValueLabel: TLabel
+                Align = Client
+                AutoSize = True
+                StyledSettings = []
+                Margins.Left = 10.000000000000000000
+                Margins.Top = 2.000000000000000000
+                Size.Width = 1042.000000000000000000
+                Size.Height = 35.000000000000000000
+                Size.PlatformDefault = False
+                TextSettings.Font.Family = 'Inter'
+                TextSettings.Font.Size = 30.000000000000000000
+                TextSettings.Font.StyleExt = {00070000000000000004000000}
+                TextSettings.FontColor = xFF323130
+                TextSettings.WordWrap = False
+                Text = 'Balance value'
+                TabOrder = 0
+              end
+            end
+            object BurnTokenLayout: TLayout
+              Align = Top
+              Margins.Top = 5.000000000000000000
+              Position.Y = 93.000000000000000000
+              Size.Width = 1089.000000000000000000
+              Size.Height = 60.000000000000000000
+              Size.PlatformDefault = False
+              TabOrder = 8
+              object BurnTokenRateLabel: TLabel
+                Align = Top
+                StyledSettings = [Style]
+                Size.Width = 1089.000000000000000000
+                Size.Height = 17.000000000000000000
+                Size.PlatformDefault = False
+                TextSettings.Font.Family = 'Inter'
+                TextSettings.Font.Size = 14.000000000000000000
+                TextSettings.FontColor = xFF487BFF
+                TextSettings.WordWrap = False
+                Text = 'Rate:'
+                TabOrder = 9
+              end
+              object BurnTokenButton: TButton
+                StyledSettings = []
+                Position.X = -1.000000000000000000
+                Position.Y = 25.000000000000000000
+                Size.Width = 170.000000000000000000
+                Size.Height = 35.000000000000000000
+                Size.PlatformDefault = False
+                StyleLookup = 'Buttonstyle'
+                TabOrder = 5
+                Text = 'Burn'
+                TextSettings.Font.Family = 'Inter'
+                TextSettings.Font.Size = 14.000000000000000000
+                TextSettings.FontColor = claWhite
+                TextSettings.Trimming = None
+                OnClick = BurnTokenButtonClick
+                object BurnTokenAniIndicator: TAniIndicator
+                  Align = Right
+                  Margins.Right = -40.000000000000000000
+                  Position.X = 175.000000000000000000
+                  Size.Width = 35.000000000000000000
+                  Size.Height = 35.000000000000000000
+                  Size.PlatformDefault = False
+                  Visible = False
+                end
+              end
             end
           end
           object HistoryTokenHeaderLayout: TLayout
             Align = Top
             Margins.Top = 20.000000000000000000
-            Position.Y = 421.000000000000000000
+            Position.Y = 461.000000000000000000
             Size.Width = 1089.000000000000000000
             Size.Height = 28.000000000000000000
             Size.PlatformDefault = False
@@ -1460,7 +1549,7 @@ object MainForm: TMainForm
               Text = 'Hash'
               TabOrder = 2
             end
-            object StatusTokenHeaderLabel: TLabel
+            object TypeTokenHeaderLabel: TLabel
               Align = Left
               StyledSettings = [Style]
               Margins.Left = 15.000000000000000000
@@ -1471,7 +1560,7 @@ object MainForm: TMainForm
               TextSettings.Font.Family = 'Inter'
               TextSettings.Font.Size = 14.000000000000000000
               TextSettings.FontColor = xFF1E2022
-              Text = 'Status'
+              Text = 'Type'
               TabOrder = 0
             end
             object TokenAddressToHeaderLabel: TLabel
@@ -1508,7 +1597,7 @@ object MainForm: TMainForm
             AutoSize = True
             StyledSettings = []
             Margins.Top = 32.000000000000000000
-            Position.Y = 370.000000000000000000
+            Position.Y = 410.000000000000000000
             Size.Width = 1089.000000000000000000
             Size.Height = 31.000000000000000000
             Size.PlatformDefault = False
@@ -1526,12 +1615,12 @@ object MainForm: TMainForm
             Margins.Top = 10.000000000000000000
             Margins.Bottom = 20.000000000000000000
             Size.Width = 1089.000000000000000000
-            Size.Height = 271.000000000000000000
+            Size.Height = 222.000000000000000000
             Size.PlatformDefault = False
             TabOrder = 9
             OnResized = HistoryTokenVertScrollBoxResized
             Viewport.Width = 1089.000000000000000000
-            Viewport.Height = 271.000000000000000000
+            Viewport.Height = 222.000000000000000000
           end
           object NoTokenHistoryLabel: TLabel
             Align = Client
@@ -1551,7 +1640,7 @@ object MainForm: TMainForm
           end
           object SendTokenDataLayout: TLayout
             Align = Top
-            Position.Y = 129.000000000000000000
+            Position.Y = 169.000000000000000000
             Size.Width = 1089.000000000000000000
             Size.Height = 209.000000000000000000
             Size.PlatformDefault = False
@@ -1607,8 +1696,7 @@ object MainForm: TMainForm
             object SendTokenButton: TButton
               Enabled = False
               StyledSettings = []
-              Position.X = -1.000000000000000000
-              Position.Y = 174.000000000000000000
+              Position.Y = 170.000000000000000000
               Size.Width = 170.000000000000000000
               Size.Height = 35.000000000000000000
               Size.PlatformDefault = False
@@ -1713,7 +1801,7 @@ object MainForm: TMainForm
             Padding.Right = 15.000000000000000000
             Padding.Bottom = 15.000000000000000000
             Position.X = 488.000000000000000000
-            Position.Y = 33.000000000000000000
+            Position.Y = 70.000000000000000000
             Size.Width = 598.000000000000000000
             Size.Height = 253.000000000000000000
             Size.PlatformDefault = False
@@ -1770,7 +1858,7 @@ object MainForm: TMainForm
           object TokensTransNavigationLayout: TLayout
             Align = Bottom
             Margins.Bottom = 15.000000000000000000
-            Position.Y = 750.000000000000000000
+            Position.Y = 741.000000000000000000
             Size.Width = 1089.000000000000000000
             Size.Height = 28.000000000000000000
             Size.PlatformDefault = False
@@ -1821,7 +1909,7 @@ object MainForm: TMainForm
           inline TransactionFrame4: TTransactionFrame
             Align = Client
             Size.Width = 1089.000000000000000000
-            Size.Height = 793.000000000000000000
+            Size.Height = 784.000000000000000000
             Size.PlatformDefault = False
             inherited TECTransactionDetailsLayout: TLayout
               Size.Width = 1089.000000000000000000
@@ -1830,6 +1918,8 @@ object MainForm: TMainForm
               end
               inherited TECBackCircle: TCircle
                 OnClick = TransactionFrame4TECBackCircleClick
+                OnMouseEnter = TransactionFrame4TECBackCircleMouseEnter
+                OnMouseLeave = TransactionFrame4TECBackCircleMouseLeave
               end
             end
             inherited TECTransactionDetailsRectangle: TRectangle
@@ -1862,15 +1952,18 @@ object MainForm: TMainForm
                 Size.Width = 1059.000000000000000000
               end
               inherited TECDetailsLayout: TLayout
+                Position.Y = 583.000000000000000000
                 Size.Width = 1059.000000000000000000
               end
               inherited TECInfoDetailsLayout: TLayout
                 Size.Width = 1059.000000000000000000
               end
               inherited TECFeeDetailsLayout: TLayout
+                Position.Y = 320.000000000000000000
                 Size.Width = 1059.000000000000000000
               end
               inherited FeeRewardLayout: TLayout
+                Position.Y = 386.000000000000000000
                 Size.Width = 1059.000000000000000000
                 inherited RewardsLayout: TLayout
                   Size.Width = 859.000000000000000000
@@ -1891,7 +1984,234 @@ object MainForm: TMainForm
               inherited AddressToLayout: TLayout
                 Size.Width = 1059.000000000000000000
               end
+              inherited LiquidityAmountLayout: TLayout
+                Position.Y = 626.000000000000000000
+                Size.Width = 1059.000000000000000000
+              end
+              inherited TECReceivedLayout: TLayout
+                Position.Y = 363.000000000000000000
+                Size.Width = 1059.000000000000000000
+              end
             end
+          end
+        end
+        object TokenBurnTabItem: TTabItem
+          CustomIcon = <
+            item
+            end>
+          TextSettings.Trimming = None
+          IsSelected = False
+          Size.Width = 8.000000000000000000
+          Size.Height = 8.000000000000000000
+          Size.PlatformDefault = False
+          StyleLookup = ''
+          TabOrder = 0
+          ExplicitSize.cx = 8.000000000000000000
+          ExplicitSize.cy = 8.000000000000000000
+          object TokenBurnDetailsLayout: TLayout
+            Align = MostTop
+            Margins.Top = 30.000000000000000000
+            Position.Y = 30.000000000000000000
+            Size.Width = 1089.000000000000000000
+            Size.Height = 37.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 1
+            object TokenBurnDetailsLabel: TLabel
+              Align = Left
+              AutoSize = True
+              StyledSettings = []
+              Margins.Left = 15.000000000000000000
+              Position.X = 52.000000000000000000
+              Size.Width = 70.000000000000000000
+              Size.Height = 37.000000000000000000
+              Size.PlatformDefault = False
+              TextSettings.Font.Family = 'Inter'
+              TextSettings.Font.Size = 30.000000000000000000
+              TextSettings.Font.StyleExt = {00070000000000000004000000}
+              TextSettings.FontColor = xFF323130
+              TextSettings.WordWrap = False
+              Text = 'Burn'
+              TabOrder = 0
+            end
+            object TokenBurnBackCircle: TCircle
+              Align = MostLeft
+              Cursor = crHandPoint
+              Fill.Kind = None
+              Size.Width = 37.000000000000000000
+              Size.Height = 37.000000000000000000
+              Size.PlatformDefault = False
+              Stroke.Kind = None
+              OnClick = TokenBurnBackCircleClick
+              OnMouseEnter = TokenBurnBackCircleMouseEnter
+              OnMouseLeave = TokenBurnBackCircleMouseLeave
+              object TokenBurnBackArrowPath: TPath
+                Align = Center
+                Data.Path = {
+                  05000000000000003400A041860F1B41010000000CB045407C0F1B4100000000
+                  18262241E23BB13F01000000F8DFD63FD3131B41010000001826224100009041}
+                Fill.Kind = None
+                HitTest = False
+                Size.Width = 20.000000000000000000
+                Size.Height = 18.000000000000000000
+                Size.PlatformDefault = False
+                Stroke.Color = xFF323130
+                Stroke.Thickness = 2.000000000000000000
+              end
+            end
+          end
+          object TokenBurnAvailableLabel: TLabel
+            Align = Top
+            AutoSize = True
+            StyledSettings = []
+            Margins.Top = 15.000000000000000000
+            Position.Y = 82.000000000000000000
+            Size.Width = 1089.000000000000000000
+            Size.Height = 28.000000000000000000
+            Size.PlatformDefault = False
+            TextSettings.Font.Family = 'Inter'
+            TextSettings.Font.Size = 23.000000000000000000
+            TextSettings.Font.StyleExt = {00070000000000000004000000}
+            TextSettings.FontColor = xFF323130
+            Text = 'Available: '
+            TabOrder = 0
+          end
+          object TokenBurnLabel: TLabel
+            Align = Top
+            StyledSettings = [Style]
+            Margins.Top = 15.000000000000000000
+            Position.Y = 125.000000000000000000
+            Size.Width = 1089.000000000000000000
+            Size.Height = 17.000000000000000000
+            Size.PlatformDefault = False
+            TextSettings.Font.Family = 'Inter'
+            TextSettings.Font.Size = 15.000000000000000000
+            TextSettings.FontColor = xFF487BFF
+            TextSettings.WordWrap = False
+            Text = 'Rate: '
+            TabOrder = 9
+          end
+          object DoTokenBurnButtonLayout: TLayout
+            Align = Top
+            Margins.Top = 20.000000000000000000
+            Position.Y = 337.000000000000000000
+            Size.Width = 1089.000000000000000000
+            Size.Height = 33.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 6
+            object DoTokenBurnButton: TButton
+              Align = Left
+              Enabled = False
+              StyledSettings = []
+              Size.Width = 180.000000000000000000
+              Size.Height = 33.000000000000000000
+              Size.PlatformDefault = False
+              StyleLookup = 'Buttonstyle'
+              TabOrder = 3
+              Text = 'Burn'
+              TextSettings.Font.Family = 'Inter'
+              TextSettings.Font.Size = 14.000000000000000000
+              TextSettings.FontColor = claWhite
+              TextSettings.Trimming = None
+              OnClick = DoTokenBurnButtonClick
+            end
+          end
+          object TokenBurnAmountLayout: TLayout
+            Align = Top
+            Margins.Top = 40.000000000000000000
+            Position.Y = 182.000000000000000000
+            Size.Width = 1089.000000000000000000
+            Size.Height = 40.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 5
+            object TokenBurnAmountEdit: TEdit
+              Touch.InteractiveGestures = [LongTap, DoubleTap]
+              Align = Left
+              TabOrder = 3
+              FilterChar = '0123456789,.'
+              TextSettings.Font.Family = 'Inter'
+              TextSettings.Font.Size = 14.000000000000000000
+              TextSettings.FontColor = xFF323130
+              Size.Width = 400.000000000000000000
+              Size.Height = 40.000000000000000000
+              Size.PlatformDefault = False
+              TextPrompt = 'Enter amount'
+              OnChangeTracking = TokenBurnAmountEditChangeTracking
+              object TokenBurnAvailableMaxButton: TEditButton
+                Touch.InteractiveGestures = [LongTap]
+                CanFocus = False
+                Cursor = crArrow
+                TextSettings.FontColor = claCornflowerblue
+                TextSettings.Trimming = None
+                Size.Width = 76.000000000000000000
+                Size.Height = 36.000000000000000000
+                Size.PlatformDefault = False
+                StyleLookup = 'MaxButtonstyle'
+                TabOrder = 0
+                Text = 'Max'
+                OnClick = TokenBurnAvailableMaxButtonClick
+              end
+              object ShadowEffect18: TShadowEffect
+                Distance = 3.000000000000000000
+                Direction = 70.000000000000000000
+                Softness = 0.300000011920929000
+                Opacity = 0.100000001490116100
+                ShadowColor = claBlack
+              end
+            end
+          end
+          object BurnResultInfoLayout: TLayout
+            Align = Top
+            Margins.Top = 20.000000000000000000
+            Position.Y = 269.000000000000000000
+            Size.Width = 1089.000000000000000000
+            Size.Height = 48.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 13
+            object BurnResultInfoAmountLabel: TLabel
+              Align = Top
+              AutoSize = True
+              StyledSettings = []
+              Size.Width = 1089.000000000000000000
+              Size.Height = 19.000000000000000000
+              Size.PlatformDefault = False
+              TextSettings.Font.Family = 'Inter'
+              TextSettings.Font.Size = 15.000000000000000000
+              TextSettings.FontColor = xFF323130
+              Text = 'TEC Amount: '
+              TabOrder = 1
+            end
+            object BurnResultInfoFeeLabel: TLabel
+              Align = Top
+              AutoSize = True
+              StyledSettings = []
+              Margins.Top = 10.000000000000000000
+              Position.Y = 29.000000000000000000
+              Size.Width = 1089.000000000000000000
+              Size.Height = 19.000000000000000000
+              Size.PlatformDefault = False
+              TextSettings.Font.Family = 'Inter'
+              TextSettings.Font.Size = 15.000000000000000000
+              TextSettings.FontColor = xFF323130
+              TextSettings.WordWrap = False
+              Text = 'Fee: '
+              TabOrder = 0
+            end
+          end
+          object TokenBurnErrorLabel: TLabel
+            Align = Top
+            AutoSize = True
+            StyledSettings = []
+            Opacity = 0.000000000000000000
+            Margins.Top = 8.000000000000000000
+            Position.Y = 230.000000000000000000
+            Size.Width = 1089.000000000000000000
+            Size.Height = 19.000000000000000000
+            Size.PlatformDefault = False
+            TextSettings.Font.Family = 'Inter'
+            TextSettings.Font.Size = 15.000000000000000000
+            TextSettings.FontColor = xFFFC4949
+            Text = 'Fee can'#39't be less than TEC amount'
+            TabOrder = 2
           end
         end
       end
@@ -1917,23 +2237,22 @@ object MainForm: TMainForm
       ExplicitSize.cx = 261.000000000000000000
       ExplicitSize.cy = 64.000000000000000000
       object CrTokenVertScrollBox: TVertScrollBox
-        Align = Contents
-        Margins.Top = 87.000000000000000000
+        Align = Client
+        Margins.Top = 30.000000000000000000
         Size.Width = 1089.000000000000000000
-        Size.Height = 761.000000000000000000
+        Size.Height = 692.000000000000000000
         Size.PlatformDefault = False
-        TabOrder = 0
-        Viewport.Width = 1089.000000000000000000
-        Viewport.Height = 761.000000000000000000
+        TabOrder = 1
+        Viewport.Width = 1073.000000000000000000
+        Viewport.Height = 692.000000000000000000
         object NewTokenHelpInfoRectangle: TRectangle
           Fill.Color = x55FFFFFF
           Padding.Left = 20.000000000000000000
           Padding.Top = 24.000000000000000000
           Padding.Right = 20.000000000000000000
           Position.X = 460.000000000000000000
-          Position.Y = 70.000000000000000000
           Size.Width = 605.000000000000000000
-          Size.Height = 539.000000000000000000
+          Size.Height = 625.000000000000000000
           Size.PlatformDefault = False
           Stroke.Kind = None
           object NewTokenHelpInfoLabel1: TLabel
@@ -2068,7 +2387,7 @@ object MainForm: TMainForm
             Size.Width = 565.000000000000000000
             Size.Height = 23.000000000000000000
             Size.PlatformDefault = False
-            TabOrder = 12
+            TabOrder = 13
             object NewTokenHelpTokenNameLabel: TLabel
               Align = Left
               AutoSize = True
@@ -2106,7 +2425,7 @@ object MainForm: TMainForm
             Size.Width = 565.000000000000000000
             Size.Height = 23.000000000000000000
             Size.PlatformDefault = False
-            TabOrder = 11
+            TabOrder = 12
             object NewTokenHelpTokenSymbolLabel: TLabel
               Align = Left
               AutoSize = True
@@ -2144,7 +2463,7 @@ object MainForm: TMainForm
             Size.Width = 565.000000000000000000
             Size.Height = 23.000000000000000000
             Size.PlatformDefault = False
-            TabOrder = 10
+            TabOrder = 11
             object NewTokenHelpAmountLabel2: TLabel
               Align = Client
               AutoSize = True
@@ -2182,7 +2501,7 @@ object MainForm: TMainForm
             Size.Width = 565.000000000000000000
             Size.Height = 23.000000000000000000
             Size.PlatformDefault = False
-            TabOrder = 9
+            TabOrder = 10
             object NewTokenHelpDecimalsLabel: TLabel
               Align = Left
               AutoSize = True
@@ -2216,11 +2535,11 @@ object MainForm: TMainForm
             Align = Top
             Margins.Top = 24.000000000000000000
             Position.X = 20.000000000000000000
-            Position.Y = 481.000000000000000000
+            Position.Y = 565.000000000000000000
             Size.Width = 565.000000000000000000
             Size.Height = 43.000000000000000000
             Size.PlatformDefault = False
-            TabOrder = 7
+            TabOrder = 8
             object NewTokenHelpTokenInfoLabel: TLabel
               Align = Left
               AutoSize = True
@@ -2273,7 +2592,7 @@ object MainForm: TMainForm
             Size.Width = 565.000000000000000000
             Size.Height = 43.000000000000000000
             Size.PlatformDefault = False
-            TabOrder = 8
+            TabOrder = 9
             object NewTokenHelpIconLabel: TLabel
               Align = Left
               AutoSize = True
@@ -2318,30 +2637,84 @@ object MainForm: TMainForm
               TabOrder = 0
             end
           end
-        end
-        object CreateTokenLabel: TLabel
-          Align = MostTop
-          AutoSize = True
-          StyledSettings = []
-          Size.Width = 1089.000000000000000000
-          Size.Height = 37.000000000000000000
-          Size.PlatformDefault = False
-          TextSettings.Font.Family = 'Inter'
-          TextSettings.Font.Size = 30.000000000000000000
-          TextSettings.Font.StyleExt = {00070000000000000004000000}
-          TextSettings.FontColor = xFF323130
-          TextSettings.WordWrap = False
-          Text = 'Create Token'
-          TabOrder = 0
+          object NewTokenLiquidityLayout: TLayout
+            Align = Top
+            Margins.Top = 24.000000000000000000
+            Position.X = 20.000000000000000000
+            Position.Y = 481.000000000000000000
+            Size.Width = 565.000000000000000000
+            Size.Height = 60.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 7
+            object NewTokenLiquidityInfoLabel: TLabel
+              Align = Left
+              AutoSize = True
+              StyledSettings = []
+              Size.Width = 105.000000000000000000
+              Size.Height = 18.000000000000000000
+              Size.PlatformDefault = False
+              TextSettings.Font.Family = 'Inter'
+              TextSettings.Font.Size = 15.000000000000000000
+              TextSettings.Font.StyleExt = {00070000000000000004000000}
+              TextSettings.FontColor = xFF323130
+              Text = 'Add Liquidity:'
+              TabOrder = 3
+            end
+            object NewTokenLiquidityLabel2: TLabel
+              Align = Client
+              AutoSize = True
+              StyledSettings = []
+              Margins.Left = 3.000000000000000000
+              Size.Width = 457.000000000000000000
+              Size.Height = 18.000000000000000000
+              Size.PlatformDefault = False
+              TextSettings.Font.Family = 'Inter'
+              TextSettings.Font.Size = 15.000000000000000000
+              TextSettings.FontColor = xFF323130
+              Text = 'Create backed tokens by entering the amount in the field. The'
+              TabOrder = 2
+            end
+            object NewTokenLiquidityLabel3: TLabel
+              Align = MostBottom
+              AutoSize = True
+              StyledSettings = []
+              Margins.Top = 2.000000000000000000
+              Position.Y = 20.000000000000000000
+              Size.Width = 565.000000000000000000
+              Size.Height = 19.000000000000000000
+              Size.PlatformDefault = False
+              TextSettings.Font.Family = 'Inter'
+              TextSettings.Font.Size = 15.000000000000000000
+              TextSettings.FontColor = xFF323130
+              Text = 
+                'token rate is calculated from the TEC you contribute and the num' +
+                'ber of tokens '
+              TabOrder = 1
+            end
+            object NewTokenLiquidityLabel4: TLabel
+              Align = MostBottom
+              AutoSize = True
+              StyledSettings = []
+              Margins.Top = 2.000000000000000000
+              Position.Y = 41.000000000000000000
+              Size.Width = 565.000000000000000000
+              Size.Height = 19.000000000000000000
+              Size.PlatformDefault = False
+              TextSettings.Font.Family = 'Inter'
+              TextSettings.Font.Size = 15.000000000000000000
+              TextSettings.FontColor = xFF323130
+              Text = 'issued. Tokens can be burned by the to redeem TEC.'
+              TabOrder = 0
+            end
+          end
         end
         object CreateTokenDataLayout: TLayout
           Margins.Top = 40.000000000000000000
           Margins.Bottom = 55.000000000000000000
-          Position.Y = 70.000000000000000000
           Size.Width = 410.000000000000000000
-          Size.Height = 691.000000000000000000
+          Size.Height = 735.000000000000000000
           Size.PlatformDefault = False
-          TabOrder = 1
+          TabOrder = 0
           object CreateTokenShortNameEdit: TEdit
             Touch.InteractiveGestures = [LongTap, DoubleTap]
             Align = Top
@@ -2397,6 +2770,7 @@ object MainForm: TMainForm
             Size.PlatformDefault = False
             TextPrompt = 'e.g. MTN'
             CharCase = ecUpperCase
+            OnChangeTracking = CreateTokenAmountEditChangeTracking
             object ShadowEffect9: TShadowEffect
               Distance = 3.000000000000000000
               Direction = 70.000000000000000000
@@ -2435,6 +2809,7 @@ object MainForm: TMainForm
             Size.Height = 40.000000000000000000
             Size.PlatformDefault = False
             TextPrompt = '1000 - 9 999 999 999 999 999'
+            OnChangeTracking = CreateTokenAmountEditChangeTracking
             object ShadowEffect10: TShadowEffect
               Distance = 3.000000000000000000
               Direction = 70.000000000000000000
@@ -2499,7 +2874,7 @@ object MainForm: TMainForm
             Align = Top
             StyledSettings = [Style]
             Margins.Top = 16.000000000000000000
-            Position.Y = 415.000000000000000000
+            Position.Y = 569.000000000000000000
             Size.Width = 410.000000000000000000
             Size.Height = 17.000000000000000000
             Size.PlatformDefault = False
@@ -2520,7 +2895,7 @@ object MainForm: TMainForm
             TextSettings.WordWrap = True
             Align = Top
             Margins.Top = 10.000000000000000000
-            Position.Y = 442.000000000000000000
+            Position.Y = 596.000000000000000000
             Size.Width = 410.000000000000000000
             Size.Height = 152.000000000000000000
             Size.PlatformDefault = False
@@ -2540,7 +2915,7 @@ object MainForm: TMainForm
             Align = Top
             StyledSettings = []
             Margins.Top = 20.000000000000000000
-            Position.Y = 614.000000000000000000
+            Position.Y = 768.000000000000000000
             Size.Width = 410.000000000000000000
             Size.Height = 17.000000000000000000
             Size.PlatformDefault = False
@@ -2634,7 +3009,7 @@ object MainForm: TMainForm
           object CreateTokenButtonLayout: TLayout
             Align = Top
             Margins.Top = 15.000000000000000000
-            Position.Y = 646.000000000000000000
+            Position.Y = 800.000000000000000000
             Size.Width = 410.000000000000000000
             Size.Height = 35.000000000000000000
             Size.PlatformDefault = False
@@ -2686,7 +3061,164 @@ object MainForm: TMainForm
               end
             end
           end
+          object AddLiquidityLayout: TLayout
+            Align = Top
+            Margins.Top = 16.000000000000000000
+            Position.Y = 415.000000000000000000
+            Size.Width = 410.000000000000000000
+            Size.Height = 18.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 14
+            object AddLiquidityLabel: TLabel
+              Align = Left
+              StyledSettings = [Style]
+              Size.Width = 90.000000000000000000
+              Size.Height = 18.000000000000000000
+              Size.PlatformDefault = False
+              TextSettings.Font.Family = 'Inter'
+              TextSettings.Font.Size = 14.000000000000000000
+              TextSettings.FontColor = xFF152536
+              Text = 'Add Liquidity'
+              TabOrder = 8
+            end
+            object AddLiquidityRectangle: TRectangle
+              Align = Left
+              Fill.Color = xFF2E68FF
+              Margins.Left = 5.000000000000000000
+              Position.X = 95.000000000000000000
+              Size.Width = 18.000000000000000000
+              Size.Height = 18.000000000000000000
+              Size.PlatformDefault = False
+              Stroke.Kind = None
+              XRadius = 2.000000000000000000
+              YRadius = 2.000000000000000000
+              OnClick = AddLiquidityRectangleClick
+              object pthArrowDown: TPath
+                Align = Center
+                Data.Path = {
+                  1800000000000000CF775942CDCC14410100000033B378420AD7884102000000
+                  4F0A7A4257A38B4102000000CA427C42BABB8B4102000000F1A87D42830D8941
+                  02000000170F7F424B5F864102000000481B7F4255EE8141020000002DC47D42
+                  10447E4102000000A0BB7D425F207E4102000000E5B27D4263FD7D4102000000
+                  FCA97D4223DB7D410100000073E8604279E90A4101000000F6A87D420000C03F
+                  0200000072087F42A222943F02000000E7087F4226EB193F02000000FCA97D42
+                  8018843E02000000124B7C423895AEBD02000000A9117A42D87FAFBD02000000
+                  2EB278427E95833E01000000C9765942F4FD004102000000551E58421B800641
+                  02000000CA1E5842E04C0F4102000000CF775942CDCC144103000000CF775942
+                  CDCC1441}
+                Fill.Color = claWhite
+                HitTest = False
+                Opacity = 0.600000023841857900
+                Margins.Top = 3.000000000000000000
+                Margins.Bottom = 3.000000000000000000
+                RotationAngle = -90.000000000000000000
+                Size.Width = 16.000000000000000000
+                Size.Height = 10.000000000000000000
+                Size.PlatformDefault = False
+                Stroke.Color = claWhite
+                WrapMode = Fit
+                object FloatAnimation9: TFloatAnimation
+                  Duration = 0.200000002980232200
+                  OnProcess = FloatAnimation9Process
+                  PropertyName = 'RotationAngle'
+                  StartValue = 90.000000000000000000
+                  StopValue = -90.000000000000000000
+                end
+              end
+            end
+          end
+          object AddLiquidityDetailsLayout: TLayout
+            Align = Top
+            Position.Y = 433.000000000000000000
+            Size.Width = 410.000000000000000000
+            Size.Height = 120.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 15
+            object LiquidityMaxAmountLabel: TLabel
+              Align = Top
+              StyledSettings = [Style]
+              Margins.Top = 16.000000000000000000
+              Position.Y = 16.000000000000000000
+              Size.Width = 410.000000000000000000
+              Size.Height = 17.000000000000000000
+              Size.PlatformDefault = False
+              TextSettings.Font.Family = 'Inter'
+              TextSettings.Font.Size = 14.000000000000000000
+              TextSettings.FontColor = xFF487BFF
+              Text = 'Available: '
+              TabOrder = 10
+            end
+            object EnterTECAmountEdit: TEdit
+              Touch.InteractiveGestures = [LongTap, DoubleTap]
+              Align = Top
+              TabOrder = 3
+              DisableFocusEffect = True
+              FilterChar = '0123456789,.'
+              TextSettings.Font.Family = 'Inter'
+              TextSettings.Font.Size = 14.000000000000000000
+              TextSettings.FontColor = xFF323130
+              Position.Y = 43.000000000000000000
+              Margins.Top = 10.000000000000000000
+              Size.Width = 410.000000000000000000
+              Size.Height = 40.000000000000000000
+              Size.PlatformDefault = False
+              TextPrompt = 'Enter amount'
+              OnChangeTracking = CreateTokenAmountEditChangeTracking
+              object LiquidityMaxButton: TEditButton
+                Touch.InteractiveGestures = [LongTap]
+                CanFocus = False
+                Cursor = crArrow
+                TextSettings.FontColor = claCornflowerblue
+                TextSettings.Trimming = None
+                Size.Width = 76.000000000000000000
+                Size.Height = 36.000000000000000000
+                Size.PlatformDefault = False
+                StyleLookup = 'MaxButtonstyle'
+                TabOrder = 0
+                Text = 'Max'
+                OnClick = LiquidityMaxButtonClick
+              end
+              object ShadowEffect17: TShadowEffect
+                Distance = 3.000000000000000000
+                Direction = 70.000000000000000000
+                Softness = 0.300000011920929000
+                Opacity = 0.100000001490116100
+                ShadowColor = claBlack
+              end
+            end
+            object CreateTokenRateLabel: TLabel
+              Align = Top
+              StyledSettings = [Style]
+              Margins.Top = 16.000000000000000000
+              Position.Y = 99.000000000000000000
+              Size.Width = 410.000000000000000000
+              Size.Height = 17.000000000000000000
+              Size.PlatformDefault = False
+              TextSettings.Font.Family = 'Inter'
+              TextSettings.Font.Size = 14.000000000000000000
+              TextSettings.FontColor = xFF487BFF
+              Text = 'Rate: '
+              TabOrder = 9
+            end
+          end
         end
+      end
+      object CreateTokenLabel: TLabel
+        Align = MostTop
+        AutoSize = True
+        StyledSettings = []
+        Margins.Top = 80.000000000000000000
+        Position.Y = 80.000000000000000000
+        Size.Width = 1089.000000000000000000
+        Size.Height = 37.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.Font.Family = 'Inter'
+        TextSettings.Font.Size = 30.000000000000000000
+        TextSettings.Font.StyleExt = {00070000000000000004000000}
+        TextSettings.FontColor = xFF323130
+        TextSettings.WordWrap = False
+        Text = 'Create Token'
+        TabOrder = 0
       end
     end
     object ExplorerTabItem: TTabItem
@@ -2711,7 +3243,7 @@ object MainForm: TMainForm
         Align = Client
         Margins.Top = 55.000000000000000000
         Size.Width = 1089.000000000000000000
-        Size.Height = 793.000000000000000000
+        Size.Height = 784.000000000000000000
         Size.PlatformDefault = False
         StyleLookup = 'AuthTabControlstyle'
         TabIndex = 0
@@ -2719,9 +3251,9 @@ object MainForm: TMainForm
         TabPosition = None
         Sizes = (
           1089s
-          793s
+          784s
           1089s
-          793s)
+          784s)
         object ExporerTabItemData: TTabItem
           CustomIcon = <
             item
@@ -2918,7 +3450,7 @@ object MainForm: TMainForm
               Text = 'Ticker'
               TabOrder = 2
             end
-            object StatusExplorerHeaderLabel: TLabel
+            object TypeExplorerHeaderLabel: TLabel
               Align = Left
               StyledSettings = [Style]
               Margins.Left = 5.000000000000000000
@@ -2929,7 +3461,7 @@ object MainForm: TMainForm
               TextSettings.Font.Family = 'Inter'
               TextSettings.Font.Size = 14.000000000000000000
               TextSettings.FontColor = xFF1E2022
-              Text = 'Status'
+              Text = 'Type'
               TabOrder = 0
             end
           end
@@ -2952,12 +3484,12 @@ object MainForm: TMainForm
             Margins.Top = 6.000000000000000000
             Margins.Bottom = 15.000000000000000000
             Size.Width = 1089.000000000000000000
-            Size.Height = 596.000000000000000000
+            Size.Height = 587.000000000000000000
             Size.PlatformDefault = False
             TabOrder = 9
             OnResized = ExplorerVertScrollBoxResized
             Viewport.Width = 1089.000000000000000000
-            Viewport.Height = 596.000000000000000000
+            Viewport.Height = 587.000000000000000000
             object FloatAnimation8: TFloatAnimation
               Duration = 0.200000002980232200
               StartValue = 0.000000000000000000
@@ -2967,7 +3499,7 @@ object MainForm: TMainForm
           object ExplorerNavigationLayout: TLayout
             Align = Bottom
             Margins.Bottom = 15.000000000000000000
-            Position.Y = 750.000000000000000000
+            Position.Y = 741.000000000000000000
             Size.Width = 1089.000000000000000000
             Size.Height = 28.000000000000000000
             Size.PlatformDefault = False
@@ -3018,7 +3550,7 @@ object MainForm: TMainForm
           inline TransactionFrame1: TTransactionFrame
             Align = Client
             Size.Width = 1089.000000000000000000
-            Size.Height = 793.000000000000000000
+            Size.Height = 784.000000000000000000
             Size.PlatformDefault = False
             inherited TECTransactionDetailsLayout: TLayout
               Size.Width = 1089.000000000000000000
@@ -3070,15 +3602,18 @@ object MainForm: TMainForm
                 Size.Width = 1059.000000000000000000
               end
               inherited TECDetailsLayout: TLayout
+                Position.Y = 583.000000000000000000
                 Size.Width = 1059.000000000000000000
               end
               inherited TECInfoDetailsLayout: TLayout
                 Size.Width = 1059.000000000000000000
               end
               inherited TECFeeDetailsLayout: TLayout
+                Position.Y = 320.000000000000000000
                 Size.Width = 1059.000000000000000000
               end
               inherited FeeRewardLayout: TLayout
+                Position.Y = 386.000000000000000000
                 Size.Width = 1059.000000000000000000
                 inherited RewardsLayout: TLayout
                   Size.Width = 859.000000000000000000
@@ -3101,6 +3636,14 @@ object MainForm: TMainForm
                 inherited AddressToCopyLayout: TLayout
                   OnClick = TransactionFrame1Layout2Click
                 end
+              end
+              inherited LiquidityAmountLayout: TLayout
+                Position.Y = 626.000000000000000000
+                Size.Width = 1059.000000000000000000
+              end
+              inherited TECReceivedLayout: TLayout
+                Position.Y = 363.000000000000000000
+                Size.Width = 1059.000000000000000000
               end
             end
           end

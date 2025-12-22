@@ -58,6 +58,7 @@ begin
   FEndpoints.Add(RequestToEndpoint('get','/coins/transfer'), FCoinEndpoints.GetCoinTransferInfo);
   FEndpoints.Add(RequestToEndpoint('post','/coins/transfer'), FCoinEndpoints.DoCoinTransfer);
   FEndpoints.Add(RequestToEndpoint('post','/coins/stake'), FCoinEndpoints.DoCoinStake);
+  FEndpoints.Add(RequestToEndpoint('get','/coins/stake'), FCoinEndpoints.GetCoinStake);
   FEndpoints.Add(RequestToEndpoint('post','/coins/unstake'), FCoinEndpoints.DoCoinUnstake);
   FEndpoints.Add(RequestToEndpoint('post','/coins/migrate'), FCoinEndpoints.DoMigrate);
   FEndpoints.Add(RequestToEndpoint('get','/coins/balance/byaddress'),FCoinEndpoints.GetCoinBalance);
@@ -68,6 +69,7 @@ begin
   FEndpoints.Add(RequestToEndpoint('get','/blocks'), FCoinEndpoints.GetBlockInfo);
 
   FEndpoints.Add(RequestToEndpoint('post','/token/mint'), FTokenEndpoints.DoTokenMint);
+  FEndpoints.Add(RequestToEndpoint('post','/token/burn'), FTokenEndpoints.DoTokenBurn);
   FEndpoints.Add(RequestToEndpoint('post','/token/transfer'),FTokenEndpoints.DoTokenTransfer);
   FEndpoints.Add(RequestToEndpoint('get','/token/balance/byaddress'),FTokenEndpoints.GetTokenBalance);
   FEndpoints.Add(RequestToEndpoint('get','/token/info'),FTokenEndpoints.GetTokenInfo);

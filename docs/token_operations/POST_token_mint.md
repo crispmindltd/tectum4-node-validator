@@ -11,10 +11,11 @@ Creating a new token.
 | ticker            | Yes      | Body     | String    | Character string (3-8 words)    | Token ticker                                  |
 | name              | Yes      | Body     | String    | Character string (3-32 words)   | Full name of the token                        |
 | description       | Yes      | Body     | String    | Character string (10-255 words) | Token Description                             |
-| iconURL           | Yes      | Body     | String    | Character string (10-128 words) | Link to token icon                            |
+| iconURL           | NO       | Body     | String    | Character string (10-128 words) | Link to token icon                            |
 | decimals          | Yes      | Body     | Integer   | Positive value (2-8)            | Number of digits after the decimal point      |
 | amount            | Yes      | Body     | Integer   | Positive value (1000-10^16)     | Number of tokens                              |
 | private_key       | Yes      | Body     | String    | Valid private key (64 words)    | Sender's private key                          |
+| liquidity         | NO       | Body     | Integer   | Positive value (1000-10^16)     | Tokens of liquidity                           |
 
 #### Example Request in JSON Format
 ```json

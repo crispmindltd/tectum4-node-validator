@@ -88,6 +88,7 @@ end;
 
 function TBlockchainCore.Balance(const Address: TAddress; TokenId:Uint64): TAmount;
 begin
+  Lock(Self);
   Result := FCache.GetBalance(Address, TokenId);
 end;
 
@@ -104,51 +105,61 @@ end;
 
 function TBlockchainCore.StakingBalance(const Address: TAddress): TAmount;
 begin
+  Lock(Self);
   Result := FCache.GetStakingBalance(Address);
 end;
 
 function TBlockchainCore.AvailableBalance(const Address: TAddress): TAmount;
 begin
+  Lock(Self);
   Result := FCache.GetAvailableBalance(Address);
 end;
 
 function TBlockchainCore.GetTokenData(const Name: string; Required: Boolean = True): TToken;
 begin
+  Lock(Self);
   Result := FCache.GetTokenData(Name, Required);
 end;
 
 function TBlockchainCore.GetTokensData: TArray<TToken>;
 begin
+  Lock(Self);
   Result := FCache.GetTokens;
 end;
 
 function TBlockchainCore.GetNo(const Address: TAddress): UInt32;
 begin
+  Lock(Self);
   Result := FCache.GetNo(Address);
 end;
 
 function TBlockchainCore.GetRewardBalance(const AAddress: TAddress): TAmount;
 begin
+  Lock(Self);
   Result := FCache.GetRewardBalance(AAddress);
 end;
 
 function TBlockchainCore.IncNo(const Address: TAddress): UInt32;
 begin
+  Lock(Self);
   Result := FCache.IncNo(Address);
 end;
 
 function TBlockchainCore.RecordsCount: Int64;
 begin
+  Lock(Self);
   Result := FDatabase.Count;
 end;
 
 procedure TBlockchainCore.WriteData(const Data: TBytes);
 begin
+  Lock(Self);
   FDatabase.AppendData([Data]);
 end;
 
 function TBlockchainCore.ReadData(const Index, Count: UInt64): TArray<TBytes>;
 begin
+  Lock(Self);
   Result := FDatabase.ReadData(Index, Count);
 end;
 
@@ -218,10 +229,51 @@ begin
         IncNeedBalance(Address, Mint.Fee, 0 {TEC});
         Inc(_SumFee, Mint.Fee);
         Ticker := Mint.Ticker.ToUpper;
-//        Require(Mint.IconURL.EndsWith(Format('%s.png',[Ticker]).ToLower) or
-//          Mint.IconURL.EndsWith('default.png') or Ticker.Equals('TEC'), 'invalid token icon URL');
         if not (ExcludeValidateSign in Options) then Mint.CheckSign;
         SetResultIfEmpty(Mint.Hash);
+      end else
+
+      if DataType = MINT_LIQUIDITY_TRANSACTION then
+      begin
+        const Mint: TLiquidityMint = PData;
+        const Address: TAddress = Mint.SenderAddress;
+        if SameText('TEC', Mint.Name) then
+          TecOwnerAddress := Address;
+        OutAssets[Address].MinNo(Mint.No);
+        Require(not FCache.TokenExists(Mint.Ticker), 'duplicate token');
+        Require(Mint.Amount > 0, 'wrong amount');
+        Require(Mint.Fee > 0, 'wrong fee');
+        Require(AvailableBalance(Mint.SenderAddress) >= (Mint.Liquidity + Mint.Fee), 'not enough TEC');
+
+        Require(Length(Mint.Name) in [3..32], 'invalid token name length');
+        Require(Length(Mint.Ticker) in [3..8], 'invalid token ticker length');
+        Require(Length(Mint.Description) in [10..255], 'invalid token description length');
+        Require(Length(Mint.IconURL) in [0..128], 'invalid token icon URL length');
+
+        IncNeedBalance(Address, Mint.Liquidity, 0 {TEC});
+        IncNeedBalance(Address, Mint.Fee, 0);
+        Inc(_SumFee, Mint.Fee);
+        Ticker := Mint.Ticker.ToUpper;
+        if not (ExcludeValidateSign in Options) then Mint.CheckSign;
+        SetResultIfEmpty(Mint.Hash);
+      end else
+
+      if DataType = BURN_TOKEN_TRANSACTION then
+      begin
+        const Burn: TTokenBurn = PData;
+        const Address: TAddress = Burn.SenderAddress;
+        OutAssets[Address].MinNo(Burn.No);
+        Require(Burn.Amount > 0, 'wrong amount');
+        Require(Burn.Fee > 0, 'wrong fee');
+        Require(Balance(Burn.SenderAddress, Burn.TokenID) >= Burn.Amount, 'not enough tokens');
+        var TokenData := GetTokenData(FCache.GetTokenTicker(Burn.TokenID), True);
+        Require(TokenData.ExRate > 0, 'the token has no liquidity');
+
+        IncNeedBalance(Address, Burn.Amount, Burn.TokenID);
+        IncNeedBalance(Address, Burn.Fee, 0 {TEC});
+        Inc(_SumFee, Burn.Fee);
+        if not (ExcludeValidateSign in Options) then Burn.CheckSign;
+        SetResultIfEmpty(Burn.Hash);
       end else
 
       if DataType = TRANSFER_TRANSACTION then begin
@@ -245,6 +297,7 @@ begin
         const Staking: PStaking = PData;
         const Address: TAddress = Staking.SenderAddress;
         OutAssets[Address].MinNo(Staking.Data.No);
+        OutAssets[Address].StakingInc(Staking.Data.Amount);
         Require(Staking.Data.Amount >= 0, 'wrong amount');
         Require(Staking.Data.Fee > 0, 'wrong fee');
         IncNeedBalance(Address, Staking.Data.Amount + Staking.Data.Fee, 0 {TEC});
@@ -259,7 +312,7 @@ begin
         OutAssets[Address].MinNo(Unstaking.Data.No);
         Require(Unstaking.Data.Amount > 0, 'wrong amount');
         Require(Unstaking.Data.Fee > 0, 'wrong fee');
-        OutAssets[Address].StakingInc(Unstaking.Data.Amount);
+        OutAssets[Address].UnstakingInc(Unstaking.Data.Amount);
         IncNeedBalance(Address, Unstaking.Data.Fee, 0 {TEC});
         Inc(_SumFee, Unstaking.Data.Fee);
         if not (ExcludeValidateSign in Options) then Unstaking.CheckSign;
@@ -307,6 +360,13 @@ begin
       if DataType = MINEBLOCK_TRANSACTION then begin
         const Block: PBlock = PData;
         const Address:TAddress = Block.SenderAddress;
+        var CurrentStaking := StakingBalance(Address);
+        if OutAssets.ContainsKey(Address) then begin
+          const JustStaked = OutAssets[Address].Stake;
+          const JustUnstaked = OutAssets[Address].Unstaking;
+          CurrentStaking := CurrentStaking + JustStaked - JustUnstaked;
+        end;
+        Require(CurrentStaking >= MINER_MIN_STAKE, 'low stake for mining');
         if Block.Data.IndexTo < RecordsCount then begin
           Require(Block.Data.PrevBlockHash = LastBlockHash, 'wrong prev block');
           var IndexFrom := UInt64(0);
@@ -316,7 +376,7 @@ begin
           const Reward = SumFee(Data);
           const Difficulty = CalcDifficulty(Block.Data.StakeAmount);
           if UseCurrentStake in Options then
-            Require(Block.Data.StakeAmount = StakingBalance(Address), 'wrong stake amount');
+            Require(Block.Data.StakeAmount = CurrentStaking, 'wrong stake amount');
           Require(Reward = Block.Data.Reward, 'wrong reward MINEBLOCK_TRANSACTION');
           Require(Block.Data.Hash = GetNonceHash(Block.Data.Nonce, Data), 'wrong hash');
           Require(HashDifficulty(Block.Data.Hash) < Difficulty, 'low difficulty');
@@ -366,9 +426,11 @@ begin
 
     for var Pair in OutAssets do begin
       if not (ExcludeValidateBalances in Options) then begin
-        Require(StakingBalance(Pair.Key) >= Pair.Value.Staking, 'insufficient staking');
+        const JustStaked = Pair.Value.Stake;
+        const JustUnstaked = Pair.Value.Unstaking;
+        Require(StakingBalance(Pair.Key) + JustStaked >= JustUnstaked, 'insufficient staking');
       end;
-      Require(GetNo(Pair.Key) < Pair.Value.No, 'duplicate transaction');
+      Require((Pair.Value.No = 0) or (GetNo(Pair.Key) < Pair.Value.No), 'duplicate transaction');
     end;
 
     if not (ExcludeValidateBalances in Options) then begin
@@ -402,6 +464,7 @@ end;
 
 function TBlockchainCore.DoTransaction(const Bytes: TBytes): TBytes;
 begin
+  Lock(Self);
   var Count := Integer(0);
   var M := TMeasure.Start;
   var AddrFrom: TAddress := '';
@@ -451,6 +514,7 @@ end;
 
 function TBlockchainCore.DoValidation(const Bytes: TBytes): TBytes;
 begin
+  Lock(Self);
   var M := TMeasure.Start;
   var Count := Integer(0);
   Result := DoValidateTransactions(Bytes, Count);
@@ -462,16 +526,19 @@ end;
 function TBlockchainCore.ReadRawData(StartIndex: Int64): TBytes;
 const _1Mb = 1 * 1024 * 1024;
 begin
+  Lock(Self);
   Result := FDatabase.ReadRawSize(StartIndex, _1Mb);
 end;
 
 function TBlockchainCore.ReadRawData(const Index, Count: UInt64): TBytes;
 begin
+  Lock(Self);
   Result := FDatabase.ReadRawData(Index, Count);
 end;
 
 procedure TBlockchainCore.WriteRawData(const Data: TBytes);
 begin
+  Lock(Self);
   var Count := Integer(0);
   DoValidateTransactions(Data, Count, [ExcludeValidateSign, ExcludeValidateBalances],
     procedure(ToAppend: TBytes)
@@ -492,11 +559,13 @@ end;
 
 procedure TBlockchainCore.EnumTxns(Proc: TTxFilterPredicate);
 begin
+  Lock(Self);
   FCache.EnumTxns(Proc);
 end;
 
 function TBlockchainCore.GetStakingInfo(const AAddress: TAddress): TStakingInfo;
 begin
+  Lock(Self);
   Result := Default(TStakingInfo);
   var Timestamp := FCache.GetStakingDate(AAddress);
   if Timestamp = 0 then
@@ -507,36 +576,43 @@ end;
 
 function TBlockchainCore.GetTransactionInfo(Index: Int64): TTransactionInfo;
 begin
+  Lock(Self);
   Result := FCache.GetTransactionInfo(Index);
 end;
 
 function TBlockchainCore.GetTransactionInfo(const TxHash: TBlockHash): TTransactionInfo;
 begin
+  Lock(Self);
   Result := FCache.GetTransactionInfo(TxHash);
 end;
 
 function TBlockchainCore.GetBlockInfo(const Hash: TBlockHash): TBlockInfo;
 begin
+  Lock(Self);
   Result := FCache.GetBlockInfo(Hash);
 end;
 
 function TBlockchainCore.GetLastBlocksInfo(Skip, Count: Int64): TArray<TBlockInfo>;
 begin
+  Lock(Self);
   Result := FCache.GetLastBlocksInfo(Skip, Count);
 end;
 
 function TBlockchainCore.GetLastBlockHash: TBlockHash;
 begin
+  Lock(Self);
   Result := FCache.GetLastBlockHash;
 end;
 
 function TBlockchainCore.GetLastBlock: TBlock;
 begin
+  Lock(Self);
   Result := FCache.GetLastBlock;
 end;
 
 function TBlockchainCore.GetIconBytes(const RawBytes: TBytes): TBytes;
 begin
+  Lock(Self);
   var Offset := Integer(8);
   const Len = TCode.ValueOf<TDataLength>(RawBytes, Offset);
   var _Offset := Offset;
@@ -546,11 +622,14 @@ end;
 
 function TBlockchainCore.GetIndexOf(const TxHash: TBlockHash): Int64;
 begin
+  Lock(Self);
   Result := FCache.GetTransactionIndexByHash(TxHash);
 end;
 
 function TBlockchainCore.SumFee(const Bytes: TBytes): TAmount;
 begin
+  Lock(Self);
+
   Result := 0;
   var Offset := Integer(0);
   var _Offset := Offset;
@@ -588,6 +667,7 @@ end;
 
 function TBlockchainCore.Valid4RecordsCount: Integer;
 begin
+  Lock(Self);
   Result := FCache.Vali4TxCount;
 end;
 

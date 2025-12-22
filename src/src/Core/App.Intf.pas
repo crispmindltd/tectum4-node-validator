@@ -53,6 +53,7 @@ type
     function DoRecoverKeys(const ASeed: string; out APubKey: string;
       out APrKey: string; out AAddress: string): string;
     procedure ChangePrivateKey(const PrKey: string);
+    function CalculateFee(Amount: TAmount): TAmount;
     function CalculateMaxSendValue(Amount: TAmount): TAmount;
     function RecordsCount: Int64;
     function Valid4RecordsCount: Integer;
@@ -61,8 +62,9 @@ type
     function DoTransaction(const Bytes: TBytes): TBytes;
     function DoValidation(const Bytes: TBytes): TBytes;
     function DoMineBlock(const BlockData: TBlockData): string;
-    function DoTokenMint(const Name, Ticker, Description: string; Digits: Byte; AAmount: TAmount; const IconBytes: TBytes; const APrKey: string): string;
-    function DoTokenTransfer(const AAddrFrom, AAddrTo: string; AAmount: TAmount; const APrKey: string; TokenId:Uint64): string;
+    function DoTokenMint(const Name, Ticker, Description: string; Digits: Byte; AAmount, ALiquidity: TAmount; const IconBytes: TBytes; const APrKey: string): string;
+    function DoTokenBurn(const AAmount: TAmount; const ATicker: string; const APrKey: string): string;
+    function DoTokenTransfer(const AAddrFrom, AAddrTo: string; AAmount: TAmount; const APrKey: string; TokenId:UInt64): string;
     function DoTokenTransfers(const AAddrFrom: string; ATo: TArray<TTransferTo>; const APrKey: string): string;
     function DoTokenMigrate(const AAddrFrom, AAddrTo: string; AAmount: TAmount; const APrKey: string): string;
     function DoTokenStake(const AAddr: string; AAmount: TAmount; const APrKey: string): string;

@@ -15,6 +15,7 @@ uses
   App.Exceptions,
   App.Intf,
   App.Types,
+  Blockchain.Utils,
   Net.Data,
   Blockchain.Types,
   HTTP.Types,
@@ -29,6 +30,7 @@ type
     procedure CreateSignedTx(const Request: TRequest; var Response: TResponse);
     procedure DoMigrate(const Request: TRequest; var Response: TResponse);
     procedure DoCoinStake(const Request: TRequest; var Response: TResponse);
+    procedure GetCoinStake(const Request: TRequest; var Response: TResponse);
     procedure DoCoinUnstake(const Request: TRequest; var Response: TResponse);
     procedure GetCoinBalance(const Request: TRequest; var Response: TResponse);
     procedure GetCoinTransferHistory(const Request: TRequest; var Response: TResponse);
@@ -51,6 +53,19 @@ begin
   Response.SetJsonContent(JsonToBytes(JSON.AddPair('balance', TJSONNumber.Create(AppCore.GetTokenBalance(Address, 0 {TECid})))));
 end;
 
+procedure TCoinEndpoints.GetCoinStake(const Request: TRequest;
+  var Response: TResponse);
+begin
+  var Address := Request.Params.ValueOf('address');
+  if Address.IsEmpty then
+    raise EValidError.Create('request parameters error');
+
+  var JSON := TJSONObject.Create;
+  AddRelease(JSON);
+
+  Response.SetJsonContent(JsonToBytes(JSON.AddPair('staking_balance', TJSONNumber.Create(AppCore.GetStakingBalance(Address)))));
+end;
+
 function TransactionToJson(const Tx: TTransactionInfo): TJSONObject;
 begin
   Result := TJSONObject.Create;
@@ -63,6 +78,21 @@ begin
   Result.AddPair('address_to', Tx.AddressTo);
   Result.AddPair('amount', Tx.Amount);
   Result.AddPair('fee', Tx.Fee);
+
+  if Length(Tx.Rewards) > 0 then
+  begin
+    var JSONArray := TJSONArray.Create;
+    Result.AddPair('transactions', JSONArray);
+    for var T in Tx.Rewards do
+    begin
+      var JSON := TJSONObject.Create;
+      JSONArray.AddElement(JSON);
+
+      JSON.AddPair('type', T.TypeName);
+      JSON.AddPair('address', T.Address);
+      JSON.AddPair('amount', TJSONNumber.Create(T.Amount));
+    end;
+  end;
 end;
 
 function BlockToJson(const Block: TBlockInfo): TJSONObject;

@@ -61,6 +61,7 @@ end;
 procedure TNavigationFrame.SetPagesCount(Value: UInt64);
 begin
   Value := EnsureRange(Value,0,Value.MaxValue);
+  Visible := Value >= 2;
   if Value <> FCount then
   begin
     FCount := Value;

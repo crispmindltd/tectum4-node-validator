@@ -1,4 +1,4 @@
-﻿unit Net.Data;
+unit Net.Data;
 
 interface
 
@@ -20,18 +20,18 @@ type
 
 const
   DefaultNodeAddress =
-      'arch1-41.open.tectum.io:50001,'
-    + 'arch2-41.open.tectum.io:50001,'
-    + 'arch3-41.open.tectum.io:50001,'
-    + 'arch4-41.open.tectum.io:50001,'
-    + 'arch5-41.open.tectum.io:50001,'
-    + 'arch6-41.open.tectum.io:50001,'
-    + 'arch7-41.open.tectum.io:50001,'
-    + 'arch8-41.open.tectum.io:50001,'
-    + 'arch9-41.open.tectum.io:50001,'
-    + 'arch10-41.open.tectum.io:50001,'
-    + 'arch11-41.open.tectum.io:50001,'
-    + 'arch12-41.open.tectum.io:50001';
+      'arch1.open.tectum.io:50000,'
+    + 'arch2.open.tectum.io:50000,'
+    + 'arch3.open.tectum.io:50000,'
+    + 'arch4.open.tectum.io:50000,'
+    + 'arch5.open.tectum.io:50000,'
+    + 'arch6.open.tectum.io:50000,'
+    + 'arch7.open.tectum.io:50000,'
+    + 'arch8.open.tectum.io:50000,'
+    + 'arch9.open.tectum.io:50000,'
+    + 'arch10.open.tectum.io:50000,'
+    + 'arch11.open.tectum.io:50000,'
+    + 'arch12.open.tectum.io:50000';
 
   DefaultTCPListenTo = ':50000';
   DefaultPortHTTP = 8917;

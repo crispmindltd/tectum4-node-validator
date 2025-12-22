@@ -16,6 +16,7 @@ type
     Name: string;
     Ticker: string;
     Digits: Byte;
+    ExRate: Double;
     Description: string;
     IconURL: string;
     AddressOwner: TAddress;
@@ -98,10 +99,11 @@ end;
 class operator TToken.Implicit(const Token: TToken): TBytes;
 begin
   Result :=
-    Tcode.BytesOf<UInt64>(Token.Id)
+    TCode.BytesOf<UInt64>(Token.Id)
   + TCode.BytesOf(Token.Ticker)
   + TCode.BytesOf(Token.Name)
   + TCode.BytesOf(Token.Digits)
+  + TCode.BytesOf(Token.ExRate)
   + TCode.BytesOf(Token.Description)
   + TCode.BytesOf(Token.IconURL)
   + TCode.BytesOf(Token.AddressOwner);
@@ -113,6 +115,7 @@ begin
   Result.Ticker := TCode.StringOf(Bytes, Offset);
   Result.Name := TCode.StringOf(Bytes, Offset);
   Result.Digits := TCode.ValueOf<Byte>(Bytes, Offset);
+  Result.ExRate := TCode.ValueOf<Double>(Bytes, Offset);
   Result.Description := TCode.StringOf(Bytes, Offset);
   Result.IconURL := TCode.StringOf(Bytes, Offset);
   Result.AddressOwner := TCode.ValueOf<TAddress>(Bytes, Offset);

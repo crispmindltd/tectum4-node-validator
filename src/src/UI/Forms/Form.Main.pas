@@ -19,6 +19,7 @@ uses
   Blockchain.Utils,
   Desktop.Controls,
   IconUtils,
+  Net.Data,
   Styles,
   RegularExpressions,
   Frame.Explorer,
@@ -136,9 +137,9 @@ type
     ExporerTabItemData: TTabItem;
     ExplorerTransactionDataTabItem: TTabItem;
     NoTECHistoryLabel: TLabel;
-    StatusTECHeaderLabel: TLabel;
+    TypeTECHeaderLabel: TLabel;
     NoTokenHistoryLabel: TLabel;
-    StatusTokenHeaderLabel: TLabel;
+    TypeTokenHeaderLabel: TLabel;
     TECTabControl: TTabControl;
     TECTabItemData: TTabItem;
     TECTransactionDataTabItem: TTabItem;
@@ -210,7 +211,7 @@ type
     HeaderStakingAddressLabel: TLabel;
     HeaderStakingHashLabel: TLabel;
     HeaderStakingAmountLabel: TLabel;
-    HeaderStakingStatusLabel: TLabel;
+    HeaderStakingTypeLabel: TLabel;
     StakingHistoryLabel: TLabel;
     NoStakingLabel: TLabel;
     StakingScrollBox: TVertScrollBox;
@@ -227,7 +228,7 @@ type
     AddressTECLayout: TLayout;
     TECCopyLoginLayout: TLayout;
     TECCopyHashSvg: TPath;
-    StatusExplorerHeaderLabel: TLabel;
+    TypeExplorerHeaderLabel: TLabel;
     SettingsLayout: TLayout;
     PrivateKeyStatusEdit: TEdit;
     FloatAnimation7: TFloatAnimation;
@@ -268,6 +269,45 @@ type
     NewTokenHelpIconLabel2: TLabel;
     NewTokenHelpIconLabel3: TLabel;
     TokenTransferStatusEdit: TEdit;
+    TokenIconImage: TImage;
+    BalanceTokenValueLayout: TLayout;
+    AddLiquidityLabel: TLabel;
+    AddLiquidityLayout: TLayout;
+    pthArrowDown: TPath;
+    FloatAnimation9: TFloatAnimation;
+    AddLiquidityRectangle: TRectangle;
+    AddLiquidityDetailsLayout: TLayout;
+    LiquidityMaxAmountLabel: TLabel;
+    EnterTECAmountEdit: TEdit;
+    ShadowEffect17: TShadowEffect;
+    LiquidityMaxButton: TEditButton;
+    CreateTokenRateLabel: TLabel;
+    BurnTokenRateLabel: TLabel;
+    BurnTokenLayout: TLayout;
+    BurnTokenButton: TButton;
+    BurnTokenAniIndicator: TAniIndicator;
+    NewTokenLiquidityLayout: TLayout;
+    NewTokenLiquidityInfoLabel: TLabel;
+    NewTokenLiquidityLabel2: TLabel;
+    NewTokenLiquidityLabel3: TLabel;
+    NewTokenLiquidityLabel4: TLabel;
+    TokenBurnTabItem: TTabItem;
+    TokenBurnDetailsLayout: TLayout;
+    TokenBurnDetailsLabel: TLabel;
+    TokenBurnBackCircle: TCircle;
+    TokenBurnBackArrowPath: TPath;
+    TokenBurnAvailableLabel: TLabel;
+    TokenBurnLabel: TLabel;
+    TokenBurnAmountEdit: TEdit;
+    TokenBurnAvailableMaxButton: TEditButton;
+    ShadowEffect18: TShadowEffect;
+    DoTokenBurnButtonLayout: TLayout;
+    DoTokenBurnButton: TButton;
+    TokenBurnAmountLayout: TLayout;
+    BurnResultInfoLayout: TLayout;
+    BurnResultInfoAmountLabel: TLabel;
+    BurnResultInfoFeeLabel: TLabel;
+    TokenBurnErrorLabel: TLabel;
     procedure FormShow(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure SendTECButtonClick(Sender: TObject);
@@ -315,6 +355,20 @@ type
     procedure TransactionFrame4TECBackCircleClick(Sender: TObject);
     procedure AmountTokenEditChangeTracking(Sender: TObject);
     procedure SelectIconButtonClick(Sender: TObject);
+    procedure AddLiquidityRectangleClick(Sender: TObject);
+    procedure FloatAnimation9Process(Sender: TObject);
+    procedure LiquidityMaxButtonClick(Sender: TObject);
+    procedure CreateTokenAmountEditChangeTracking(Sender: TObject);
+    procedure BurnTokenButtonClick(Sender: TObject);
+    procedure TokenBurnBackCircleClick(Sender: TObject);
+    procedure TransactionFrame4TECBackCircleMouseEnter(Sender: TObject);
+    procedure TransactionFrame4TECBackCircleMouseLeave(Sender: TObject);
+    procedure TokenBurnBackCircleMouseEnter(Sender: TObject);
+    procedure TokenBurnBackCircleMouseLeave(Sender: TObject);
+    procedure TokenBurnAvailableMaxButtonClick(Sender: TObject);
+    procedure TokenBurnAmountEditChangeTracking(Sender: TObject);
+    procedure TokenTabControlChange(Sender: TObject);
+    procedure DoTokenBurnButtonClick(Sender: TObject);
   private
     FFailedConnection: Boolean;
     FBalances: TDictionary<string, TTokenBalance>;
@@ -322,6 +376,12 @@ type
     FRewardBalance: UInt64;
     FStakingMaxAmountText: string;
     FUnstakingMaxAmountText: string;
+    FLiquidityMaxAmountText: string;
+    FRateText: string;
+    FTokenBurnText: string;
+    FBurnResultTECAmountText: string;
+    FBurnResultFeeText: string;
+
     procedure AddTokenItem(ATicker: string);
     procedure RefreshTokenBalance(ATicker: string);
     procedure CopyTextToClipboard(const Text: string; Control: TControl);
@@ -333,13 +393,14 @@ type
     procedure RefreshExplorerRaw;
     procedure RefreshExplorerText(const Text: string);
     procedure ShowTECTransferStatus(const AMessage: string; AIsError: Boolean = False);
-    procedure ShowTokenTransferStatus(const AMessage: string; AIsError: Boolean = False);
+    procedure ShowTokenTransferStatus(AMessage: string; AIsError: Boolean = False);
     procedure ShowStakeStatus(const AMessage: string; AIsError: Boolean = False);
     procedure ShowUnstakeStatus(const AMessage: string; AIsError: Boolean = False);
     procedure ShowMintStatus(AMessage: string; AIsError: Boolean = False);
     procedure ShowKeyStatus(const AMessage: string; AIsError: Boolean = False);
     procedure LoadImageDesktop(Image: TImage; const Path: string);
-    procedure ClearIconError;
+    procedure LoadImageAsyncNetHTTP(Image: TImage; const URL: string);
+    procedure ClearIconError(const ClearMsg: Boolean = True);
     procedure onTECHistoryFrameClick(Sender: TObject);
     procedure onTokenHistoryFrameClick(Sender: TObject);
     procedure TokenItemClick(Sender: TObject);
@@ -404,6 +465,13 @@ begin
   if Assigned(FOnChanged) then FOnChanged(Self);
 end;
 
+procedure TMainForm.FloatAnimation9Process(Sender: TObject);
+begin
+  AddLiquidityDetailsLayout.Height := AddLiquidityDetailsLayout.TagFloat * (1 - FloatAnimation9.NormalizedTime);
+  CreateTokenDataLayout.Height := CreateTokenDataLayout.TagFloat + AddLiquidityDetailsLayout.Height;
+  AddLiquidityDetailsLayout.Opacity := 1 - FloatAnimation9.NormalizedTime;
+end;
+
 procedure TMainForm.FormCreate(Sender: TObject);
 begin
   Caption := 'Tectum Node ' + AppCore.GetAppVersionText;
@@ -411,6 +479,11 @@ begin
   FFailedConnection := False;
   FStakingMaxAmountText := StakingMaxAmountLabel.Text;
   FUnstakingMaxAmountText := UnstakingMaxAmountLabel.Text;
+  FLiquidityMaxAmountText := LiquidityMaxAmountLabel.Text;
+  FRateText := CreateTokenRateLabel.Text;
+  FTokenBurnText := TokenBurnAvailableLabel.Text;
+  FBurnResultTECAmountText := BurnResultInfoAmountLabel.Text;
+  FBurnResultFeeText := BurnResultInfoFeeLabel.Text;
 
   CopiedRectangle.Visible := False;
 
@@ -420,12 +493,18 @@ begin
   HistoryTECHeaderLayout.Visible := False;
   StakingHeaderLayout.Visible := False;
 
+  AddLiquidityDetailsLayout.TagFloat := GetContentRect(AddLiquidityDetailsLayout).Bottom;
+  CreateTokenDataLayout.TagFloat := CreateTokenDataLayout.Height;
+  AddLiquidityDetailsLayout.Opacity := 0;
+  AddLiquidityDetailsLayout.Height := 0;
+
   FBalances := TDictionary<string, TTokenBalance>.Create;
   BalanceTECValueLabel.Text := AmountToStr(0, 'TEC');
   StakeBalanceLabel.Text := AmountToStr(0, 'TEC');
   AddressTECLabel.Text := AppCore.Address;
   StakingRewardAmountLabel.Text := AmountToStr(0, 'TEC');
   RewardDaysLabel.Text := '0 Days';
+  CreateTokenRateLabel.Text := FRateText + '-';
 end;
 
 procedure TMainForm.FormDestroy(Sender: TObject);
@@ -488,11 +567,16 @@ begin
   UnstakeAmountEdit.Text := AmountToStr(FStakingBalance);
 end;
 
+procedure TMainForm.LiquidityMaxButtonClick(Sender: TObject);
+begin
+  EnterTECAmountEdit.Text := AmountToStr(Max(FBalances['TEC'].Balance - 10 * _1_TEC, 0), 'TEC');
+end;
+
 procedure TMainForm.ExplorerVertScrollBoxResized(Sender: TObject);
 begin
   ControlsFlexWidth([DateTimeExplorerHeaderLabel,BlockNumExplorerHeaderLabel,FromExplorerHeaderLabel,
     ToExplorerHeaderLabel,HashExplorerHeaderLabel,TickerExplorerHeaderLabel,AmountExplorerHeaderLabel,
-    StatusExplorerHeaderLabel],
+    TypeExplorerHeaderLabel],
     [0.1,0.05,0.18,0.18,0.225,0.07,0.1,0.08], ExplorerVertScrollBox.Content);
 end;
 
@@ -504,14 +588,14 @@ end;
 procedure TMainForm.HistoryTECVertScrollBoxResized(Sender: TObject);
 begin
   ControlsFlexWidth([DateTimeTECHeaderLabel,BlockNumTECHeaderLabel,TECAddressFromHeaderLabel,
-    TECAddressToHeaderLabel,HashTECHeaderLabel,AmountTECHeaderLabel,StatusTECHeaderLabel],
+    TECAddressToHeaderLabel,HashTECHeaderLabel,AmountTECHeaderLabel,TypeTECHeaderLabel],
     [0.1,0.05,0.2,0.2,0.3,0.1,0.05], HistoryTECVertScrollBox.Content);
 end;
 
 procedure TMainForm.HistoryTokenVertScrollBoxResized(Sender: TObject);
 begin
   ControlsFlexWidth([DateTimeTokenHeaderLabel,BlockNumTokenHeaderLabel,TokenAddressFromHeaderLabel,
-    TokenAddressToHeaderLabel,HashTokenHeaderLabel,AmountTokenHeaderLabel,StatusTokenHeaderLabel],
+    TokenAddressToHeaderLabel,HashTokenHeaderLabel,AmountTokenHeaderLabel,TypeTokenHeaderLabel],
     [0.1,0.05,0.2,0.2,0.3,0.1,0.05], HistoryTokenVertScrollBox.Content);
 end;
 
@@ -526,6 +610,16 @@ begin
   PrivateKeyMessageLayout.Height := PrivateKeyMessageLabel.BoundsRect.Bottom+7;
 end;
 
+procedure TMainForm.AddLiquidityRectangleClick(Sender: TObject);
+begin
+  if not FloatAnimation9.Running then
+  begin
+    if Assigned(Root) then Root.Focused := nil;
+    FloatAnimation9.Inverse := not FloatAnimation9.Inverse;
+    FloatAnimation9.Start;
+  end;
+end;
+
 procedure TMainForm.AddTokenItem(ATicker: string);
 var
   NewItem: TListBoxItem;
@@ -535,7 +629,7 @@ begin
   NewItem.BeginUpdate;
   try
     with NewItem do begin
-      Name := ATicker + 'TokenItem';
+      Name := 'Token' + ATicker + 'Item';
       Margins.Top := 5;
       Margins.Right := 7;
       Height := 38;
@@ -608,6 +702,12 @@ begin
   end;
 end;
 
+procedure TMainForm.BurnTokenButtonClick(Sender: TObject);
+begin
+  TokenBurnAvailableLabel.Text := FTokenBurnText + BalanceTokenValueLabel.Text;
+  TokenTabControl.SetActiveTabWithTransition(TokenBurnTabItem, TTabTransition.Slide);
+end;
+
 procedure TMainForm.ChangeKeyButtonClick(Sender: TObject);
 begin
   try
@@ -630,11 +730,12 @@ begin
   ShowKeyStatus('Key changed', False);
 end;
 
-procedure TMainForm.ClearIconError;
+procedure TMainForm.ClearIconError(const ClearMsg: Boolean);
 begin
   IconImage.Bitmap.Clear(0);
   IconRectangle.Stroke.Kind := TBrushKind.Solid;
-  ShowMintStatus('', False);
+  if ClearMsg then
+    ShowMintStatus('', False);
 end;
 
 procedure TMainForm.CopyTextToClipboard(const Text: string; Control: TControl);
@@ -645,23 +746,43 @@ begin
   CopiedRectangle.Visible := True;
 end;
 
+procedure TMainForm.CreateTokenAmountEditChangeTracking(Sender: TObject);
+var
+  Amount, Liq: TAmount;
+  Rate: Double;
+begin
+  try
+    Amount := StrToAmount(CreateTokenAmountEdit.Text, 8);
+    Liq := StrToAmount(EnterTECAmountEdit.Text, 8);
+    Rate := Amount / Liq;
+    CreateTokenRateLabel.Text := FRateText + Format(' 1 TEC = %s %s',
+      [FormatFloat('0.########', Rate), CreateTokenSymbolEdit.Text]);
+  except
+    on E:Exception do
+      CreateTokenRateLabel.Text := FRateText + ' -';
+  end;
+end;
+
 procedure TMainForm.CreateTokenButtonClick(Sender: TObject);
 begin
   try
     try
-      var TokenAmount: UInt64 := StrToUInt64(CreateTokenAmountEdit.Text) *
-        Round(Power(10, DecimalsEdit.Text.ToInteger));
+      var TokenAmount: UInt64 := StrToAmount(CreateTokenAmountEdit.Text,
+        DecimalsEdit.Text.ToInteger);
+      var LiquidityAmount: UInt64 := StrToAmount(EnterTECAmountEdit.Text);
       ShowMintStatus(AppCore.DoTokenMint(CreateTokenShortNameEdit.Text,
         CreateTokenSymbolEdit.Text, CreateTokenInformationMemo.Text,
-        DecimalsEdit.Text.ToInteger, TokenAmount, IconToBytes(TokenIconPathEdit.Text),
-        AppCore.PrKey), False);
+        DecimalsEdit.Text.ToInteger, TokenAmount, LiquidityAmount,
+        IconToBytes(TokenIconPathEdit.Text), AppCore.PrKey), False);
 
       CreateTokenShortNameEdit.Text := '';
       CreateTokenSymbolEdit.Text := '';
       CreateTokenAmountEdit.Text := '';
+      EnterTECAmountEdit.Text := '';
       DecimalsEdit.Text := '';
       TokenIconPathEdit.Text := '';
       CreateTokenInformationMemo.Text := '';
+      ClearIconError(False);
     except
       on E:EConvertError do
       begin
@@ -678,6 +799,73 @@ begin
   end;
 end;
 
+procedure TMainForm.TokenBurnAmountEditChangeTracking(Sender: TObject);
+var
+  Amount, Fee: TAmount;
+begin
+  var TokenData: TToken := AppCore.GetTokenData(TokenNameEdit.Text);
+  Amount := StrToAmount(TokenBurnAmountEdit.Text, TokenData.Digits);
+  Amount := Trunc(Amount * Power(10, 8 - TokenData.Digits) * TokenData.ExRate);
+  Fee := AppCore.CalculateFee(Amount);
+
+  try
+    if Amount = 0 then Fee := 0;
+    try
+      if FBalances['TEC'].Balance <= Fee then
+      begin
+        TokenBurnErrorLabel.Text := 'Not enough TEC for fee';
+        raise EIntOverflow.Create('');
+      end;
+
+      TokenBurnErrorLabel.Opacity := 0;
+      DoTokenBurnButton.Enabled := Amount > 0;
+    except
+      TokenBurnErrorLabel.Opacity := 1;
+      DoTokenBurnButton.Enabled := False;
+    end;
+  finally
+    BurnResultInfoAmountLabel.Text := FBurnResultTECAmountText + AmountToStr(Amount, 'TEC');
+    BurnResultInfoFeeLabel.Text := FBurnResultFeeText + AmountToStr(Fee, 'TEC');
+  end;
+end;
+
+procedure TMainForm.TokenBurnAvailableMaxButtonClick(Sender: TObject);
+begin
+  var TokenData: TToken := AppCore.GetTokenData(TokenNameEdit.Text);
+  TokenBurnAmountEdit.Text := AmountToStr(FBalances[TokenData.Ticker].Balance,
+    TokenData.Ticker, TokenData.Digits);
+end;
+
+procedure TMainForm.TokenBurnBackCircleClick(Sender: TObject);
+begin
+  TokenBurnAmountEdit.Text := '';
+  TokenTabControl.SetActiveTabWithTransition(TokenTabItemData, TTabTransition.Slide,
+    TTabTransitionDirection.Reversed);
+end;
+
+procedure TMainForm.TokenBurnBackCircleMouseEnter(Sender: TObject);
+begin
+  TransactionFrame4.TECBackCircle.OnMouseEnter(Sender);
+end;
+
+procedure TMainForm.TokenBurnBackCircleMouseLeave(Sender: TObject);
+begin
+  TransactionFrame4.TECBackCircle.OnMouseLeave(Sender);
+end;
+
+procedure TMainForm.DoTokenBurnButtonClick(Sender: TObject);
+begin
+  try
+    TokenTabControl.SetActiveTabWithTransition(TokenTabItemData, TTabTransition.Slide, TTabTransitionDirection.Reversed);
+    ShowTokenTransferStatus(AppCore.DoTokenBurn(StrToAmount(TokenBurnAmountEdit.Text,
+      FBalances[TokenNameEdit.Text].Token.Digits), TokenNameEdit.Text, AppCore.PrKey), False);
+  except on E:Exception do begin
+      Logs.DoLog('Burn error: ' + E.Message, ERROR);
+      ShowTokenTransferStatus(E.Message, True);
+    end;
+  end;
+end;
+
 procedure TMainForm.TECCopyLoginLayoutClick(Sender: TObject);
 begin
   CopyTextToClipboard(AddressTECLabel.Text, TECCopyLoginLayout);
@@ -689,6 +877,15 @@ begin
   TokenNameEdit.Text := TListBoxItem(Sender).Text;
   BalanceTokenValueLabel.Text := AmountToStr(ChosenToken.Balance,
     ChosenToken.Token.Ticker, ChosenToken.Token.Digits);
+  BurnTokenLayout.Visible := ChosenToken.Token.ExRate > 0;
+  if BurnTokenLayout.Visible then
+  begin
+    BurnTokenRateLabel.Text := FRateText + Format(' 1 TEC = %s %s',
+      [FormatFloat('0.########', 1 / ChosenToken.Token.ExRate), ChosenToken.Token.Ticker]);
+    TokenBurnLabel.Text := BurnTokenRateLabel.Text;
+  end;
+
+  LoadImageAsyncNetHTTP(TokenIconImage, AppCore.GetTokenData(ChosenToken.Token.Ticker).IconURL);
   MainRectangleMouseDown(nil, TMouseButton.mbLeft, [], 0, 0);
 
   TokenShortNameEdit.Text := ChosenToken.Token.Name;
@@ -703,6 +900,12 @@ end;
 procedure TMainForm.TokenNameEditClick(Sender: TObject);
 begin
   MainRectangle.Visible := True;
+end;
+
+procedure TMainForm.TokenTabControlChange(Sender: TObject);
+begin
+  if TokenTabControl.TabIndex = 2 then
+    TokenBurnAmountEditChangeTracking(TokenBurnAmountEdit);
 end;
 
 procedure TMainForm.TransactionFrame1TECBackCircleMouseDown(Sender: TObject;
@@ -759,6 +962,16 @@ end;
 procedure TMainForm.TransactionFrame4TECBackCircleClick(Sender: TObject);
 begin
   TokenTabControl.Previous;
+end;
+
+procedure TMainForm.TransactionFrame4TECBackCircleMouseEnter(Sender: TObject);
+begin
+  TransactionFrame4.TECBackCircleMouseEnter(Sender);
+end;
+
+procedure TMainForm.TransactionFrame4TECBackCircleMouseLeave(Sender: TObject);
+begin
+  TransactionFrame4.TECBackCircleMouseLeave(Sender);
 end;
 
 procedure TMainForm.TxMaxAmountButtonClick(Sender: TObject);
@@ -824,7 +1037,7 @@ procedure TMainForm.onTokenHistoryFrameClick(Sender: TObject);
 begin
   var F := THistoryTransactionFrame(Sender);
   F.UpdateTransaction;
-  TransactionFrame4.SetTrxAsUser(F.Transaction);
+  TransactionFrame4.SetTrxAsUser(F.Transaction, False);
   TokenTabControl.Next;
 end;
 
@@ -854,6 +1067,8 @@ begin
 
   StakingMaxAmountLabel.Text := FStakingMaxAmountText+' '+AmountToStr(FBalances['TEC'].Balance, 'TEC');
   UnstakingMaxAmountLabel.Text := FUnstakingMaxAmountText+' '+AmountToStr(FStakingBalance, 'TEC');
+  LiquidityMaxAmountLabel.Text := FLiquidityMaxAmountText + ' ' +
+    AmountToStr(Max(FBalances['TEC'].Balance,  10 * _1_TEC) - 10 * _1_TEC, 'TEC');
 
   BalanceTECValueLabel.Text := AmountToStr(FBalances['TEC'].Balance,'TEC');
   StakeBalanceLabel.Text := AmountToStr(FStakingBalance,'TEC');
@@ -876,13 +1091,16 @@ begin
     HistoryTECVertScrollBox.Content.DeleteChildren;
 
     for var Trx in Transactions do
-      if (Trx.TxType = 'transfer') then begin
+      if (Trx.TxType = 'transfer') or (Trx.TxType = 'burn') or (Trx.TxType = 'migrate') or
+        (Trx.TxType = 'block') then
+      begin
         Inc(RecordsCount);
         if InRange(RecordsCount, (TransactionNavigation.PageNum-1)*MaxTransactionsNumber+1,
                   (TransactionNavigation.PageNum)*MaxTransactionsNumber-1) then
         begin
           var F := THistoryTransactionFrame.Create(HistoryTECVertScrollBox);
-          F.SetData(Trx, Trx.AddressTo=AppCore.Address);
+          F.SetData(Trx, (Trx.TxType = 'burn') or (Trx.TxType = 'migrate') or
+            (Trx.TxType = 'block') or (Trx.AddressTo=AppCore.Address), True);
           F.OnClick := onTECHistoryFrameClick;
           F.Parent := HistoryTECVertScrollBox;
         end;
@@ -914,13 +1132,13 @@ begin
     HistoryTokenVertScrollBox.Content.DeleteChildren;
 
     for var Trx in Transactions do
-      if (Trx.TxType = 'transfer') then begin
+      if (Trx.TxType = 'transfer') or (Trx.TxType = 'mint') or (Trx.TxType = 'burn') then begin
         Inc(RecordsCount);
         if InRange(RecordsCount, (TokensTransNavigation.PageNum-1)*MaxTransactionsNumber+1,
                   (TokensTransNavigation.PageNum)*MaxTransactionsNumber-1) then
         begin
           var F := THistoryTransactionFrame.Create(HistoryTokenVertScrollBox);
-          F.SetData(Trx, Trx.AddressTo=AppCore.Address);
+          F.SetData(Trx, (Trx.TxType <> 'burn') and (Trx.AddressTo=AppCore.Address));
           F.OnClick := onTokenHistoryFrameClick;
           F.Parent := HistoryTokenVertScrollBox;
         end;
@@ -1112,8 +1330,11 @@ begin
         TLabel(ValText).Text := AmountToStr(FBalances[ATicker].Balance,
           '', FBalances[ATicker].Token.Digits);
       if BalanceTokenValueLabel.Text.EndsWith(ATicker) then
+      begin
         BalanceTokenValueLabel.Text := AmountToStr(FBalances[ATicker].Balance,
           FBalances[ATicker].Token.Ticker, FBalances[ATicker].Token.Digits);
+        TokenBurnAvailableLabel.Text := FTokenBurnText + BalanceTokenValueLabel.Text;
+      end;
     end;
   finally
     TokensListBox.Sort(SortByBalance);
@@ -1224,10 +1445,14 @@ begin
   ShowStatus(AMessage, AIsError, TECTransferStatusEdit, FloatAnimation2);
 end;
 
-procedure TMainForm.ShowTokenTransferStatus(const AMessage: string;
-  AIsError: Boolean);
+procedure TMainForm.ShowTokenTransferStatus(AMessage: string; AIsError: Boolean);
 begin
   TokenTransferStatusEdit.Visible := not AMessage.IsEmpty;
+  if not AIsError then
+    AMessage := 'Hash: ' + AMessage
+  else
+    AMessage := 'Error: ' + AMessage;
+
   ShowStatus(AMessage, AIsError, TokenTransferStatusEdit, FloatAnimation1);
 end;
 
@@ -1297,7 +1522,7 @@ end;
 procedure TMainForm.StakingScrollBoxResized(Sender: TObject);
 begin
   ControlsFlexWidth([HeaderStakingDateLabel,HeaderStakingBlockLabel,HeaderStakingAddressLabel,
-    HeaderStakingHashLabel,HeaderStakingAmountLabel,HeaderStakingStatusLabel],
+    HeaderStakingHashLabel,HeaderStakingAmountLabel,HeaderStakingTypeLabel],
     [0.13,0.05,0.3,0.35,0.1,0.07], StakingScrollBox.Content);
 end;
 
@@ -1357,6 +1582,44 @@ begin
       IconRectangle.Stroke.Kind := TBrushKind.Solid;
     end;
   end;
+end;
+
+procedure TMainForm.LoadImageAsyncNetHTTP(Image: TImage; const URL: string);
+begin
+  TTask.Run(procedure
+  var
+    HTTPClient: THTTPClient;
+    Response: IHTTPResponse;
+    Stream: TMemoryStream;
+  begin
+    HTTPClient := THTTPClient.Create;
+    Stream := TMemoryStream.Create;
+    try
+      try
+        Response := HTTPClient.Get(URL, Stream);
+        if Response.StatusCode = 200 then
+        begin
+          TThread.Synchronize(nil, procedure
+          begin
+            TokenIconImage.Bitmap.LoadFromStream(Stream);
+          end);
+        end else
+          raise Exception.Create('');
+      except
+        on E: Exception do
+        begin
+          Response := HTTPClient.Get(IconURLDomain + '/default.png', Stream);
+          TThread.Synchronize(nil, procedure
+          begin
+            TokenIconImage.Bitmap.LoadFromStream(Stream);
+          end);
+        end;
+      end;
+    finally
+      Stream.Free;
+      HTTPClient.Free;
+    end;
+  end);
 end;
 
 end.

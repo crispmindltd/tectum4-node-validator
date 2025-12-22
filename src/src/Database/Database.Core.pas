@@ -197,22 +197,19 @@ end;
 
 procedure TIndexFile.Open(const Path: string);
 begin
-
   if Assigned(Data) then Exit;
 
   if FileName.IsEmpty then
     FileName := GetUniqueFileName(Path);
 
-  if IndexIn = Memory then
-  begin
+  if IndexIn = Memory then begin
     Data := TMemoryStream.Create;
     if TFile.Exists(FileName) then
       TMemoryStream(Data).LoadFromFile(FileName);
   end else
     Data := TFile.Open(FileName, TFileMode.fmOpenOrCreate);
 
-  if Data.Size = 0 then
-  begin
+  if Data.Size = 0 then begin
     var FileHeader := Default(TFileHeader);
     FileHeader.Sign := INDEX_SIGNATURE;
     FileHeader.DataOffset := SizeOf(TFileHeader);
@@ -347,8 +344,7 @@ end;
 function TDatabase.OpenIndexFile: Boolean;
 begin
   Result := Length(FDataFiles) > 0;
-  if Result then
-  begin
+  if Result then begin
     FIndexFile.IndexIn := IndexIn;
     FIndexFile.Open(FDataPath);
   end;
@@ -462,8 +458,7 @@ begin
   Lock(Self);
   Result := nil;
   OpenIndexFile;
-  for var DataNum := IndexFrom.DataNum to IndexTo.DataNum do
-  begin
+  for var DataNum := IndexFrom.DataNum to IndexTo.DataNum do begin
     var DataFile := FDataFiles[DataNum];
     DataFile.Open;
     AddFinally(DataFile.Close);
@@ -507,8 +502,7 @@ begin
       if I = IndexCount then
         IndexTo.DataOffset := FDataFiles[IndexPrev.DataNum].Size
       else begin
-        if IndexOffset > High(IndexBuffer) then
-        begin
+        if IndexOffset > High(IndexBuffer) then begin
           SetLength(IndexBuffer, Min(IndexChunk, IndexCount - I)); // memory indexes buffer
           FIndexFile.Data.ReadBuffer(IndexBuffer[0], Length(IndexBuffer) * SizeOf(TIndexData));
           IndexOffset := 0;
