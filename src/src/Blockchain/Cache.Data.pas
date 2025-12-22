@@ -22,10 +22,10 @@ type
   end;
 
   TOut = record
-    Amount: TAmount;
-    Staking: TAmount;
+    Unstaking: TAmount;
+    Stake: TAmount;
     No: UInt32;
-    procedure AmountInc(const Value: TAmount);
+    procedure UnstakingInc(const Value: TAmount);
     procedure StakingInc(const Value: TAmount);
     procedure MinNo(const Value: UInt32);
   end;
@@ -61,14 +61,14 @@ begin
 end;
 
 { TOut }
-procedure TOut.AmountInc(const Value: TAmount);
-begin
-  Amount := Amount + Value;
-end;
-
 procedure TOut.StakingInc(const Value: TAmount);
 begin
-  Staking := Staking + Value;
+  Inc(Stake,  Value);
+end;
+
+procedure TOut.UnstakingInc(const Value: TAmount);
+begin
+  Inc(Unstaking, Value);
 end;
 
 procedure TOut.MinNo(const Value: UInt32);

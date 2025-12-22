@@ -4,8 +4,8 @@ object StakingTransactionFrame: TStakingTransactionFrame
   Margins.Top = 5.000000000000000000
   Margins.Right = 5.000000000000000000
   Position.Y = 5.000000000000000000
-  Size.Width = 891.000000000000000000
-  Size.Height = 28.000000000000000000
+  Size.Width = 856.000000000000000000
+  Size.Height = 30.000000000000000000
   Size.PlatformDefault = False
   OnMouseEnter = FrameMouseEnter
   OnMouseLeave = FrameMouseLeave
@@ -13,8 +13,8 @@ object StakingTransactionFrame: TStakingTransactionFrame
     Align = Contents
     Fill.Kind = None
     HitTest = False
-    Size.Width = 891.000000000000000000
-    Size.Height = 28.000000000000000000
+    Size.Width = 856.000000000000000000
+    Size.Height = 30.000000000000000000
     Size.PlatformDefault = False
     Stroke.Kind = None
     XRadius = 8.000000000000000000
@@ -24,7 +24,7 @@ object StakingTransactionFrame: TStakingTransactionFrame
       Align = Left
       StyledSettings = [Style]
       Size.Width = 150.000000000000000000
-      Size.Height = 28.000000000000000000
+      Size.Height = 30.000000000000000000
       Size.PlatformDefault = False
       TextSettings.Font.Family = 'Inter'
       TextSettings.Font.Size = 14.000000000000000000
@@ -39,7 +39,7 @@ object StakingTransactionFrame: TStakingTransactionFrame
       Margins.Left = 5.000000000000000000
       Position.X = 155.000000000000000000
       Size.Width = 72.000000000000000000
-      Size.Height = 28.000000000000000000
+      Size.Height = 30.000000000000000000
       Size.PlatformDefault = False
       TextSettings.Font.Family = 'Inter'
       TextSettings.Font.Size = 14.000000000000000000
@@ -54,7 +54,7 @@ object StakingTransactionFrame: TStakingTransactionFrame
       Margins.Left = 5.000000000000000000
       Position.X = 232.000000000000000000
       Size.Width = 189.000000000000000000
-      Size.Height = 28.000000000000000000
+      Size.Height = 30.000000000000000000
       Size.PlatformDefault = False
       TextSettings.Font.Family = 'Inter'
       TextSettings.Font.Size = 14.000000000000000000
@@ -69,7 +69,7 @@ object StakingTransactionFrame: TStakingTransactionFrame
       Margins.Left = 5.000000000000000000
       Position.X = 426.000000000000000000
       Size.Width = 290.000000000000000000
-      Size.Height = 28.000000000000000000
+      Size.Height = 30.000000000000000000
       Size.PlatformDefault = False
       TextSettings.Font.Family = 'Inter'
       TextSettings.Font.Size = 14.000000000000000000
@@ -83,7 +83,7 @@ object StakingTransactionFrame: TStakingTransactionFrame
       Padding.Left = 5.000000000000000000
       Position.X = 831.000000000000000000
       Size.Width = 63.000000000000000000
-      Size.Height = 28.000000000000000000
+      Size.Height = 30.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 5
       object IncomRectangle: TRectangle
@@ -94,7 +94,7 @@ object StakingTransactionFrame: TStakingTransactionFrame
         Margins.Top = 2.000000000000000000
         Margins.Bottom = 2.000000000000000000
         Size.Width = 63.000000000000000000
-        Size.Height = 24.000000000000000000
+        Size.Height = 26.000000000000000000
         Size.PlatformDefault = False
         Stroke.Kind = None
         XRadius = 2.000000000000000000
@@ -104,7 +104,7 @@ object StakingTransactionFrame: TStakingTransactionFrame
         Align = Contents
         HitTest = False
         Size.Width = 63.000000000000000000
-        Size.Height = 28.000000000000000000
+        Size.Height = 30.000000000000000000
         Size.PlatformDefault = False
         Text = 'IN'
         TextSettings.Font.Family = 'Inter'
@@ -120,7 +120,7 @@ object StakingTransactionFrame: TStakingTransactionFrame
       Margins.Left = 5.000000000000000000
       Position.X = 721.000000000000000000
       Size.Width = 110.000000000000000000
-      Size.Height = 28.000000000000000000
+      Size.Height = 30.000000000000000000
       Size.PlatformDefault = False
       TextSettings.Font.Family = 'Inter'
       TextSettings.Font.Size = 14.000000000000000000

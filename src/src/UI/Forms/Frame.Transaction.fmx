@@ -75,7 +75,7 @@ object TransactionFrame: TTransactionFrame
         YRadius = 5.000000000000000000
       end
       object TypeText: TText
-        Align = Contents
+        Align = Center
         HitTest = False
         Size.Width = 73.000000000000000000
         Size.Height = 29.000000000000000000
@@ -84,6 +84,7 @@ object TransactionFrame: TTransactionFrame
         TextSettings.Font.Family = 'Inter'
         TextSettings.Font.Size = 14.000000000000000000
         TextSettings.FontColor = xFF0F9A62
+        TextSettings.WordWrap = False
       end
     end
   end
@@ -106,7 +107,7 @@ object TransactionFrame: TTransactionFrame
       Size.Width = 1010.000000000000000000
       Size.Height = 23.000000000000000000
       Size.PlatformDefault = False
-      TabOrder = 21
+      TabOrder = 23
       object TECHashDetailsLabel: TLabel
         Align = Left
         AutoSize = True
@@ -270,7 +271,7 @@ object TransactionFrame: TTransactionFrame
       Size.Width = 1010.000000000000000000
       Size.Height = 23.000000000000000000
       Size.PlatformDefault = False
-      TabOrder = 20
+      TabOrder = 22
       object AddressFromLabel: TLabel
         Align = Left
         AutoSize = True
@@ -363,7 +364,7 @@ object TransactionFrame: TTransactionFrame
       Size.Width = 1010.000000000000000000
       Size.Height = 23.000000000000000000
       Size.PlatformDefault = False
-      TabOrder = 18
+      TabOrder = 20
       object TECAmountDetailsLabel: TLabel
         Align = Left
         AutoSize = True
@@ -394,7 +395,7 @@ object TransactionFrame: TTransactionFrame
       Align = Top
       Margins.Top = 20.000000000000000000
       Position.X = 15.000000000000000000
-      Position.Y = 540.000000000000000000
+      Position.Y = 626.000000000000000000
       Size.Width = 1010.000000000000000000
       Size.Height = 23.000000000000000000
       Size.PlatformDefault = False
@@ -429,7 +430,7 @@ object TransactionFrame: TTransactionFrame
       Align = Top
       Margins.Top = 20.000000000000000000
       Position.X = 15.000000000000000000
-      Position.Y = 583.000000000000000000
+      Position.Y = 669.000000000000000000
       Size.Width = 1010.000000000000000000
       Size.Height = 105.000000000000000000
       Size.PlatformDefault = False
@@ -465,7 +466,7 @@ object TransactionFrame: TTransactionFrame
       Align = Top
       Margins.Top = 20.000000000000000000
       Position.X = 15.000000000000000000
-      Position.Y = 320.000000000000000000
+      Position.Y = 406.000000000000000000
       Size.Width = 1010.000000000000000000
       Size.Height = 23.000000000000000000
       Size.PlatformDefault = False
@@ -487,8 +488,8 @@ object TransactionFrame: TTransactionFrame
         Align = Left
         AutoSize = True
         Position.X = 200.000000000000000000
-        Size.Width = 48.103698730468750000
-        Size.Height = 23.000000000000000000
+        Size.Width = 48.103694915771480000
+        Size.Height = 18.153408050537110000
         Size.PlatformDefault = False
         Text = '0 TEC'
         TextSettings.Font.Family = 'Inter'
@@ -546,11 +547,11 @@ object TransactionFrame: TTransactionFrame
       Align = Top
       ClipChildren = True
       Position.X = 15.000000000000000000
-      Position.Y = 343.000000000000000000
+      Position.Y = 429.000000000000000000
       Size.Width = 1010.000000000000000000
       Size.Height = 177.000000000000000000
       Size.PlatformDefault = False
-      TabOrder = 22
+      TabOrder = 24
       object RewardLeftLayout: TLayout
         Align = Left
         Size.Width = 200.000000000000000000
@@ -620,7 +621,7 @@ object TransactionFrame: TTransactionFrame
       Size.Width = 1010.000000000000000000
       Size.Height = 23.000000000000000000
       Size.PlatformDefault = False
-      TabOrder = 19
+      TabOrder = 21
       object AddressToLabel: TLabel
         Align = Left
         AutoSize = True
@@ -754,6 +755,76 @@ object TransactionFrame: TTransactionFrame
         TabOrder = 0
       end
       object BlockFromIDText: TText
+        Align = Left
+        Position.X = 200.000000000000000000
+        Size.Width = 441.000000000000000000
+        Size.Height = 23.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.Font.Family = 'Inter'
+        TextSettings.Font.Size = 15.000000000000000000
+        TextSettings.FontColor = xFF1E2022
+        TextSettings.WordWrap = False
+        TextSettings.HorzAlign = Leading
+      end
+    end
+    object LiquidityAmountLayout: TLayout
+      Align = Top
+      Margins.Top = 20.000000000000000000
+      Position.X = 15.000000000000000000
+      Position.Y = 363.000000000000000000
+      Size.Width = 1010.000000000000000000
+      Size.Height = 23.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 19
+      object LiquidityAmountLabel: TLabel
+        Align = Left
+        AutoSize = True
+        StyledSettings = []
+        Size.Width = 200.000000000000000000
+        Size.Height = 23.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.Font.Family = 'Inter'
+        TextSettings.Font.Size = 15.000000000000000000
+        TextSettings.FontColor = xFF5A6773
+        Text = 'Liquidity'
+        TabOrder = 0
+      end
+      object LiquidityAmountValueText: TText
+        Align = Left
+        Position.X = 200.000000000000000000
+        Size.Width = 441.000000000000000000
+        Size.Height = 23.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.Font.Family = 'Inter'
+        TextSettings.Font.Size = 15.000000000000000000
+        TextSettings.FontColor = xFF1E2022
+        TextSettings.WordWrap = False
+        TextSettings.HorzAlign = Leading
+      end
+    end
+    object TECReceivedLayout: TLayout
+      Align = Top
+      Margins.Top = 20.000000000000000000
+      Position.X = 15.000000000000000000
+      Position.Y = 320.000000000000000000
+      Size.Width = 1010.000000000000000000
+      Size.Height = 23.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 18
+      object TECReceivedLabel: TLabel
+        Align = Left
+        AutoSize = True
+        StyledSettings = []
+        Size.Width = 200.000000000000000000
+        Size.Height = 23.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.Font.Family = 'Inter'
+        TextSettings.Font.Size = 15.000000000000000000
+        TextSettings.FontColor = xFF5A6773
+        Text = 'Received'
+        TabOrder = 0
+      end
+      object TECReceivedValueText: TText
         Align = Left
         Position.X = 200.000000000000000000
         Size.Width = 441.000000000000000000

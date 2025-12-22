@@ -17,11 +17,12 @@ uses
   Cache.Data,
   Blockchain.Types,
   Blockchain.Data,
-  Crypto.Types;
+  Crypto.Types,
+  Math;
 
 type
   TCache = class
-    const CurrentCacheVersion = 4;
+    const CurrentCacheVersion = 5;
     private type
 
       TBalancesCache = class (TDictionary<TTokenAddressPair, TAmount>)
@@ -400,6 +401,7 @@ begin
           Token.Name := Mint.Name;
           Token.Ticker := Mint.Ticker;
           Token.Digits := Mint.Digits;
+          Token.ExRate := 0;
           Token.Description := Mint.Description;
           Token.IconURL := Mint.IconURL;
           Token.AddressOwner := AddressOwner;
@@ -414,6 +416,47 @@ begin
           FBalances.DecTokenBalance(0 {TEC Id}, AddressOwner, Mint.Fee);
 
           FHashes.Add(Mint.Hash, blockId);
+        end else
+
+        if DataType = MINT_LIQUIDITY_TRANSACTION then begin
+          var Mint: TLiquidityMint := PData;
+          var AddressOwner:TAddress := Mint.SenderAddress;
+
+          var Token := Default(TToken);
+          Token.Name := Mint.Name;
+          Token.Ticker := Mint.Ticker;
+          Token.Digits := Mint.Digits;
+          Token.ExRate := Mint.Liquidity / (Mint.Amount * Trunc(Power(10, 8 - Mint.Digits)));
+          Token.Description := Mint.Description;
+          Token.IconURL := Mint.IconURL;
+          Token.AddressOwner := AddressOwner;
+          Token.Id := blockId;
+
+          FTokens.Add(Mint.Ticker, Token);
+
+          var V := FAssets[AddressOwner];
+          V.SetNo(Mint.No);
+
+          FBalances.IncTokenBalance(blockId, AddressOwner, Mint.Amount);
+          FBalances.DecTokenBalance(0 {TEC Id}, AddressOwner, Mint.Fee);
+          FBalances.DecTokenBalance(0, AddressOwner, Mint.Liquidity);
+
+          FHashes.Add(Mint.Hash, blockId);
+        end else
+
+        if DataType = BURN_TOKEN_TRANSACTION then
+        begin
+          var Burn: TTokenBurn := PData;
+          var AddressOwner: TAddress := Burn.SenderAddress;
+
+          var V := FAssets[AddressOwner];
+          V.SetNo(Burn.No);
+          FBalances.DecTokenBalance(0 {TEC id}, AddressOwner, Burn.Fee);
+          FBalances.DecTokenBalance(Burn.TokenID, AddressOwner, Burn.Amount);
+          var TokenData := GetTokenData(GetTokenTicker(Burn.TokenID), True);
+          FBalances.IncTokenBalance(0, AddressOwner, Trunc(Burn.Amount * TokenData.ExRate));
+
+          FHashes.Add(Burn.Hash, blockId);
         end else
 
         if DataType = TRANSFER_TRANSACTION then begin
@@ -498,6 +541,7 @@ begin
 
           FBalances.IncTokenBalance(0 {TEC id}, Address, Block.Data.Reward);
           FHashes.Add(Block.Data.Hash, blockId);
+          FAssets[Address].RewardInc(Block.Data.Reward);
           FBlocks.Add(blockId);
           FLastBlockHash := Block.Data.Hash;
         end else
@@ -508,6 +552,7 @@ begin
 
           FAssets[Address].SetNo(Validate.Data.No);
           FBalances.IncTokenBalance(0 {TEC id}, Address, Validate.Data.Reward);
+          FAssets[Address].RewardInc(Validate.Data.Reward);
           FHashes.Add(Validate.Hash, blockId);
         end;
       end;
@@ -539,6 +584,7 @@ begin
     Result.AddressFrom := EmptyAddress.AsString;
     Result.AddressTo := Mint.SenderAddress.AsString;
     Result.Amount := Mint.Amount;
+    Result.IndexFrom := 0;
     Result.Fee := Mint.Fee;
     Result.Hash := Mint.Hash;
     Result.Name := Mint.Name;
@@ -546,6 +592,41 @@ begin
     Result.Decimals := Mint.Digits;
     Result.Description := Mint.Description;
     Result.IconURL := Mint.IconURL;
+  end;
+
+  if DataType = MINT_LIQUIDITY_TRANSACTION then begin
+    var Mint: TLiquidityMint := PData;
+
+    Result.TxType := 'mint';
+    Result.DateTime := Mint.Date;
+    Result.No := Mint.No;
+    Result.AddressFrom := EmptyAddress.AsString;
+    Result.AddressTo := Mint.SenderAddress.AsString;
+    Result.Amount := Mint.Amount;
+    Result.IndexFrom := Mint.Liquidity;
+    Result.Fee := Mint.Fee;
+    Result.Hash := Mint.Hash;
+    Result.Name := Mint.Name;
+    Result.Ticker := Mint.Ticker;
+    Result.Decimals := Mint.Digits;
+    Result.Description := Mint.Description;
+    Result.IconURL := Mint.IconURL;
+  end;
+
+  if DataType = BURN_TOKEN_TRANSACTION then begin
+    var Burn: TTokenBurn := PData;
+
+    Result.TxType := 'burn';
+    Result.DateTime := Burn.Date;
+    Result.No := Burn.No;
+    Result.AddressFrom := Burn.SenderAddress.AsString;
+    Result.AddressTo := Burn.SenderAddress.AsString;
+    Result.Amount := Burn.Amount;
+    Result.IndexFrom := Burn.TokenID;
+    Result.Fee := Burn.Fee;
+    Result.Hash := Burn.Hash;
+    Result.Ticker := GetTokenTicker(Burn.TokenID);
+    Result.Decimals := GetTokenData(Result.Ticker, False).Digits;
   end;
 
   if DataType = TRANSFER_TRANSACTION then begin
@@ -650,14 +731,16 @@ begin
     Result.DateTime := Block.Date;
     Result.AddressFrom := EmptyAddress.AsString;
     Result.AddressTo := Block.SenderAddress.AsString;
+    const prevHash:string = Block.Data.PrevBlockHash;
+    const Hash:string = Block.Data.Hash;
     try
       const PrevBlockInfo = GetBlockInfo(Block.Data.PrevBlockHash);
-      Result.IndexFrom := PrevBlockInfo.IndexTo;
+      Result.IndexFrom := PrevBlockInfo.IndexTo + 1;
     except
       on E:ENotFoundError do
-        Result.IndexFrom := 1;
+        Result.IndexFrom := 0;
     end;
-    Result.IndexTo := Block.Data.IndexTo - 1;
+    Result.IndexTo := Block.Data.IndexTo;
     Result.Amount := Block.Data.Reward;
     Result.Hash := Block.Data.Hash;
     Result.Ticker := 'TEC';
@@ -696,6 +779,17 @@ begin
     Result.StakeAmount := Block.Data.StakeAmount;
     Result.PrevHash := Block.Data.PrevBlockHash;
     Result.Hash := Block.Data.Hash;
+  end
+  else if DataType = VALIDATE4_TRANSACTION then begin
+    var Val4: PValidate4 := PData;
+    Result.Nonce := 0;
+    Result.IndexTo := Index + 1;
+    Result.DateTime := Val4.Date;
+    Result.Address := Default(TAddress);
+    Result.Reward := 0;
+    Result.StakeAmount := 0;
+    Result.PrevHash := Default(TBlockHash);
+    Result.Hash := Val4.Hash();
   end;
 end;
 

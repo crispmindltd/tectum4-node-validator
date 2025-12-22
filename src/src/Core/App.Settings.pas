@@ -58,7 +58,7 @@ begin
     FIni.WriteInteger('http', 'port', DefaultPortHTTP);
     FIni.WriteString('settings', 'auto_update', 'y');
     FIni.WriteString('settings', 'logs_level', 'info');
-    FIni.WriteString('miner', 'enabled', 'true');
+    FIni.WriteString('miner', 'enabled', 'false');
     FIni.UpdateFile;
   end;
 end;

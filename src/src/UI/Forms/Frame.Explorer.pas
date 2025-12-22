@@ -78,8 +78,13 @@ begin
   end else
   if Transaction.TxType='mint' then
   begin
-    IncomRectangle.Fill.Color := $FFFE7676;
+    IncomRectangle.Fill.Color := $FF5B99FF;
     IncomText.Text := 'MINT';
+  end else
+  if Transaction.TxType='burn' then
+  begin
+    IncomRectangle.Fill.Color := $FFFF0606;
+    IncomText.Text := 'BURN';
   end else
   begin
     IncomRectangle.Fill.Color := $FF0F9A62;

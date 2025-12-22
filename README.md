@@ -45,6 +45,7 @@ Tectum Blockchain Node supports the following types of requests:
 
 - **[GET /token/balance/byaddress](docs/coin_operations/GET_token_balance_byAddress.md)**: Get the token balance by the cryptocurrency address
 - **[POST /token/mint](docs/coin_operations/POST_token_mint.md)**: Creating a new token
+- **[POST /token/burn](docs/coin_operations/POST_token_burn.md)**: Burn a liquidity token
 - **[GET /token/info](docs/coin_operations/GET_token_info.md)**: Getting token information by ticker
 - **[POST /token/transfer](docs/coin_operations/POST_token_transfer.md)**: Transfer tokens between two cryptocurrency addresses
 

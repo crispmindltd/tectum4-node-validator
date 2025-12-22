@@ -4,8 +4,8 @@ object ExplorerTransactionFrame: TExplorerTransactionFrame
   Margins.Top = 6.000000000000000000
   Margins.Right = 6.000000000000000000
   Position.Y = 6.000000000000000000
-  Size.Width = 1250.000000000000000000
-  Size.Height = 28.000000000000000000
+  Size.Width = 1160.000000000000000000
+  Size.Height = 30.000000000000000000
   Size.PlatformDefault = False
   OnMouseEnter = FrameMouseEnter
   OnMouseLeave = FrameMouseLeave
@@ -14,8 +14,8 @@ object ExplorerTransactionFrame: TExplorerTransactionFrame
     Align = Contents
     Fill.Kind = None
     HitTest = False
-    Size.Width = 1250.000000000000000000
-    Size.Height = 28.000000000000000000
+    Size.Width = 1160.000000000000000000
+    Size.Height = 30.000000000000000000
     Size.PlatformDefault = False
     Stroke.Kind = None
     XRadius = 1.000000000000000000
@@ -24,7 +24,7 @@ object ExplorerTransactionFrame: TExplorerTransactionFrame
       Align = Left
       StyledSettings = [Style]
       Size.Width = 150.000000000000000000
-      Size.Height = 28.000000000000000000
+      Size.Height = 30.000000000000000000
       Size.PlatformDefault = False
       TextSettings.Font.Family = 'Inter'
       TextSettings.Font.Size = 14.000000000000000000
@@ -39,7 +39,7 @@ object ExplorerTransactionFrame: TExplorerTransactionFrame
       Margins.Left = 5.000000000000000000
       Position.X = 155.000000000000000000
       Size.Width = 72.000000000000000000
-      Size.Height = 28.000000000000000000
+      Size.Height = 30.000000000000000000
       Size.PlatformDefault = False
       TextSettings.Font.Family = 'Inter'
       TextSettings.Font.Size = 14.000000000000000000
@@ -54,7 +54,7 @@ object ExplorerTransactionFrame: TExplorerTransactionFrame
       Margins.Left = 5.000000000000000000
       Position.X = 232.000000000000000000
       Size.Width = 215.000000000000000000
-      Size.Height = 28.000000000000000000
+      Size.Height = 30.000000000000000000
       Size.PlatformDefault = False
       TextSettings.Font.Family = 'Inter'
       TextSettings.Font.Size = 14.000000000000000000
@@ -69,7 +69,7 @@ object ExplorerTransactionFrame: TExplorerTransactionFrame
       Margins.Left = 5.000000000000000000
       Position.X = 452.000000000000000000
       Size.Width = 215.000000000000000000
-      Size.Height = 28.000000000000000000
+      Size.Height = 30.000000000000000000
       Size.PlatformDefault = False
       TextSettings.Font.Family = 'Inter'
       TextSettings.Font.Size = 14.000000000000000000
@@ -84,7 +84,7 @@ object ExplorerTransactionFrame: TExplorerTransactionFrame
       Margins.Left = 5.000000000000000000
       Position.X = 672.000000000000000000
       Size.Width = 215.000000000000000000
-      Size.Height = 28.000000000000000000
+      Size.Height = 30.000000000000000000
       Size.PlatformDefault = False
       TextSettings.Font.Family = 'Inter'
       TextSettings.Font.Size = 14.000000000000000000
@@ -99,7 +99,7 @@ object ExplorerTransactionFrame: TExplorerTransactionFrame
       Margins.Left = 5.000000000000000000
       Position.X = 1014.000000000000000000
       Size.Width = 110.000000000000000000
-      Size.Height = 28.000000000000000000
+      Size.Height = 30.000000000000000000
       Size.PlatformDefault = False
       TextSettings.Font.Family = 'Inter'
       TextSettings.Font.Size = 14.000000000000000000
@@ -114,7 +114,7 @@ object ExplorerTransactionFrame: TExplorerTransactionFrame
       Margins.Left = 5.000000000000000000
       Position.X = 1129.000000000000000000
       Size.Width = 90.000000000000000000
-      Size.Height = 28.000000000000000000
+      Size.Height = 30.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 7
       object IncomRectangle: TRectangle
@@ -125,7 +125,7 @@ object ExplorerTransactionFrame: TExplorerTransactionFrame
         Margins.Top = 2.000000000000000000
         Margins.Bottom = 2.000000000000000000
         Size.Width = 90.000000000000000000
-        Size.Height = 24.000000000000000000
+        Size.Height = 26.000000000000000000
         Size.PlatformDefault = False
         Stroke.Kind = None
         XRadius = 2.000000000000000000
@@ -135,7 +135,7 @@ object ExplorerTransactionFrame: TExplorerTransactionFrame
         Align = Contents
         HitTest = False
         Size.Width = 90.000000000000000000
-        Size.Height = 28.000000000000000000
+        Size.Height = 30.000000000000000000
         Size.PlatformDefault = False
         Text = 'IN'
         TextSettings.Font.Family = 'Inter'
@@ -151,7 +151,7 @@ object ExplorerTransactionFrame: TExplorerTransactionFrame
       Margins.Left = 5.000000000000000000
       Position.X = 892.000000000000000000
       Size.Width = 117.000000000000000000
-      Size.Height = 28.000000000000000000
+      Size.Height = 30.000000000000000000
       Size.PlatformDefault = False
       TextSettings.Font.Family = 'Inter'
       TextSettings.Font.Size = 14.000000000000000000

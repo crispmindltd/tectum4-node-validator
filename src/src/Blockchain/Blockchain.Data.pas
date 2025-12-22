@@ -24,13 +24,18 @@ const
   MINEBLOCK_TRANSACTION: TDataType = $0008;
   VALIDATE_TRANSACTION: TDataType = $0009;
   TOKEN_ICON_DATA: TDataType = $0010;
+  MINT_LIQUIDITY_TRANSACTION: TDataType = $0011;
+  BURN_TOKEN_TRANSACTION: TDataType = $0012;
+
+  _1_TEC = TAmount(100000000);
+  MINER_MIN_STAKE = 1000 * _1_TEC;
 
 type
   TMint = record // non-fixed size!
     SenderAddress:TAddress;
     No: UInt32;
     Name: string;
-    Ticker:string;
+    Ticker: string;
     Digits: Byte;
     Amount: TAmount;
     Fee: TAmount;
@@ -46,6 +51,47 @@ type
     procedure CheckSign();
     class operator Implicit(const Mint: TMint): TBytes;
     class operator Implicit(const P: Pointer): TMint;
+  end;
+
+  TLiquidityMint = record // non-fixed size!
+    SenderAddress:TAddress;
+    No: UInt32;
+    Name: string;
+    Ticker:string;
+    Digits: Byte;
+    Amount: TAmount;
+    Liquidity: TAmount;
+    Fee: TAmount;
+    Description: string;
+    IconURL:string;
+    Date: TUnixTimestamp;
+    Sign: TSign;
+    function DataForHash(): TBytes;
+    function DataHash(): TBlockHash;
+    function Hash(): TBlockHash;
+    function RecoverAddress():TAddress;
+    procedure SignBy(const PrivateKey: TPrivateKey);
+    procedure CheckSign();
+    class operator Implicit(const Mint: TLiquidityMint): TBytes;
+    class operator Implicit(const P: Pointer): TLiquidityMint;
+  end;
+
+  TTokenBurn = record
+    SenderAddress: TAddress;
+    No: UInt32;
+    TokenID: UInt64;
+    Amount: TAmount;
+    Fee: TAmount;
+    Date: TUnixTimestamp;
+    Sign: TSign;
+    function DataForHash(): TBytes;
+    function DataHash(): TBlockHash;
+    function Hash(): TBlockHash;
+    function RecoverAddress():TAddress;
+    procedure SignBy(const PrivateKey: TPrivateKey);
+    procedure CheckSign();
+    class operator Implicit(const Burn: TTokenBurn): TBytes;
+    class operator Implicit(const P: Pointer): TTokenBurn;
   end;
 
   TTransaction<T: record> = record // fixed size
@@ -322,6 +368,140 @@ begin
   Result :=
    TCode.BytesOf<Integer>(Length(IconData.Bytes)) +
    IconData.Bytes;
+end;
+
+{ TLiquidityMint }
+
+procedure TLiquidityMint.CheckSign;
+begin
+  var addr: TBytes;
+  Require(TryRecoverAddress(DataHash, Sign, addr), 'wrong sign');
+  Require(addr = SenderAddress, 'wrong sign, address differs');
+end;
+
+function TLiquidityMint.DataForHash: TBytes;
+begin
+  Result := TCode.BytesOf(No)
+    + TCode.BytesOf(Name)
+    + TCode.BytesOf(Ticker)
+    + TCode.BytesOf(Digits)
+    + TCode.BytesOf(Amount)
+    + TCode.BytesOf(Liquidity)
+    + TCode.BytesOf(Fee)
+    + TCode.BytesOf(Description)
+    + TCode.BytesOf(IconURL);
+end;
+
+function TLiquidityMint.DataHash: TBlockHash;
+begin
+  Result.CreateFor(DataForHash);
+end;
+
+function TLiquidityMint.Hash: TBlockHash;
+begin
+  Result.CreateFor(DataForHash + TBytes(Sign));
+end;
+
+class operator TLiquidityMint.Implicit(const Mint: TLiquidityMint): TBytes;
+begin
+  Result := TCode.BytesOf(Mint.SenderAddress)
+   + TCode.BytesOf(Mint.No)
+   + TCode.BytesOf(Mint.Name)
+   + TCode.BytesOf(Mint.Ticker)
+   + TCode.BytesOf(Mint.Digits)
+   + TCode.BytesOf(Mint.Amount)
+   + TCode.BytesOf(Mint.Liquidity)
+   + TCode.BytesOf(Mint.Fee)
+   + TCode.BytesOf(Mint.Description)
+   + TCode.BytesOf(Mint.IconURL)
+   + TCode.BytesOf(Mint.Date)
+   + TCode.BytesOf(Mint.Sign);
+end;
+
+class operator TLiquidityMint.Implicit(const P: Pointer): TLiquidityMint;
+begin
+  var Bytes: PByte := P;
+  Result.SenderAddress := TCode.ValueOf<TAddress>(Bytes);
+  Result.No := TCode.ValueOf<UInt32>(Bytes);
+  Result.Name := TCode.StringOf(Bytes);
+  Result.Ticker := TCode.StringOf(Bytes);
+  Result.Digits := TCode.ValueOf<Byte>(Bytes);
+  Result.Amount := TCode.ValueOf<TAmount>(Bytes);
+  Result.Liquidity := TCode.ValueOf<TAmount>(Bytes);
+  Result.Fee := TCode.ValueOf<TAmount>(Bytes);
+  Result.Description := TCode.StringOf(Bytes);
+  Result.IconURL := TCode.StringOf(Bytes);
+  Result.Date := TCode.ValueOf<TUnixTimestamp>(Bytes);
+  Result.Sign := TCode.ValueOf<TSign>(Bytes);
+end;
+
+function TLiquidityMint.RecoverAddress: TAddress;
+begin
+  Result := Crypto.EthereumSigner.RecoverAddress(DataHash, Sign);
+end;
+
+procedure TLiquidityMint.SignBy(const PrivateKey: TPrivateKey);
+begin
+  Sign := SignWithKey(DataHash, PrivateKey);
+end;
+
+{ TTokenBurn }
+
+procedure TTokenBurn.CheckSign;
+begin
+  var addr: TBytes;
+  Require(TryRecoverAddress(DataHash, Sign, addr), 'wrong sign');
+  Require(addr = SenderAddress, 'wrong sign, address differs');
+end;
+
+function TTokenBurn.DataForHash: TBytes;
+begin
+  Result := TCode.BytesOf(No)
+    + TCode.BytesOf(TokenID)
+    + TCode.BytesOf(Amount);
+end;
+
+function TTokenBurn.DataHash: TBlockHash;
+begin
+  Result.CreateFor(DataForHash);
+end;
+
+function TTokenBurn.Hash: TBlockHash;
+begin
+  Result.CreateFor(DataForHash + TBytes(Sign));
+end;
+
+class operator TTokenBurn.Implicit(const Burn: TTokenBurn): TBytes;
+begin
+  Result := TCode.BytesOf(Burn.SenderAddress)
+   + TCode.BytesOf(Burn.No)
+   + TCode.BytesOf(Burn.TokenID)
+   + TCode.BytesOf(Burn.Amount)
+   + TCode.BytesOf(Burn.Fee)
+   + TCode.BytesOf(Burn.Date)
+   + TCode.BytesOf(Burn.Sign);
+end;
+
+class operator TTokenBurn.Implicit(const P: Pointer): TTokenBurn;
+begin
+  var Bytes: PByte := P;
+  Result.SenderAddress := TCode.ValueOf<TAddress>(Bytes);
+  Result.No := TCode.ValueOf<UInt32>(Bytes);
+  Result.TokenID := TCode.ValueOf<UInt64>(Bytes);
+  Result.Amount := TCode.ValueOf<TAmount>(Bytes);
+  Result.Fee := TCode.ValueOf<TAmount>(Bytes);
+  Result.Date := TCode.ValueOf<TUnixTimestamp>(Bytes);
+  Result.Sign := TCode.ValueOf<TSign>(Bytes);
+end;
+
+function TTokenBurn.RecoverAddress: TAddress;
+begin
+  Result := Crypto.EthereumSigner.RecoverAddress(DataHash, Sign);
+end;
+
+procedure TTokenBurn.SignBy(const PrivateKey: TPrivateKey);
+begin
+  Sign := SignWithKey(DataHash, PrivateKey);
 end;
 
 end.

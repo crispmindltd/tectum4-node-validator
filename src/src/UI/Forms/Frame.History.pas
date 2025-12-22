@@ -5,8 +5,8 @@ interface
 uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
   FMX.Types, FMX.Graphics, FMX.Controls, FMX.Forms, FMX.Dialogs, FMX.StdCtrls,
-  FMX.Controls.Presentation, FMX.Objects, Desktop.Controls,
-  FMX.Layouts, Blockchain.Types, Blockchain.Utils;
+  FMX.Controls.Presentation, FMX.Objects, Desktop.Controls, Math,
+  FMX.Layouts, App.Intf, Blockchain.Types, Blockchain.Utils;
 
 const
   DateTimeLabelWidth = 150;
@@ -34,7 +34,7 @@ type
     FTrx: TTransactionInfo;
   public
     procedure UpdateTransaction;
-    procedure SetData(const Trx: TTransactionInfo; Incom: Boolean);
+    procedure SetData(const Trx: TTransactionInfo; Incom: Boolean; IsUserTEC: Boolean = False);
     property Transaction: TTransactionInfo read FTrx;
   end;
 
@@ -44,7 +44,8 @@ implementation
 
 { THistoryTransactionFrame }
 
-procedure THistoryTransactionFrame.SetData(const Trx: TTransactionInfo; Incom: Boolean);
+procedure THistoryTransactionFrame.SetData(const Trx: TTransactionInfo; Incom: Boolean;
+  IsUserTEC: Boolean);
 begin
 
   Name := '';
@@ -58,17 +59,31 @@ begin
   HashLabel.Text := Trx.Hash;
   ValueLabel.Text := AmountToStr(Trx.Amount, '', Trx.Decimals);
 
-  if not Incom then
-  begin
-    IncomRectangle.Fill.Color := $FFE85D42;
-    IncomText.Text := 'OUT';
-  end else begin
-    IncomRectangle.Fill.Color := $FF0F9A62;
-    IncomText.Text := 'IN';
+  if Trx.TxType = 'mint' then
+    IncomRectangle.Fill.Color := $FF5B99FF
+  else begin
+    if not Incom then
+      IncomRectangle.Fill.Color := $FFE85D42
+    else
+      IncomRectangle.Fill.Color := $FF0F9A62;
+
+    if Trx.TxType = 'transfer' then
+      IncomText.Text := 'TRX'
+    else if Trx.TxType = 'burn' then
+    begin
+      var TokenData := AppCore.GetTokenData(Transaction.Ticker, True);
+      if not IsUserTEC then
+        ValueLabel.Text := AmountToStr(Trx.Amount, '', TokenData.Digits)
+      else begin
+        var TECAmount := Trunc(Transaction.Amount * Power(10, 8 - TokenData.Digits) * TokenData.ExRate);
+        ValueLabel.Text := AmountToStr(TECAmount, 'TEC');
+      end;
+    end;
   end;
 
+  if Trx.TxType <> 'transfer' then
+    IncomText.Text := Trx.TxType.ToUpper;
   IncomText.TextSettings.FontColor := IncomRectangle.Fill.Color;
-
 end;
 
 procedure THistoryTransactionFrame.FrameMouseEnter(Sender: TObject);

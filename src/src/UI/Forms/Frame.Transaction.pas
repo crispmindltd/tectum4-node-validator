@@ -5,7 +5,7 @@ interface
 uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
   FMX.Types, FMX.Graphics, FMX.Controls, FMX.Forms, FMX.Dialogs, FMX.StdCtrls,
-  FMX.Ani, FMX.Objects, FMX.Controls.Presentation, FMX.Layouts,
+  FMX.Ani, FMX.Objects, FMX.Controls.Presentation, FMX.Layouts, Math,
   App.Intf, Frame.Reward, Desktop.Controls, Blockchain.Types, Blockchain.Utils;
 
 type
@@ -69,6 +69,12 @@ type
     BlockFromIDLayout: TLayout;
     BlockFromIDLabel: TLabel;
     BlockFromIDText: TText;
+    LiquidityAmountLayout: TLayout;
+    LiquidityAmountLabel: TLabel;
+    LiquidityAmountValueText: TText;
+    TECReceivedLayout: TLayout;
+    TECReceivedLabel: TLabel;
+    TECReceivedValueText: TText;
     procedure TECBackCircleMouseEnter(Sender: TObject);
     procedure TECBackCircleMouseLeave(Sender: TObject);
     procedure FloatAnimation7Process(Sender: TObject);
@@ -79,7 +85,7 @@ type
     procedure SetType(const Text: string; Color: TAlphaColor);
   public
     constructor Create(AOwner: TComponent); override;
-    procedure SetTrxAsUser(const Transaction: TTransactionInfo);
+    procedure SetTrxAsUser(const Transaction: TTransactionInfo; const IsTEC: Boolean = True);
     procedure SetTrxAsStaking(const Transaction: TTransactionInfo);
     procedure SetTrx(const Transaction: TTransactionInfo);
   end;
@@ -157,12 +163,16 @@ end;
 
 procedure TTransactionFrame.SetType(const Text: string; Color: TAlphaColor);
 begin
+  TypeText.AutoSize := False;
   TypeText.Text := Text;
+  TypeText.AutoSize := True;
   TypeText.TextSettings.FontColor := Color;
   TypeRectangle.Fill.Color := Color;
+  TypeLayout.Width := TypeText.Width + 10;
 end;
 
-procedure TTransactionFrame.SetTrxAsUser(const Transaction: TTransactionInfo);
+procedure TTransactionFrame.SetTrxAsUser(const Transaction: TTransactionInfo;
+  const IsTEC: Boolean);
 begin
   TECDetailsLayout.Visible := False;
   TECInfoDetailsLayout.Visible := False;
@@ -170,18 +180,57 @@ begin
   BlockFromIDLayout.Visible := False;
   BlockToIDLayout.Visible := False;
   AddressToLayout.Visible := False;
+  LiquidityAmountLayout.Visible := Transaction.TxType = 'mint';
+  TECReceivedLayout.Visible := Transaction.TxType = 'burn';
+  RewardDetailLayout.Visible := Length(Transaction.Rewards) > 0;
   TECBlockDetailsText.Text := Transaction.Id.ToString;
   TECDateTimeDetailsText.Text := FormatDateTime('ddddd tt.zzz',
     Transaction.DateTime.ToDateTime(False));
   AddressFromLabel.Text := 'Address';
 
-  if Transaction.AddressTo = AppCore.Address then
+  if Transaction.TxType = 'burn' then
   begin
-    SetType('IN', $FF0F9A62);
-    AddressFromText.Text := Transaction.AddressFrom;
-  end else begin
-    SetType('OUT', $FFE85D42);
+    TECAmountDetailsText.Text := AmountToStr(Transaction.Amount, Transaction.Ticker,
+      Transaction.Decimals);
+    var TokenData := AppCore.GetTokenData(Transaction.Ticker, True);
+    var TECAmount := Trunc(Transaction.Amount * Power(10, 8 - TokenData.Digits) * TokenData.ExRate);
     AddressFromText.Text := Transaction.AddressTo;
+    TECReceivedValueText.Text := AmountToStr(TECAmount, 'TEC');
+    if IsTEC then
+      SetType('BURN', $FF0F9A62)
+    else
+      SetType('BURN', $FFE85D42);
+  end else
+  if Transaction.TxType = 'mint' then
+  begin
+    SetType('MINT', $FF5B99FF);
+    TECAmountDetailsText.Text := AmountToStr(Transaction.Amount, Transaction.Ticker,
+      Transaction.Decimals);
+    TECDetailsText.Text := Format('%s(%s)',[Transaction.Ticker, Transaction.Name]);
+    TECInfoDetailsLabelValue.Text := Trim(Transaction.Description);
+    AddressFromText.Text := Transaction.AddressTo;
+    LiquidityAmountValueText.Text := AmountToStr(Transaction.IndexFrom, 'TEC');
+  end else
+  if Transaction.TxType = 'migrate' then
+  begin
+    AddressFromText.Text := Transaction.AddressFrom;
+    SetType('MIGRATE', $FFFF6900);
+  end else
+  if Transaction.TxType = 'block' then
+  begin
+    AddressFromText.Text := Transaction.AddressFrom;
+    SetType('BLOCK', $FF555555);
+  end else
+  if Transaction.TxType = 'transfer' then
+  begin
+    if Transaction.AddressTo = AppCore.Address then
+    begin
+      SetType('TRANSFER', $FF0F9A62);
+      AddressFromText.Text := Transaction.AddressFrom;
+    end else begin
+      SetType('TRANSFER', $FFE85D42);
+      AddressFromText.Text := Transaction.AddressTo;
+    end;
   end;
 
   AddressToText.Text := Transaction.AddressTo;
@@ -195,11 +244,14 @@ end;
 
 procedure TTransactionFrame.SetTrxAsStaking(const Transaction: TTransactionInfo);
 begin
-  TECDetailsLayout.Visible := False;
-  TECInfoDetailsLayout.Visible := False;
   BlockFromIDLayout.Visible := False;
   BlockToIDLayout.Visible := False;
   AddressToLayout.Visible := False;
+  LiquidityAmountLayout.Visible := Transaction.TxType = 'mint';
+  TECReceivedLayout.Visible := Transaction.TxType = 'burn';
+  RewardDetailLayout.Visible := Length(Transaction.Rewards) > 0;
+  TECDetailsLayout.Visible := False;
+  TECInfoDetailsLayout.Visible := False;
   TECHashDetailsText.Text := Transaction.Hash;
   TECBlockDetailsText.Text := Transaction.Id.ToString;
   TECDateTimeDetailsText.Text := FormatDateTime('ddddd tt.zzz', Transaction.DateTime.ToDateTime(False));
@@ -229,11 +281,14 @@ end;
 
 procedure TTransactionFrame.SetTrx(const Transaction: TTransactionInfo);
 begin
-  TECDetailsLayout.Visible := Transaction.TxType = 'mint';
-  TECInfoDetailsLayout.Visible := Transaction.TxType = 'mint';
+  TECReceivedLayout.Visible := Transaction.TxType = 'burn';
   BlockFromIDLayout.Visible := Transaction.TxType = 'block';
   BlockToIDLayout.Visible := Transaction.TxType = 'block';
+  RewardDetailLayout.Visible := Length(Transaction.Rewards) > 0;
   AddressToLayout.Visible := True;
+  LiquidityAmountLayout.Visible := Transaction.TxType = 'mint';
+  TECDetailsLayout.Visible := Transaction.TxType = 'mint';
+  TECInfoDetailsLayout.Visible := Transaction.TxType = 'mint';
   TECHashDetailsText.Text := Transaction.Hash;
   TECBlockDetailsText.Text := Transaction.Id.ToString;
   TECDateTimeDetailsText.Text := FormatDateTime('ddddd tt.zzz', Transaction.DateTime.ToDateTime(False));
@@ -267,8 +322,17 @@ begin
       Transaction.Decimals);
     TECDetailsText.Text := Format('%s(%s)',[Transaction.Ticker, Transaction.Name]);
     TECInfoDetailsLabelValue.Text := Trim(Transaction.Description);
-
-    SetType('MINT', $FFFE7676);
+    LiquidityAmountValueText.Text := AmountToStr(Transaction.IndexFrom, 'TEC');
+    SetType('MINT', $FF5B99FF);
+  end else
+  if Transaction.TxType = 'burn' then
+  begin
+    TECAmountDetailsText.Text := AmountToStr(Transaction.Amount, Transaction.Ticker,
+      Transaction.Decimals);
+    var TokenData := AppCore.GetTokenData(Transaction.Ticker, True);
+    var TECAmount := Trunc(Transaction.Amount * Power(10, 8 - TokenData.Digits) * TokenData.ExRate);
+    TECReceivedValueText.Text := AmountToStr(TECAmount, 'TEC');
+    SetType('BURN', $FFFF0606);
   end else
     SetType('TRANSFER', $FF0F9A62);
 

@@ -65,6 +65,8 @@ type
     function ReadRawData(StartIndex: Int64): TBytes;
     procedure WriteRawData(const Data: TBytes);
     function CreateMintRawTransaction(const Name, Ticker, Description: string; Digits: Byte; AAmount: TAmount; IsIconDefault: Boolean; const APrKey: string): TBytes;
+    function CreateMintLiquidityRawTransaction(const Name, Ticker, Description: string; Digits: Byte; AAmount, ALiquidity: TAmount; IsIconDefault: Boolean; const APrKey: string): TBytes;
+    function CreateBurnRawTransaction(const AAmount: TAmount; const ATokenID: UInt64; const APrKey: string): TBytes;
     function CreateTransferRawTransaction(const AAddrFrom, AAddrTo: string; AAmount: TAmount; const APrKey: string; TokenId: UInt64): TBytes;
     function CreateMigrateRawTransaction(const AAddrFrom, AAddrTo: string; AAmount: TAmount; const APrKey: string): TBytes;
     function CreateStakeRawTransaction(const AAddr: string; AAmount: TAmount; const APrKey: string): TBytes;
@@ -72,7 +74,8 @@ type
     function CreateValidate40RawTransaction(const AAddr: string; TxHash: string; const Rewards: TArray<TRewardInfo>; const APrKey: string): TBytes;
     function CreateMineBlockRawTransaction(const BlockData: TBlockData): TBytes;
     function CreateValidateRawTransaction(const Data: TBytes; const ToHash: TBlockHash): TBytes;
-    function DoTokenMint(const Name, Ticker, Description:string; Digits: Byte; AAmount: TAmount; const IconBytes: TBytes; const APrKey: string): string;
+    function DoTokenMint(const Name, Ticker, Description:string; Digits: Byte; AAmount, ALiquidity: TAmount; const IconBytes: TBytes; const APrKey: string): string;
+    function DoTokenBurn(const AAmount: TAmount; const ATicker: string; const APrKey: string): string;
     function DoTokenTransfer(const AAddrFrom, AAddrTo: string; AAmount: TAmount; const APrKey: string; TokenId:Uint64): string;
     function DoTokenTransfers(const AAddrFrom: string; ATo: TArray<TTransferTo>; const APrKey: string): string;
     function DoTokenMigrate(const AAddrFrom, AAddrTo: string; AAmount: TAmount; const APrKey: string): string;
@@ -124,6 +127,25 @@ begin
   FUpdate := TUpdateCore.Create;
   FMiner := TMinerCore.Create(FBlockchainCore);
   FUpdate.UpdatesRef := 'https://raw.githubusercontent.com/crispmindltd/tectum4-node-test/refs/heads/main/update/lnode-updates.json';
+end;
+
+function TAppCore.CreateBurnRawTransaction(const AAmount: TAmount;
+  const ATokenID: UInt64; const APrKey: string): TBytes;
+begin
+  const AddressFrom = TPrivateKey(APrKey).PublicKey.Address;
+  const AddressStr = AddressFrom.AsString;
+  var Burn := Default(TTokenBurn);
+  Burn.No := IncNo(AddressStr);
+  Burn.SenderAddress := AddressFrom;
+  Burn.TokenID := ATokenID;
+  Burn.Amount := AAmount;
+  Burn.Fee := CalculateFee(AAmount);
+  Burn.Date := TUnixTimestamp.Now;
+  Burn.SignBy(APrKey);
+
+  Result := TCode.BytesOf(BURN_TOKEN_TRANSACTION) + TBytes(Burn);
+  var Len: TDataLength := Length(Result);
+  Result := TCode.BytesOf(Len) + Result;
 end;
 
 destructor TAppCore.Destroy;
@@ -287,8 +309,6 @@ begin
   FSettings.Address := FKeystore.ChangePrivateKey(PrKey);
 end;
 
-const _1_TEC = TAmount(100000000);
-
 function TAppCore.CalculateMaxSendValue(Amount: TAmount): TAmount;
 begin
   if Amount <= 10000 then             Exit(0)
@@ -307,6 +327,34 @@ begin
   Result := Amount div 1000;
   if Result < MinFee then      Result := MinFee
   else if Result > MaxFee then Result := MaxFee;
+end;
+
+function TAppCore.CreateMintLiquidityRawTransaction(const Name, Ticker,
+  Description: string; Digits: Byte; AAmount, ALiquidity: TAmount;
+  IsIconDefault: Boolean; const APrKey: string): TBytes;
+begin
+  const AddressFrom = TPrivateKey(APrKey).PublicKey.Address;
+  const AddressStr = AddressFrom.AsString;
+  var Mint := Default(TLiquidityMint);
+  Mint.No := IncNo(AddressStr);
+  Mint.Name := Name;
+  Mint.Ticker := Ticker.ToUpper;
+  Mint.Amount := AAmount;
+  Mint.Liquidity := ALiquidity;
+  Mint.Fee := 10 * _1_TEC;
+  Mint.Digits := Digits;
+  Mint.Description := Description;
+  if IsIconDefault then
+    Mint.IconURL := IconURLDomain + '/default.png'
+  else
+    Mint.IconURL := Format('%s/%s.png',[IconURLDomain,Ticker]).ToLower;
+  Mint.Date := TUnixTimestamp.Now;
+  Mint.SenderAddress := AddressFrom;
+  Mint.SignBy(APrKey);
+
+  Result := TCode.BytesOf(MINT_LIQUIDITY_TRANSACTION) + TBytes(Mint);
+  var Len: TDataLength := Length(Result);
+  Result := TCode.BytesOf(Len) + Result;
 end;
 
 function TAppCore.CreateMintRawTransaction(const Name, Ticker, Description: string;
@@ -520,9 +568,13 @@ begin
 end;
 
 function TAppCore.DoTokenMint(const Name, Ticker, Description: string; Digits: Byte;
-  AAmount: TAmount; const IconBytes: TBytes; const APrKey: string): string;
+  AAmount, ALiquidity: TAmount; const IconBytes: TBytes; const APrKey: string): string;
 begin
-  var Data := CreateMintRawTransaction(Name, Ticker, Description, Digits, AAmount, Length(IconBytes) = 0, APrKey);
+  var Data: TBytes;
+  if ALiquidity = 0 then
+    Data := CreateMintRawTransaction(Name, Ticker, Description, Digits, AAmount, Length(IconBytes) = 0, APrKey)
+  else
+    Data := CreateMintLiquidityRawTransaction(Name, Ticker, Description, Digits, AAmount, ALiquidity, Length(IconBytes) = 0, APrKey);
 
   var IconData: TIconData := Default(TIconData);
   IconData.Bytes := IconBytes;
@@ -549,6 +601,15 @@ begin
   var Data := TBytes(nil);
   for var Item in ATo do
     Data := Data + CreateTransferRawTransaction(AAddrFrom, Item.Address, Item.Amount, APrKey, 0 {TEC id});
+  FBlockchainCore.DoValidation(Data);
+  Result := SendTransaction(Data);
+end;
+
+function TAppCore.DoTokenBurn(const AAmount: TAmount; const ATicker: string;
+  const APrKey: string): string;
+begin
+  var TokenData := AppCore.GetTokenData(ATicker, True);
+  var Data := CreateBurnRawTransaction(AAmount, TokenData.Id, APrKey);
   FBlockchainCore.DoValidation(Data);
   Result := SendTransaction(Data);
 end;
@@ -650,7 +711,7 @@ begin
   begin
     if ((Tx.AddressFrom = AAddress) or (Tx.AddressFrom = Copy(AAddress, 3, Length(Address))) or
     (Tx.AddressTo = AAddress) or (Tx.AddressTo = Copy(AAddress, 3, Length(Address)))) and
-    (Tx.Ticker = Ticker) then begin
+    ((Tx.Ticker = Ticker) or ((Tx.TxType = 'burn') and (Ticker = 'TEC'))) then begin
       Inc(C);
       if C <= Skip then else
       if C > Skip + Count then

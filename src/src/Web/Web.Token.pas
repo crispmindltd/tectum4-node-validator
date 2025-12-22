@@ -17,6 +17,7 @@ type
   TTokenEndpoints = class(TEndpointsBase)
   public
     procedure DoTokenMint(const Request: TRequest; var Response: TResponse);
+    procedure DoTokenBurn(const Request: TRequest; var Response: TResponse);
     procedure GetTokenBalance(const Request: TRequest; var Response: TResponse);
     procedure GetTokenInfo(const Request: TRequest; var Response: TResponse);
     procedure DoTokenTransfer(const Request: TRequest; var Response: TResponse);
@@ -36,7 +37,20 @@ begin
     JSON.GetValue<string>('description'),
     JSON.GetValue<Byte>('decimals'),
     JSON.GetValue<TAmount>('amount'),
+    JSON.GetValue<TAmount>('liquidity', 0),
     HexToBytes(JSON.GetValue<string>('icon', '')),
+    JSON.GetValue<string>('private_key'))));
+end;
+
+procedure TTokenEndpoints.DoTokenBurn(const Request: TRequest;
+  var Response: TResponse);
+begin
+  const JSON = ParseJSONObject(Request.Content);
+  AddRelease(JSON);
+
+  Response.SetJsonContent(GetHashJson(AppCore.DoTokenBurn(
+    JSON.GetValue<TAmount>('amount'),
+    JSON.GetValue<string>('ticker').ToUpper,
     JSON.GetValue<string>('private_key'))));
 end;
 
